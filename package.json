@@ -1,0 +1,29 @@
+{
+  "name": "cummins-nextjs-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^8.1.1",
+    "@googlemaps/react-wrapper": "^1.2.0",
+    "@react-google-maps/api": "^2.20.7",
+    "chart.js": "^4.5.1",
+    "next": "16.0.3",
+    "papaparse": "^5.5.3",
+    "react": "19.2.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.3",
+    "tailwindcss": "^4"
+  }
+}
