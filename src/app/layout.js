@@ -1,12 +1,18 @@
+import Navbar from "@/components/dashboard/Navbar";
+import "./globals.css";
+
 export const metadata = {
-  title: "Next.js Google Map Dashboard",
-  description: "Dashboard displaying Google Maps",
+  title: "Cummins Analytics - Fuel Station Data Visualization",
+  description: "Professional data visualization platform for fuel station analytics with interactive heatmaps, graphs, and charts",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }
