@@ -1,0 +1,1001 @@
+State,City,Vehicle_Count,Vehicle_Class,Fuel_Type
+Pennsylvania,Erie,49,Medium Duty,CNG
+Florida,Cape Coral,109,Heavy Duty,EV
+Massachusetts,Lynn,144,Class 7,EV
+Michigan,Flint,52,Medium Duty,CNG
+Colorado,Thornton,103,Class 8,CNG
+North Carolina,Winston-Salem,86,Light Duty,EV
+New York,Buffalo,55,Class 8,CNG
+Washington,Federal Way,33,Light Duty,EV
+Florida,Miami,62,Class 8,EV
+Florida,Tallahassee,111,Medium Duty,EV
+California,Oakland,47,Heavy Duty,CNG
+Massachusetts,Lynn,63,Class 7,EV
+Arizona,Peoria,147,Light Duty,CNG
+Massachusetts,Brockton,104,Class 7,CNG
+Pennsylvania,Reading,65,Class 8,EV
+Massachusetts,Lynn,121,Light Duty,EV
+Massachusetts,Lowell,82,Medium Duty,CNG
+Tennessee,Bartlett,120,Heavy Duty,CNG
+North Carolina,Winston-Salem,43,Class 7,EV
+Illinois,Peoria,126,Medium Duty,CNG
+Illinois,Elgin,117,Medium Duty,EV
+Arizona,Gilbert,68,Light Duty,EV
+Texas,Laredo,26,Class 8,CNG
+Pennsylvania,Reading,131,Class 8,EV
+New York,Albany,26,Light Duty,CNG
+Michigan,Warren,127,Class 7,CNG
+New York,Rochester,99,Class 8,CNG
+Ohio,Cincinnati,51,Medium Duty,CNG
+Florida,Tampa,128,Heavy Duty,CNG
+Arizona,Surprise,128,Light Duty,CNG
+California,Oakland,77,Medium Duty,CNG
+Massachusetts,Boston,105,Light Duty,EV
+Pennsylvania,Harrisburg,117,Light Duty,CNG
+Colorado,Colorado Springs,128,Light Duty,CNG
+Massachusetts,Cambridge,10,Class 7,EV
+Massachusetts,Worcester,47,Class 7,EV
+Texas,Corpus Christi,93,Class 7,CNG
+Washington,Tacoma,19,Medium Duty,CNG
+Georgia,Columbus,60,Class 8,EV
+Tennessee,Knoxville,53,Class 8,CNG
+Colorado,Pueblo,6,Light Duty,EV
+New York,Utica,76,Heavy Duty,CNG
+Georgia,Columbus,33,Class 7,EV
+Florida,Tampa,86,Heavy Duty,CNG
+Texas,Arlington,77,Heavy Duty,CNG
+Tennessee,Chattanooga,18,Heavy Duty,EV
+North Carolina,Wilmington,70,Light Duty,CNG
+Texas,Laredo,138,Class 7,CNG
+North Carolina,High Point,81,Class 8,CNG
+California,San Francisco,150,Class 7,EV
+Tennessee,Murfreesboro,21,Light Duty,CNG
+Texas,El Paso,73,Class 7,EV
+Georgia,Augusta,137,Class 7,CNG
+Washington,Everett,74,Class 8,EV
+Georgia,Macon,18,Light Duty,EV
+Illinois,Elgin,135,Class 8,CNG
+North Carolina,Wilmington,115,Class 8,EV
+Ohio,Akron,35,Class 7,EV
+New York,New York City,133,Heavy Duty,EV
+Florida,Tampa,61,Heavy Duty,CNG
+Arizona,Scottsdale,33,Medium Duty,EV
+Pennsylvania,Harrisburg,109,Heavy Duty,CNG
+Georgia,Sandy Springs,139,Class 8,CNG
+Ohio,Lorain,118,Light Duty,EV
+New York,Syracuse,53,Class 7,CNG
+New York,Mount Vernon,104,Class 7,EV
+Tennessee,Clarksville,112,Medium Duty,EV
+North Carolina,Concord,142,Class 8,CNG
+Tennessee,Memphis,12,Medium Duty,CNG
+California,Oakland,140,Class 7,CNG
+California,Long Beach,106,Class 8,CNG
+Washington,Vancouver,138,Medium Duty,CNG
+Florida,Port St. Lucie,118,Class 7,EV
+Michigan,Troy,124,Heavy Duty,EV
+Colorado,Aurora,133,Class 8,EV
+Michigan,Flint,142,Class 8,CNG
+Tennessee,Clarksville,66,Heavy Duty,CNG
+Massachusetts,Cambridge,65,Heavy Duty,CNG
+California,San Francisco,133,Class 7,EV
+Pennsylvania,Harrisburg,106,Light Duty,CNG
+New York,Rochester,77,Class 7,CNG
+Washington,Federal Way,100,Medium Duty,EV
+Pennsylvania,Philadelphia,59,Heavy Duty,CNG
+North Carolina,Raleigh,38,Heavy Duty,CNG
+Tennessee,Jackson,68,Medium Duty,CNG
+Florida,Fort Lauderdale,126,Class 8,EV
+Massachusetts,Quincy,63,Class 8,EV
+Tennessee,Bartlett,56,Heavy Duty,CNG
+California,Sacramento,94,Light Duty,EV
+Texas,San Antonio,83,Heavy Duty,CNG
+Texas,Austin,39,Class 7,CNG
+Washington,Spokane,7,Class 8,CNG
+Tennessee,Johnson City,53,Light Duty,EV
+New York,Albany,20,Class 7,EV
+Pennsylvania,Altoona,32,Light Duty,CNG
+New York,New Rochelle,141,Light Duty,EV
+Georgia,Atlanta,133,Heavy Duty,EV
+Georgia,Augusta,21,Heavy Duty,CNG
+Michigan,Warren,121,Class 7,CNG
+Georgia,Augusta,129,Heavy Duty,CNG
+New York,Schenectady,100,Light Duty,EV
+Arizona,Gilbert,58,Medium Duty,CNG
+Arizona,Chandler,88,Heavy Duty,CNG
+Georgia,Roswell,18,Class 8,CNG
+North Carolina,Durham,66,Heavy Duty,CNG
+Pennsylvania,Allentown,76,Light Duty,CNG
+Arizona,Chandler,87,Medium Duty,CNG
+Washington,Bellevue,94,Class 8,EV
+Massachusetts,Newton,13,Light Duty,CNG
+North Carolina,Winston-Salem,17,Class 8,CNG
+Ohio,Columbus,52,Light Duty,EV
+Massachusetts,Cambridge,21,Heavy Duty,EV
+Georgia,Johns Creek,30,Heavy Duty,CNG
+Illinois,Springfield,30,Heavy Duty,EV
+Texas,Arlington,120,Medium Duty,CNG
+Washington,Everett,91,Class 7,EV
+Texas,Laredo,122,Class 7,EV
+Texas,Laredo,99,Class 8,CNG
+Texas,Corpus Christi,81,Class 8,EV
+California,San Jose,91,Class 7,CNG
+Florida,Tampa,37,Class 7,CNG
+Pennsylvania,Scranton,54,Class 8,EV
+Illinois,Naperville,24,Medium Duty,EV
+New York,New York City,72,Light Duty,CNG
+Washington,Federal Way,91,Heavy Duty,EV
+Florida,Miami,101,Medium Duty,CNG
+Tennessee,Clarksville,132,Medium Duty,CNG
+Pennsylvania,Harrisburg,45,Class 7,CNG
+North Carolina,Greensboro,13,Heavy Duty,EV
+Massachusetts,Worcester,3,Class 7,EV
+Colorado,Pueblo,114,Medium Duty,CNG
+Ohio,Parma,90,Light Duty,CNG
+Michigan,Warren,141,Class 8,CNG
+Ohio,Dayton,29,Class 7,EV
+Illinois,Chicago,100,Light Duty,EV
+Florida,Cape Coral,11,Light Duty,EV
+Washington,Vancouver,95,Light Duty,EV
+Michigan,Troy,35,Class 7,EV
+New York,Utica,77,Heavy Duty,EV
+Michigan,Troy,28,Medium Duty,CNG
+Tennessee,Jackson,52,Medium Duty,CNG
+Georgia,Atlanta,65,Class 8,EV
+North Carolina,Durham,123,Class 7,EV
+Arizona,Phoenix,101,Light Duty,CNG
+Ohio,Columbus,137,Class 8,CNG
+Arizona,Glendale,112,Medium Duty,CNG
+Arizona,Tucson,124,Class 7,EV
+Texas,Houston,133,Class 8,EV
+North Carolina,Durham,69,Heavy Duty,CNG
+Michigan,Detroit,12,Light Duty,CNG
+Florida,Miami,53,Class 7,CNG
+Michigan,Warren,24,Heavy Duty,EV
+Massachusetts,Worcester,33,Heavy Duty,EV
+Illinois,Cicero,135,Heavy Duty,CNG
+Arizona,Phoenix,124,Class 7,EV
+Ohio,Lorain,59,Light Duty,CNG
+Tennessee,Clarksville,98,Heavy Duty,EV
+Tennessee,Jackson,77,Class 8,CNG
+California,Oakland,73,Heavy Duty,CNG
+Tennessee,Murfreesboro,41,Heavy Duty,CNG
+Illinois,Elgin,92,Medium Duty,CNG
+Michigan,Warren,105,Medium Duty,EV
+Tennessee,Jackson,56,Medium Duty,CNG
+Tennessee,Knoxville,92,Light Duty,CNG
+Illinois,Rockford,111,Heavy Duty,CNG
+Michigan,Lansing,76,Class 7,CNG
+Michigan,Flint,5,Class 7,EV
+Ohio,Youngstown,10,Class 8,CNG
+North Carolina,Concord,117,Class 8,EV
+Washington,Seattle,81,Class 8,EV
+New York,New York City,136,Heavy Duty,EV
+Florida,Fort Lauderdale,121,Class 8,EV
+Florida,St. Petersburg,141,Class 8,EV
+New York,Albany,26,Class 8,EV
+Washington,Bellevue,119,Class 7,CNG
+New York,New York City,61,Class 7,EV
+California,San Jose,76,Heavy Duty,EV
+Arizona,Tucson,126,Medium Duty,CNG
+New York,Albany,99,Medium Duty,EV
+Arizona,Glendale,121,Light Duty,CNG
+Colorado,Westminster,63,Class 7,CNG
+Ohio,Toledo,11,Heavy Duty,CNG
+Texas,El Paso,102,Medium Duty,CNG
+Michigan,Dearborn,142,Class 7,CNG
+Michigan,Ann Arbor,71,Class 8,EV
+New York,Albany,129,Light Duty,CNG
+Washington,Tacoma,141,Light Duty,CNG
+Colorado,Centennial,106,Medium Duty,EV
+California,Bakersfield,52,Heavy Duty,EV
+Arizona,Mesa,38,Medium Duty,CNG
+Washington,Renton,132,Class 8,CNG
+Tennessee,Murfreesboro,84,Light Duty,CNG
+Georgia,Athens,30,Class 8,CNG
+California,Oakland,125,Heavy Duty,EV
+Pennsylvania,Philadelphia,61,Heavy Duty,CNG
+Florida,Cape Coral,59,Class 7,CNG
+Ohio,Cleveland,45,Heavy Duty,CNG
+Pennsylvania,Harrisburg,141,Heavy Duty,EV
+Pennsylvania,Reading,22,Light Duty,CNG
+North Carolina,Wilmington,136,Class 8,CNG
+North Carolina,Greensboro,24,Light Duty,EV
+Washington,Renton,65,Class 7,CNG
+Massachusetts,Springfield,41,Heavy Duty,CNG
+Massachusetts,Quincy,124,Heavy Duty,CNG
+Colorado,Pueblo,85,Medium Duty,CNG
+Illinois,Chicago,48,Class 8,EV
+Massachusetts,Lowell,49,Class 8,EV
+Texas,Dallas,2,Light Duty,CNG
+Massachusetts,Newton,4,Heavy Duty,CNG
+North Carolina,High Point,44,Light Duty,CNG
+Florida,Fort Lauderdale,93,Light Duty,CNG
+New York,Mount Vernon,101,Heavy Duty,CNG
+Michigan,Grand Rapids,32,Class 7,EV
+Colorado,Centennial,105,Heavy Duty,CNG
+Illinois,Naperville,98,Class 8,EV
+Florida,Fort Lauderdale,117,Medium Duty,EV
+Ohio,Canton,70,Heavy Duty,CNG
+California,San Francisco,38,Medium Duty,EV
+Massachusetts,Fall River,32,Medium Duty,EV
+Colorado,Westminster,72,Heavy Duty,EV
+Massachusetts,Lowell,95,Heavy Duty,CNG
+Arizona,Gilbert,64,Medium Duty,EV
+Arizona,Tucson,127,Class 8,CNG
+New York,Rochester,117,Class 8,EV
+California,Bakersfield,57,Class 8,CNG
+Washington,Vancouver,74,Light Duty,CNG
+New York,Utica,41,Heavy Duty,EV
+Massachusetts,Brockton,24,Heavy Duty,EV
+Michigan,Livonia,97,Medium Duty,EV
+Tennessee,Bartlett,34,Medium Duty,CNG
+Florida,Fort Lauderdale,130,Heavy Duty,EV
+California,San Francisco,131,Heavy Duty,EV
+Florida,Jacksonville,98,Class 8,CNG
+California,Anaheim,81,Heavy Duty,CNG
+Tennessee,Johnson City,45,Class 8,CNG
+Pennsylvania,Bethlehem,145,Class 7,EV
+Florida,St. Petersburg,14,Medium Duty,EV
+Tennessee,Franklin,55,Class 7,EV
+Michigan,Dearborn,115,Light Duty,CNG
+Arizona,Gilbert,50,Heavy Duty,CNG
+California,Anaheim,52,Class 8,EV
+Tennessee,Murfreesboro,80,Class 8,EV
+Florida,Tampa,100,Light Duty,EV
+Georgia,Augusta,142,Medium Duty,EV
+California,San Diego,103,Medium Duty,CNG
+Washington,Everett,49,Heavy Duty,CNG
+Florida,Hialeah,40,Light Duty,CNG
+Massachusetts,Cambridge,59,Light Duty,CNG
+Ohio,Cincinnati,115,Class 8,CNG
+California,Long Beach,127,Class 8,CNG
+Pennsylvania,Lancaster,138,Heavy Duty,EV
+Texas,Laredo,66,Class 8,EV
+Arizona,Peoria,8,Heavy Duty,EV
+California,Sacramento,21,Class 7,EV
+New York,Buffalo,1,Light Duty,CNG
+Texas,Corpus Christi,6,Class 8,CNG
+Texas,San Antonio,32,Class 8,CNG
+Florida,Tallahassee,24,Class 8,EV
+Ohio,Lorain,140,Class 8,EV
+Texas,Laredo,83,Heavy Duty,EV
+Michigan,Troy,78,Class 7,CNG
+Georgia,Savannah,9,Light Duty,EV
+Texas,Plano,118,Heavy Duty,EV
+Florida,Hialeah,133,Class 7,CNG
+Colorado,Lakewood,63,Class 7,CNG
+North Carolina,Charlotte,30,Medium Duty,EV
+Michigan,Troy,138,Medium Duty,CNG
+Ohio,Columbus,7,Heavy Duty,EV
+Ohio,Lorain,2,Heavy Duty,EV
+New York,Buffalo,11,Class 7,EV
+Colorado,Arvada,80,Class 7,EV
+Texas,Plano,115,Light Duty,EV
+Arizona,Scottsdale,12,Heavy Duty,EV
+Illinois,Aurora,147,Light Duty,CNG
+Illinois,Aurora,78,Class 8,EV
+Washington,Everett,134,Light Duty,CNG
+New York,New York City,52,Class 8,EV
+Michigan,Ann Arbor,71,Heavy Duty,CNG
+Ohio,Youngstown,46,Medium Duty,EV
+New York,Syracuse,40,Medium Duty,EV
+Tennessee,Johnson City,97,Light Duty,CNG
+Arizona,Peoria,22,Heavy Duty,EV
+Arizona,Surprise,107,Class 8,EV
+California,San Diego,140,Heavy Duty,EV
+Arizona,Mesa,65,Light Duty,CNG
+Ohio,Lorain,140,Class 8,CNG
+Colorado,Centennial,83,Class 7,CNG
+North Carolina,Wilmington,133,Medium Duty,CNG
+Pennsylvania,Bethlehem,11,Class 8,CNG
+Washington,Tacoma,27,Light Duty,EV
+Washington,Spokane Valley,84,Light Duty,EV
+Florida,Cape Coral,44,Class 7,EV
+Tennessee,Chattanooga,3,Light Duty,EV
+Florida,Orlando,97,Class 8,EV
+California,San Francisco,65,Light Duty,EV
+California,Fresno,28,Heavy Duty,EV
+Florida,Cape Coral,23,Class 7,EV
+Georgia,Columbus,95,Class 8,CNG
+Illinois,Peoria,50,Medium Duty,CNG
+Florida,Cape Coral,132,Medium Duty,EV
+New York,Rochester,134,Class 8,CNG
+California,Sacramento,117,Medium Duty,CNG
+Massachusetts,Springfield,134,Class 7,CNG
+New York,Rochester,73,Heavy Duty,CNG
+Michigan,Livonia,131,Class 8,CNG
+Colorado,Pueblo,63,Heavy Duty,EV
+North Carolina,Concord,9,Heavy Duty,EV
+Colorado,Colorado Springs,53,Class 7,CNG
+Texas,Arlington,106,Class 8,CNG
+New York,Mount Vernon,132,Class 8,CNG
+Ohio,Canton,49,Class 8,CNG
+California,San Jose,62,Heavy Duty,EV
+Washington,Vancouver,50,Medium Duty,EV
+Tennessee,Knoxville,82,Class 7,CNG
+Colorado,Centennial,148,Class 8,EV
+Georgia,Savannah,134,Light Duty,EV
+Michigan,Troy,87,Class 7,EV
+Washington,Federal Way,76,Heavy Duty,EV
+Pennsylvania,Lancaster,27,Heavy Duty,CNG
+Florida,Miami,141,Light Duty,CNG
+Washington,Vancouver,38,Medium Duty,EV
+North Carolina,Fayetteville,39,Medium Duty,CNG
+New York,Mount Vernon,22,Heavy Duty,EV
+California,Sacramento,144,Class 8,CNG
+Colorado,Lakewood,82,Class 7,EV
+Massachusetts,Fall River,97,Class 7,CNG
+Arizona,Chandler,27,Class 8,EV
+Massachusetts,Newton,87,Class 8,CNG
+New York,Buffalo,28,Light Duty,CNG
+Arizona,Chandler,39,Medium Duty,EV
+Ohio,Columbus,115,Heavy Duty,CNG
+Florida,Miami,79,Class 7,CNG
+Florida,Tallahassee,146,Medium Duty,EV
+Tennessee,Johnson City,150,Class 8,EV
+Illinois,Aurora,16,Light Duty,CNG
+Massachusetts,Springfield,101,Class 7,CNG
+New York,New York City,29,Light Duty,EV
+Arizona,Phoenix,88,Medium Duty,CNG
+Pennsylvania,Lancaster,145,Heavy Duty,EV
+Colorado,Pueblo,73,Class 8,CNG
+Georgia,Macon,64,Medium Duty,CNG
+Illinois,Springfield,106,Light Duty,EV
+Illinois,Cicero,43,Medium Duty,EV
+New York,New York City,34,Class 7,CNG
+Arizona,Peoria,117,Class 8,CNG
+Illinois,Naperville,45,Heavy Duty,EV
+Colorado,Denver,87,Light Duty,EV
+Texas,Corpus Christi,74,Class 8,EV
+Pennsylvania,Reading,83,Class 7,EV
+Massachusetts,Lowell,37,Medium Duty,CNG
+Colorado,Denver,102,Class 7,CNG
+Georgia,Johns Creek,122,Medium Duty,EV
+New York,Buffalo,125,Class 7,EV
+Washington,Spokane,55,Heavy Duty,EV
+Michigan,Livonia,2,Class 7,EV
+Arizona,Glendale,39,Class 8,CNG
+New York,Mount Vernon,148,Class 7,EV
+North Carolina,Raleigh,146,Class 7,CNG
+Michigan,Grand Rapids,80,Light Duty,EV
+New York,Rochester,108,Heavy Duty,CNG
+Ohio,Youngstown,52,Class 7,CNG
+Pennsylvania,Scranton,91,Medium Duty,CNG
+Arizona,Peoria,145,Heavy Duty,CNG
+Arizona,Mesa,5,Light Duty,EV
+Texas,El Paso,51,Heavy Duty,CNG
+Arizona,Surprise,40,Medium Duty,EV
+New York,Utica,54,Class 7,EV
+Arizona,Peoria,147,Light Duty,EV
+Ohio,Toledo,129,Class 8,CNG
+Tennessee,Jackson,117,Class 7,EV
+Michigan,Warren,70,Class 8,CNG
+North Carolina,Greensboro,44,Class 8,EV
+North Carolina,High Point,42,Class 7,EV
+Colorado,Colorado Springs,51,Heavy Duty,EV
+Florida,Fort Lauderdale,57,Class 8,EV
+Colorado,Colorado Springs,38,Heavy Duty,CNG
+New York,New Rochelle,124,Light Duty,EV
+Ohio,Cleveland,15,Class 8,CNG
+Texas,Dallas,3,Light Duty,CNG
+Tennessee,Nashville,103,Light Duty,CNG
+Texas,Laredo,49,Light Duty,EV
+Arizona,Scottsdale,116,Medium Duty,CNG
+Florida,Jacksonville,61,Heavy Duty,EV
+Colorado,Arvada,36,Class 8,EV
+Arizona,Surprise,131,Class 7,EV
+Illinois,Elgin,7,Class 8,EV
+Georgia,Atlanta,142,Medium Duty,EV
+Illinois,Springfield,53,Light Duty,EV
+Washington,Tacoma,126,Class 7,EV
+Tennessee,Knoxville,136,Light Duty,CNG
+Georgia,Sandy Springs,66,Medium Duty,CNG
+Colorado,Fort Collins,61,Medium Duty,CNG
+Colorado,Colorado Springs,121,Class 8,EV
+Massachusetts,Newton,104,Light Duty,CNG
+Florida,Fort Lauderdale,32,Light Duty,EV
+Michigan,Flint,18,Light Duty,CNG
+Texas,Houston,19,Heavy Duty,CNG
+Florida,Fort Lauderdale,122,Heavy Duty,CNG
+Ohio,Toledo,59,Medium Duty,CNG
+Colorado,Westminster,105,Heavy Duty,CNG
+California,San Jose,125,Class 8,CNG
+California,Bakersfield,44,Light Duty,EV
+California,Sacramento,1,Class 7,CNG
+Colorado,Aurora,17,Class 7,CNG
+Florida,Cape Coral,19,Heavy Duty,CNG
+Michigan,Sterling Heights,25,Medium Duty,CNG
+Ohio,Cincinnati,88,Class 7,EV
+Massachusetts,Quincy,115,Heavy Duty,EV
+Arizona,Tucson,79,Class 7,CNG
+Massachusetts,Cambridge,39,Class 8,CNG
+Colorado,Colorado Springs,148,Class 7,EV
+Illinois,Rockford,59,Class 8,EV
+Georgia,Macon,35,Class 8,EV
+Georgia,Sandy Springs,22,Class 8,EV
+Ohio,Cincinnati,67,Light Duty,CNG
+Washington,Tacoma,99,Light Duty,CNG
+Georgia,Macon,84,Light Duty,EV
+Tennessee,Franklin,80,Medium Duty,CNG
+Texas,Plano,72,Medium Duty,CNG
+New York,Buffalo,10,Medium Duty,CNG
+Colorado,Arvada,95,Class 7,CNG
+Tennessee,Franklin,97,Light Duty,EV
+Pennsylvania,Philadelphia,130,Class 8,CNG
+Ohio,Youngstown,133,Class 8,CNG
+Tennessee,Jackson,133,Light Duty,EV
+Arizona,Phoenix,22,Heavy Duty,CNG
+Arizona,Phoenix,79,Heavy Duty,EV
+North Carolina,Durham,79,Class 8,CNG
+Texas,San Antonio,125,Heavy Duty,EV
+Ohio,Youngstown,113,Medium Duty,EV
+Michigan,Grand Rapids,23,Heavy Duty,EV
+Colorado,Pueblo,31,Class 8,CNG
+Ohio,Columbus,73,Class 7,CNG
+Washington,Kent,18,Light Duty,EV
+North Carolina,Charlotte,131,Class 8,CNG
+Washington,Federal Way,58,Class 7,EV
+Texas,Laredo,115,Heavy Duty,CNG
+Colorado,Centennial,131,Medium Duty,CNG
+Tennessee,Jackson,130,Medium Duty,CNG
+Florida,Tampa,129,Medium Duty,CNG
+California,San Diego,90,Class 8,EV
+Colorado,Pueblo,107,Medium Duty,EV
+Arizona,Glendale,62,Heavy Duty,CNG
+Georgia,Roswell,96,Class 8,CNG
+Washington,Spokane Valley,85,Class 8,EV
+Tennessee,Nashville,22,Heavy Duty,EV
+Florida,Fort Lauderdale,150,Class 8,CNG
+Georgia,Roswell,123,Medium Duty,EV
+North Carolina,Fayetteville,59,Light Duty,EV
+California,Long Beach,121,Class 8,CNG
+Michigan,Dearborn,122,Class 8,EV
+Georgia,Columbus,22,Class 8,CNG
+Massachusetts,Quincy,117,Light Duty,EV
+North Carolina,Cary,9,Heavy Duty,CNG
+Washington,Renton,144,Heavy Duty,EV
+Washington,Seattle,66,Medium Duty,CNG
+Texas,El Paso,75,Class 8,CNG
+Texas,Fort Worth,137,Heavy Duty,EV
+Texas,Houston,49,Class 7,CNG
+Washington,Everett,116,Class 8,EV
+California,Sacramento,72,Heavy Duty,CNG
+Texas,Laredo,102,Light Duty,CNG
+Ohio,Dayton,98,Class 7,CNG
+California,Fresno,53,Heavy Duty,CNG
+Tennessee,Nashville,59,Light Duty,EV
+Georgia,Roswell,35,Medium Duty,EV
+Texas,Houston,120,Class 7,EV
+Arizona,Gilbert,21,Medium Duty,EV
+Texas,Fort Worth,10,Medium Duty,CNG
+Pennsylvania,Harrisburg,98,Medium Duty,CNG
+Illinois,Waukegan,120,Class 7,EV
+North Carolina,Fayetteville,121,Class 8,CNG
+Colorado,Denver,118,Class 8,EV
+Texas,Dallas,105,Medium Duty,CNG
+Massachusetts,Cambridge,36,Heavy Duty,CNG
+Michigan,Grand Rapids,132,Heavy Duty,EV
+Michigan,Livonia,23,Light Duty,CNG
+Arizona,Glendale,26,Heavy Duty,CNG
+Arizona,Gilbert,59,Class 8,EV
+New York,Schenectady,50,Heavy Duty,EV
+Massachusetts,Lowell,55,Heavy Duty,CNG
+Ohio,Cincinnati,74,Heavy Duty,EV
+Arizona,Glendale,4,Class 8,CNG
+Tennessee,Murfreesboro,145,Heavy Duty,EV
+New York,Yonkers,110,Heavy Duty,CNG
+Georgia,Atlanta,97,Class 7,EV
+Illinois,Aurora,111,Medium Duty,EV
+Florida,Hialeah,83,Medium Duty,CNG
+Massachusetts,Worcester,147,Class 7,EV
+Ohio,Parma,86,Heavy Duty,EV
+Florida,Hialeah,7,Class 8,CNG
+Pennsylvania,Pittsburgh,108,Class 7,CNG
+Texas,Arlington,127,Light Duty,EV
+Colorado,Colorado Springs,100,Heavy Duty,CNG
+Pennsylvania,Philadelphia,98,Class 7,EV
+Ohio,Columbus,52,Class 8,CNG
+Georgia,Johns Creek,58,Light Duty,CNG
+Illinois,Cicero,122,Light Duty,EV
+Tennessee,Johnson City,23,Medium Duty,EV
+Pennsylvania,Erie,107,Medium Duty,CNG
+Illinois,Aurora,62,Class 7,CNG
+Tennessee,Franklin,75,Heavy Duty,EV
+New York,Syracuse,138,Light Duty,EV
+Washington,Spokane,77,Class 8,EV
+Massachusetts,Boston,60,Class 8,EV
+New York,Rochester,51,Heavy Duty,EV
+Colorado,Lakewood,48,Class 8,CNG
+Arizona,Scottsdale,118,Heavy Duty,EV
+California,Bakersfield,89,Class 8,EV
+Washington,Spokane,105,Light Duty,EV
+Texas,Austin,9,Light Duty,EV
+Illinois,Waukegan,47,Light Duty,CNG
+Florida,Port St. Lucie,103,Medium Duty,CNG
+New York,Buffalo,123,Class 8,CNG
+Georgia,Atlanta,66,Class 7,EV
+New York,Buffalo,11,Medium Duty,CNG
+Florida,Miami,98,Class 7,CNG
+Massachusetts,Quincy,95,Class 7,CNG
+North Carolina,High Point,123,Heavy Duty,EV
+Massachusetts,Worcester,147,Heavy Duty,EV
+Arizona,Scottsdale,9,Light Duty,CNG
+North Carolina,Cary,53,Light Duty,EV
+Texas,Laredo,113,Light Duty,CNG
+Illinois,Waukegan,70,Class 8,EV
+Texas,Plano,20,Medium Duty,CNG
+Ohio,Parma,34,Medium Duty,EV
+Pennsylvania,Altoona,4,Class 7,EV
+Pennsylvania,Pittsburgh,106,Class 8,CNG
+Tennessee,Clarksville,15,Light Duty,EV
+Arizona,Scottsdale,33,Medium Duty,CNG
+Washington,Bellevue,66,Medium Duty,EV
+Michigan,Lansing,73,Class 7,CNG
+Georgia,Augusta,74,Heavy Duty,CNG
+Colorado,Colorado Springs,4,Light Duty,EV
+Pennsylvania,Scranton,61,Class 8,CNG
+New York,Yonkers,32,Class 8,CNG
+Texas,Fort Worth,69,Class 8,CNG
+California,San Diego,138,Class 7,CNG
+Arizona,Tucson,50,Heavy Duty,EV
+Michigan,Grand Rapids,22,Class 7,EV
+Colorado,Denver,98,Class 8,CNG
+California,Oakland,100,Light Duty,CNG
+Michigan,Livonia,138,Medium Duty,EV
+Georgia,Albany,34,Heavy Duty,EV
+Georgia,Roswell,128,Class 8,EV
+Illinois,Rockford,21,Heavy Duty,CNG
+Washington,Spokane Valley,104,Light Duty,CNG
+Illinois,Aurora,134,Class 8,CNG
+Florida,Tampa,129,Class 8,CNG
+Ohio,Columbus,142,Class 7,EV
+Florida,Miami,44,Class 7,CNG
+Tennessee,Bartlett,66,Medium Duty,CNG
+Arizona,Chandler,121,Heavy Duty,CNG
+Michigan,Sterling Heights,15,Light Duty,EV
+Ohio,Lorain,101,Heavy Duty,CNG
+Michigan,Warren,145,Light Duty,CNG
+North Carolina,Concord,81,Class 7,CNG
+Tennessee,Memphis,63,Light Duty,EV
+North Carolina,Raleigh,31,Class 7,EV
+Colorado,Lakewood,75,Heavy Duty,EV
+Florida,Orlando,148,Class 7,EV
+North Carolina,Raleigh,47,Heavy Duty,CNG
+Georgia,Atlanta,84,Class 7,CNG
+Illinois,Peoria,74,Heavy Duty,CNG
+Texas,Arlington,120,Class 7,CNG
+Michigan,Detroit,80,Class 8,CNG
+Colorado,Denver,27,Class 7,EV
+Colorado,Colorado Springs,125,Class 8,EV
+Massachusetts,Cambridge,104,Class 7,CNG
+Illinois,Joliet,12,Light Duty,EV
+Tennessee,Jackson,117,Class 7,CNG
+Illinois,Rockford,105,Light Duty,EV
+Georgia,Sandy Springs,10,Class 8,CNG
+Washington,Tacoma,100,Heavy Duty,EV
+Arizona,Tucson,78,Class 8,CNG
+Tennessee,Memphis,89,Light Duty,EV
+Pennsylvania,Altoona,70,Medium Duty,CNG
+Pennsylvania,Allentown,12,Heavy Duty,CNG
+North Carolina,Durham,31,Class 8,CNG
+California,Fresno,134,Heavy Duty,CNG
+North Carolina,Charlotte,75,Light Duty,CNG
+Illinois,Elgin,133,Light Duty,EV
+New York,Albany,77,Heavy Duty,CNG
+Massachusetts,Newton,56,Medium Duty,CNG
+Massachusetts,Springfield,70,Light Duty,CNG
+Arizona,Gilbert,91,Medium Duty,CNG
+California,Sacramento,67,Heavy Duty,EV
+Pennsylvania,Altoona,19,Class 8,CNG
+New York,Buffalo,66,Medium Duty,CNG
+Michigan,Ann Arbor,88,Light Duty,CNG
+California,Bakersfield,57,Medium Duty,EV
+Ohio,Akron,93,Class 7,EV
+Michigan,Lansing,14,Class 7,CNG
+California,Sacramento,125,Class 8,EV
+Michigan,Troy,25,Light Duty,CNG
+Colorado,Centennial,61,Class 7,EV
+Colorado,Lakewood,78,Heavy Duty,EV
+Florida,Port St. Lucie,29,Class 7,CNG
+Florida,Hialeah,4,Class 7,EV
+Illinois,Peoria,112,Class 7,CNG
+North Carolina,Wilmington,144,Medium Duty,EV
+Washington,Spokane Valley,26,Class 8,EV
+Ohio,Parma,62,Medium Duty,CNG
+Illinois,Elgin,84,Class 8,CNG
+Pennsylvania,Bethlehem,103,Class 8,CNG
+California,Oakland,84,Medium Duty,EV
+Colorado,Colorado Springs,135,Class 7,EV
+Georgia,Atlanta,69,Class 7,CNG
+New York,Rochester,99,Class 8,EV
+New York,Mount Vernon,19,Light Duty,CNG
+Illinois,Peoria,145,Medium Duty,EV
+Texas,Fort Worth,127,Light Duty,CNG
+Washington,Spokane Valley,103,Class 7,EV
+Georgia,Augusta,3,Class 7,EV
+Georgia,Sandy Springs,144,Heavy Duty,CNG
+California,Sacramento,50,Class 8,EV
+Ohio,Canton,74,Light Duty,EV
+Illinois,Peoria,59,Heavy Duty,EV
+Illinois,Chicago,140,Class 8,CNG
+Georgia,Albany,62,Class 8,CNG
+New York,New Rochelle,27,Class 8,EV
+Arizona,Chandler,52,Light Duty,CNG
+Arizona,Glendale,119,Light Duty,EV
+Georgia,Macon,16,Medium Duty,EV
+Tennessee,Franklin,126,Class 8,EV
+Illinois,Naperville,60,Light Duty,EV
+Georgia,Atlanta,142,Light Duty,EV
+Illinois,Springfield,16,Light Duty,CNG
+Ohio,Dayton,20,Light Duty,EV
+New York,Buffalo,104,Heavy Duty,CNG
+Texas,Fort Worth,58,Class 7,EV
+Tennessee,Memphis,78,Light Duty,CNG
+Michigan,Livonia,32,Medium Duty,CNG
+Washington,Bellevue,129,Light Duty,EV
+Michigan,Livonia,26,Light Duty,EV
+New York,Rochester,119,Class 8,CNG
+Pennsylvania,Bethlehem,72,Class 7,CNG
+California,Los Angeles,15,Medium Duty,CNG
+Georgia,Sandy Springs,61,Class 7,EV
+Pennsylvania,Pittsburgh,115,Class 8,CNG
+Washington,Bellevue,61,Class 7,EV
+Colorado,Thornton,23,Class 7,CNG
+Michigan,Sterling Heights,136,Medium Duty,CNG
+Colorado,Pueblo,95,Light Duty,CNG
+Ohio,Parma,133,Light Duty,EV
+Georgia,Roswell,21,Light Duty,CNG
+Pennsylvania,Altoona,148,Class 8,EV
+Florida,Cape Coral,41,Light Duty,CNG
+Georgia,Albany,4,Class 7,EV
+Washington,Bellevue,86,Medium Duty,EV
+Tennessee,Franklin,104,Light Duty,EV
+Tennessee,Johnson City,48,Heavy Duty,EV
+Illinois,Rockford,119,Class 7,EV
+Michigan,Sterling Heights,113,Heavy Duty,EV
+Florida,Tallahassee,48,Class 8,EV
+California,San Jose,56,Class 7,EV
+New York,Rochester,100,Heavy Duty,EV
+Florida,Port St. Lucie,67,Medium Duty,CNG
+Ohio,Lorain,96,Medium Duty,EV
+Colorado,Aurora,98,Heavy Duty,CNG
+Florida,Tallahassee,35,Light Duty,CNG
+New York,Syracuse,67,Medium Duty,EV
+Florida,Port St. Lucie,8,Medium Duty,EV
+Illinois,Springfield,42,Class 8,EV
+Florida,St. Petersburg,115,Light Duty,CNG
+Florida,Orlando,61,Heavy Duty,CNG
+Tennessee,Memphis,3,Class 7,CNG
+Massachusetts,Newton,56,Heavy Duty,CNG
+North Carolina,Raleigh,115,Medium Duty,CNG
+Ohio,Dayton,136,Heavy Duty,EV
+Tennessee,Chattanooga,106,Medium Duty,EV
+Arizona,Scottsdale,145,Heavy Duty,CNG
+Colorado,Centennial,140,Medium Duty,EV
+New York,Rochester,52,Class 8,EV
+Arizona,Peoria,119,Light Duty,EV
+Illinois,Springfield,35,Light Duty,EV
+New York,Syracuse,102,Heavy Duty,CNG
+Massachusetts,Cambridge,61,Class 7,CNG
+Washington,Kent,98,Medium Duty,EV
+Florida,Tampa,24,Medium Duty,EV
+Texas,Dallas,99,Class 8,EV
+New York,New Rochelle,30,Heavy Duty,EV
+Washington,Tacoma,106,Class 8,CNG
+Michigan,Lansing,75,Light Duty,CNG
+Tennessee,Chattanooga,61,Medium Duty,CNG
+Arizona,Chandler,64,Medium Duty,EV
+Arizona,Gilbert,75,Class 7,EV
+Pennsylvania,Erie,145,Class 8,EV
+Colorado,Arvada,119,Heavy Duty,EV
+California,Anaheim,74,Heavy Duty,CNG
+Pennsylvania,Allentown,128,Class 8,CNG
+Massachusetts,Newton,147,Class 8,CNG
+Texas,Plano,35,Light Duty,EV
+Colorado,Pueblo,127,Class 8,CNG
+Michigan,Sterling Heights,57,Heavy Duty,CNG
+Tennessee,Bartlett,56,Class 7,CNG
+Michigan,Detroit,48,Class 7,EV
+Michigan,Lansing,8,Class 8,CNG
+Georgia,Savannah,127,Class 7,EV
+Pennsylvania,Lancaster,61,Class 7,EV
+Georgia,Sandy Springs,30,Class 7,CNG
+Massachusetts,Cambridge,125,Light Duty,EV
+Illinois,Elgin,147,Class 8,CNG
+Colorado,Westminster,83,Class 7,CNG
+New York,New York City,120,Class 7,EV
+Arizona,Surprise,23,Class 8,EV
+Massachusetts,Newton,138,Heavy Duty,CNG
+New York,Albany,57,Heavy Duty,CNG
+Florida,Hialeah,37,Class 7,CNG
+Georgia,Roswell,44,Class 8,EV
+Florida,Jacksonville,22,Class 8,EV
+Florida,Miami,105,Class 7,EV
+Illinois,Naperville,66,Class 7,EV
+North Carolina,Wilmington,73,Class 8,CNG
+Texas,Austin,137,Class 7,CNG
+Georgia,Augusta,126,Light Duty,CNG
+Washington,Spokane,90,Light Duty,EV
+Arizona,Mesa,125,Class 7,EV
+Illinois,Naperville,124,Light Duty,EV
+Illinois,Chicago,15,Medium Duty,EV
+Ohio,Youngstown,102,Medium Duty,CNG
+Massachusetts,Fall River,19,Medium Duty,CNG
+Tennessee,Memphis,5,Light Duty,CNG
+North Carolina,Winston-Salem,16,Heavy Duty,EV
+New York,Utica,110,Heavy Duty,EV
+California,San Jose,53,Light Duty,EV
+California,Sacramento,30,Light Duty,EV
+Ohio,Akron,98,Class 7,EV
+North Carolina,Greensboro,38,Light Duty,EV
+Washington,Spokane Valley,67,Medium Duty,CNG
+Michigan,Sterling Heights,48,Heavy Duty,CNG
+Michigan,Flint,19,Class 7,EV
+Georgia,Athens,98,Heavy Duty,EV
+Georgia,Columbus,81,Light Duty,EV
+New York,New Rochelle,126,Medium Duty,EV
+California,San Diego,73,Medium Duty,CNG
+Texas,Fort Worth,92,Heavy Duty,EV
+Colorado,Denver,124,Class 8,CNG
+Illinois,Naperville,71,Class 8,EV
+Georgia,Athens,28,Class 8,EV
+California,Oakland,92,Light Duty,EV
+Illinois,Rockford,10,Class 8,EV
+Michigan,Grand Rapids,37,Light Duty,CNG
+Michigan,Livonia,44,Class 7,CNG
+Ohio,Canton,9,Light Duty,EV
+Texas,Plano,78,Light Duty,EV
+Pennsylvania,Allentown,84,Light Duty,CNG
+Florida,Jacksonville,140,Heavy Duty,CNG
+Pennsylvania,Reading,47,Light Duty,CNG
+Massachusetts,Boston,117,Class 7,CNG
+Colorado,Fort Collins,131,Heavy Duty,CNG
+Pennsylvania,Altoona,111,Class 8,EV
+Florida,Fort Lauderdale,6,Light Duty,EV
+Texas,Fort Worth,35,Class 7,EV
+Tennessee,Chattanooga,24,Heavy Duty,EV
+California,Los Angeles,97,Class 8,CNG
+Illinois,Waukegan,23,Light Duty,EV
+Washington,Vancouver,118,Class 8,CNG
+New York,Yonkers,76,Light Duty,EV
+Florida,Tallahassee,71,Class 7,CNG
+New York,Rochester,52,Class 7,CNG
+Colorado,Pueblo,119,Class 8,EV
+Massachusetts,Lynn,56,Medium Duty,CNG
+Ohio,Toledo,10,Medium Duty,CNG
+New York,Yonkers,2,Heavy Duty,EV
+Massachusetts,Springfield,15,Heavy Duty,EV
+Washington,Everett,142,Medium Duty,EV
+Washington,Renton,148,Medium Duty,EV
+Illinois,Cicero,114,Class 8,EV
+Colorado,Denver,7,Class 8,CNG
+Florida,Hialeah,44,Heavy Duty,CNG
+Ohio,Dayton,148,Heavy Duty,CNG
+North Carolina,Winston-Salem,60,Class 7,EV
+New York,Mount Vernon,146,Light Duty,EV
+California,Fresno,8,Class 8,CNG
+California,San Diego,40,Light Duty,CNG
+Michigan,Lansing,62,Class 8,CNG
+North Carolina,Wilmington,34,Class 7,CNG
+Massachusetts,Lynn,84,Medium Duty,EV
+Michigan,Grand Rapids,147,Class 7,EV
+Ohio,Youngstown,105,Heavy Duty,EV
+Tennessee,Murfreesboro,56,Class 8,CNG
+Colorado,Pueblo,59,Light Duty,CNG
+Ohio,Toledo,129,Class 7,CNG
+California,Oakland,87,Class 7,EV
+Pennsylvania,Reading,61,Class 7,EV
+Pennsylvania,Reading,85,Medium Duty,CNG
+Pennsylvania,Reading,68,Light Duty,CNG
+New York,Yonkers,38,Medium Duty,EV
+Texas,Arlington,87,Class 7,EV
+North Carolina,Charlotte,140,Heavy Duty,CNG
+Illinois,Elgin,53,Class 7,EV
+Washington,Spokane Valley,5,Light Duty,CNG
+Tennessee,Chattanooga,61,Light Duty,CNG
+California,Bakersfield,1,Class 7,EV
+Georgia,Athens,59,Medium Duty,EV
+Michigan,Ann Arbor,137,Class 7,CNG
+Arizona,Phoenix,95,Medium Duty,EV
+New York,Buffalo,101,Class 8,EV
+Texas,El Paso,135,Medium Duty,EV
+California,Long Beach,62,Light Duty,CNG
+Washington,Kent,67,Class 7,EV
+Pennsylvania,Altoona,104,Light Duty,CNG
+Colorado,Denver,61,Heavy Duty,CNG
+Tennessee,Bartlett,1,Class 8,CNG
+Pennsylvania,Reading,85,Heavy Duty,CNG
+Colorado,Denver,4,Class 7,CNG
+North Carolina,Winston-Salem,92,Class 7,EV
+New York,Albany,43,Class 7,CNG
+Colorado,Thornton,119,Class 8,EV
+Washington,Tacoma,148,Heavy Duty,CNG
+Massachusetts,Springfield,126,Light Duty,EV
+Washington,Renton,57,Heavy Duty,EV
+Ohio,Youngstown,47,Class 8,CNG
+Illinois,Chicago,81,Class 7,EV
+Arizona,Phoenix,78,Heavy Duty,EV
+Michigan,Flint,77,Class 8,EV
+Michigan,Flint,67,Medium Duty,EV
+Pennsylvania,Bethlehem,3,Class 7,EV
+New York,New York City,125,Class 8,CNG
+North Carolina,Durham,87,Class 8,CNG
+Tennessee,Knoxville,147,Class 7,CNG
+Texas,El Paso,26,Heavy Duty,EV
+Pennsylvania,Pittsburgh,111,Class 7,CNG
+Tennessee,Clarksville,129,Light Duty,CNG
+Tennessee,Bartlett,108,Heavy Duty,EV
+North Carolina,Wilmington,27,Class 7,CNG
+Arizona,Gilbert,26,Class 7,EV
+Texas,Houston,75,Class 7,EV
+New York,New York City,104,Light Duty,CNG
+North Carolina,Wilmington,109,Medium Duty,CNG
+New York,Utica,41,Medium Duty,CNG
+Texas,Laredo,68,Medium Duty,CNG
+North Carolina,Durham,122,Light Duty,CNG
+Pennsylvania,Reading,100,Light Duty,CNG
+Arizona,Surprise,54,Medium Duty,CNG
+Colorado,Aurora,90,Class 8,EV
+Illinois,Elgin,84,Class 8,EV
+North Carolina,Wilmington,67,Class 8,CNG
+Michigan,Sterling Heights,107,Light Duty,CNG
+Ohio,Parma,27,Heavy Duty,EV
+Washington,Tacoma,119,Medium Duty,CNG
+New York,Utica,105,Medium Duty,EV
+Tennessee,Chattanooga,50,Medium Duty,CNG
+Texas,Arlington,120,Medium Duty,EV
+California,Oakland,38,Class 8,EV
+Pennsylvania,Altoona,26,Heavy Duty,EV
+New York,Albany,62,Class 7,EV
+California,San Francisco,54,Class 8,CNG
+Texas,Corpus Christi,49,Class 7,CNG
+Florida,Jacksonville,16,Class 7,CNG
+Georgia,Athens,146,Class 8,CNG
+Arizona,Tucson,77,Heavy Duty,EV
+Florida,St. Petersburg,21,Medium Duty,CNG
+Pennsylvania,Erie,77,Class 8,EV
+Arizona,Glendale,69,Class 7,EV
+Florida,St. Petersburg,119,Light Duty,CNG
+Pennsylvania,Altoona,71,Medium Duty,CNG
+Texas,Corpus Christi,40,Heavy Duty,EV
+Pennsylvania,Harrisburg,28,Class 7,CNG
+Arizona,Mesa,127,Class 8,EV
+Georgia,Sandy Springs,6,Class 8,CNG
+Colorado,Arvada,11,Class 8,CNG
+Michigan,Livonia,7,Medium Duty,EV
+Colorado,Arvada,5,Heavy Duty,CNG
+Georgia,Sandy Springs,144,Heavy Duty,EV
+Arizona,Surprise,9,Light Duty,CNG
+Colorado,Colorado Springs,29,Class 8,EV
+Pennsylvania,Bethlehem,145,Heavy Duty,CNG
+Arizona,Peoria,126,Class 7,CNG
+Florida,St. Petersburg,47,Class 8,EV
+Georgia,Columbus,118,Heavy Duty,EV
+Georgia,Athens,111,Class 7,EV
+Ohio,Lorain,149,Light Duty,EV
+Washington,Kent,67,Medium Duty,CNG
+Colorado,Lakewood,37,Class 8,EV
+New York,Schenectady,89,Class 8,CNG
+North Carolina,Durham,141,Class 7,EV
+Pennsylvania,Lancaster,147,Medium Duty,EV
+California,Bakersfield,144,Medium Duty,CNG
+Texas,Corpus Christi,68,Class 8,CNG
+Ohio,Cincinnati,97,Light Duty,CNG
+Massachusetts,Springfield,104,Light Duty,CNG
+Ohio,Cleveland,106,Medium Duty,CNG
+Georgia,Savannah,77,Class 8,EV
+Tennessee,Bartlett,115,Class 8,CNG
+New York,Syracuse,126,Class 7,EV
+Arizona,Peoria,16,Medium Duty,CNG
+Ohio,Toledo,143,Heavy Duty,CNG
+Michigan,Flint,124,Heavy Duty,CNG
+Pennsylvania,Erie,1,Class 7,CNG
+California,Anaheim,6,Class 8,EV
+Florida,Jacksonville,35,Class 7,EV
+Massachusetts,Newton,12,Light Duty,CNG
+Texas,Arlington,98,Class 7,CNG
+Washington,Bellevue,43,Class 7,CNG
+Illinois,Elgin,91,Class 8,CNG
+Michigan,Detroit,35,Light Duty,CNG
+North Carolina,Raleigh,48,Class 8,CNG
+Georgia,Athens,62,Heavy Duty,EV
+New York,Albany,133,Class 7,EV
+New York,Rochester,80,Light Duty,EV
+Georgia,Columbus,6,Class 8,CNG
+Michigan,Warren,118,Light Duty,EV
+Michigan,Livonia,27,Light Duty,EV
+Colorado,Westminster,69,Class 7,CNG
+North Carolina,Fayetteville,9,Class 7,EV
+Colorado,Thornton,147,Class 7,CNG
+Georgia,Atlanta,82,Class 7,EV
+Washington,Everett,74,Class 8,CNG
+Ohio,Columbus,9,Class 8,EV
+New York,Schenectady,4,Light Duty,EV
+Ohio,Toledo,67,Medium Duty,CNG
+Michigan,Detroit,15,Class 7,EV
+Massachusetts,Springfield,115,Class 8,CNG
+Michigan,Grand Rapids,57,Medium Duty,EV
+North Carolina,Raleigh,132,Class 8,CNG
+Massachusetts,Lynn,111,Heavy Duty,CNG
+Ohio,Toledo,109,Heavy Duty,EV
+New York,Albany,110,Class 7,CNG
+Tennessee,Clarksville,25,Medium Duty,CNG
+Washington,Federal Way,92,Light Duty,CNG
+California,Long Beach,21,Class 8,EV
+Washington,Vancouver,11,Class 7,EV
+Illinois,Elgin,99,Class 7,CNG
+Illinois,Aurora,112,Medium Duty,CNG
+New York,Buffalo,86,Class 7,CNG
+Georgia,Macon,143,Class 7,CNG
+Arizona,Peoria,42,Light Duty,EV
+New York,Syracuse,14,Light Duty,CNG
+Arizona,Surprise,79,Light Duty,CNG
+Texas,Arlington,87,Class 7,CNG
+Massachusetts,Fall River,98,Class 8,EV
+Texas,Fort Worth,98,Light Duty,EV
+Tennessee,Jackson,117,Medium Duty,CNG
+Massachusetts,Lynn,1,Class 8,CNG
+North Carolina,Cary,34,Heavy Duty,CNG
+Massachusetts,Springfield,56,Medium Duty,EV
+Ohio,Dayton,16,Class 8,CNG
+California,Los Angeles,150,Class 8,EV
+Illinois,Cicero,12,Class 8,EV
+Massachusetts,Lynn,90,Medium Duty,CNG
+Texas,Arlington,121,Medium Duty,CNG
+Tennessee,Memphis,97,Medium Duty,CNG
+Michigan,Flint,14,Light Duty,EV
+Colorado,Lakewood,132,Light Duty,CNG
+Arizona,Tucson,21,Class 8,CNG
+Texas,Laredo,41,Heavy Duty,EV
+Arizona,Peoria,68,Class 8,EV
+Tennessee,Murfreesboro,106,Medium Duty,EV
+Michigan,Troy,112,Class 7,CNG
+Washington,Federal Way,99,Light Duty,EV
+Washington,Bellevue,16,Class 8,EV
+Massachusetts,Quincy,65,Light Duty,CNG
+Michigan,Troy,29,Heavy Duty,CNG
+North Carolina,Wilmington,61,Class 7,CNG
+Arizona,Chandler,121,Medium Duty,CNG
+New York,Utica,107,Heavy Duty,EV
+North Carolina,Cary,98,Heavy Duty,CNG
+Michigan,Ann Arbor,45,Heavy Duty,EV
+Illinois,Rockford,1,Heavy Duty,EV
+Illinois,Peoria,48,Heavy Duty,CNG
+Colorado,Colorado Springs,67,Class 8,EV
+Colorado,Colorado Springs,9,Light Duty,EV
+Florida,Miami,101,Light Duty,CNG
+Texas,Houston,108,Class 7,CNG
+Michigan,Lansing,50,Medium Duty,CNG
+Georgia,Atlanta,29,Medium Duty,EV
+North Carolina,Greensboro,145,Medium Duty,EV
+Washington,Renton,22,Class 7,CNG
+Ohio,Dayton,80,Class 8,CNG
+Illinois,Cicero,94,Light Duty,CNG
+Illinois,Rockford,13,Light Duty,EV
+Georgia,Roswell,148,Class 7,CNG
+Massachusetts,Lynn,31,Class 8,EV
+Colorado,Aurora,144,Class 7,CNG
+New York,Albany,121,Medium Duty,CNG
+Michigan,Detroit,116,Light Duty,EV
+Washington,Renton,72,Medium Duty,CNG
+California,San Jose,77,Light Duty,EV
+Washington,Tacoma,53,Class 7,EV
+North Carolina,Concord,116,Heavy Duty,CNG
+Ohio,Lorain,83,Heavy Duty,CNG
+Georgia,Atlanta,96,Class 7,EV
+Illinois,Naperville,68,Medium Duty,EV
+Arizona,Glendale,95,Light Duty,EV
+Arizona,Mesa,18,Class 7,CNG
+Pennsylvania,Lancaster,71,Class 8,CNG
+California,Sacramento,137,Light Duty,EV
+Ohio,Columbus,61,Class 7,EV
+New York,Syracuse,123,Light Duty,EV
+California,San Jose,90,Light Duty,CNG
+Illinois,Aurora,149,Light Duty,EV
+California,Long Beach,78,Class 8,EV
+Arizona,Chandler,18,Class 7,CNG
+Texas,Laredo,73,Medium Duty,CNG
+California,San Francisco,75,Class 8,EV
+Illinois,Waukegan,37,Medium Duty,EV
+Ohio,Dayton,108,Medium Duty,EV
+Illinois,Chicago,79,Class 8,CNG
