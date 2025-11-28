@@ -1,118 +1,128 @@
-import { legendStyle, iconMap } from '@/constants/mapConfig';
+import { iconMap } from '@/constants/mapConfig';
+import styles from './MapComponent.module.css';
 
-export default function MapLegendPanel({ filters, toggleFilter, stationCount }) {
+export default function MapLegendPanel({ 
+  filters, 
+  toggleFilter, 
+  regionFilter,
+  setRegionFilter,
+  ownershipFilter,
+  setOwnershipFilter,
+  stationCount, 
+  isFilterOpen, 
+  setIsFilterOpen 
+}) {
+  const legends = [
+    { key: 'available', label: 'Available Stations', icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' },
+    { key: 'planned', label: 'Planned Stations', icon: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png' },
+  ];
+
+  const fuelLegends = [
+    { key: 'elec', label: 'Electric (ELEC)', icon: iconMap.elec },
+    { key: 'cng', label: 'CNG', icon: iconMap.cng },
+  ];
+
   return (
-    <div style={legendStyle}>
-      <h2>Fuel Station Legends</h2>
-
-      {/* Legends */}
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.elec} width={24} style={{ marginRight: 10 }} alt="Electric" />
-        <span>Electric (ELEC)</span>
+    <>
+      <div className={styles.legendSection}>
+        <h3 className={styles.sectionTitle}>Station Status</h3>
+        {legends.map(({ key, label, icon }) => (
+          <div key={key} className={styles.legendItem}>
+            <img src={icon} className={styles.legendIcon} alt={label} />
+            <span className={styles.legendLabel}>{label}</span>
+          </div>
+        ))}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.cng} width={24} style={{ marginRight: 10 }} alt="CNG" />
-        <span>CNG</span>
+      <div className={styles.filterTriggerSection}>
+        <button 
+          className={styles.filterTriggerButton}
+          onClick={() => setIsFilterOpen(true)}
+        >
+          <span>🔍</span>
+          <span>Filter Stations</span>
+        </button>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.lng} width={24} style={{ marginRight: 10 }} alt="LNG" />
-        <span>LNG</span>
+      <div className={styles.statsSection}>
+        <h3 className={styles.sectionTitle}>Statistics</h3>
+        <div className={styles.statsGrid}>
+          <div className={styles.statItem}>
+            <span className={styles.statLabel}>Stations Displayed</span>
+            <span className={styles.statValue}>{stationCount}</span>
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.bd} width={24} style={{ marginRight: 10 }} alt="Biodiesel" />
-        <span>Biodiesel (BD)</span>
-      </div>
+      {/* Filter Slide Panel */}
+      {isFilterOpen && (
+        <div className={styles.filterOverlay} onClick={() => setIsFilterOpen(false)}>
+          <div 
+            className={`${styles.filterSlidePanel} ${isFilterOpen ? styles.open : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.filterPanelHeader}>
+              <h3 className={styles.filterPanelTitle}>Filters</h3>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setIsFilterOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className={styles.filterPanelContent}>
+              {/* Region Filter */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>Region</h4>
+                <div className={styles.filterItems}>
+                  <input
+                    type="text"
+                    className={styles.filterInput}
+                    placeholder="Search by state or city..."
+                    value={regionFilter}
+                    onChange={(e) => setRegionFilter(e.target.value)}
+                  />
+                </div>
+              </div>
 
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.e85} width={24} style={{ marginRight: 10 }} alt="Ethanol" />
-        <span>Ethanol (E85)</span>
-      </div>
+              {/* Ownership Filter */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>Ownership</h4>
+                <div className={styles.filterItems}>
+                  <select 
+                    className={styles.filterSelect}
+                    value={ownershipFilter}
+                    onChange={(e) => setOwnershipFilter(e.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                </div>
+              </div>
 
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.hy} width={24} style={{ marginRight: 10 }} alt="Hydrogen" />
-        <span>Hydrogen (HY)</span>
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
-        <img src={iconMap.lpg} width={24} style={{ marginRight: 10 }} alt="Propane" />
-        <span>Propane (LPG)</span>
-      </div>
-
-      <hr style={{ margin: "20px 0" }} />
-
-      <h3>Filters</h3>
-
-      {/* FILTERS UI */}
-      <div>
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.elec}
-            onChange={() => toggleFilter("elec")}
-          />{" "}
-          Electric
-        </label>
-
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.cng}
-            onChange={() => toggleFilter("cng")}
-          />{" "}
-          CNG
-        </label>
-
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.lng}
-            onChange={() => toggleFilter("lng")}
-          />{" "}
-          LNG
-        </label>
-
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.bd}
-            onChange={() => toggleFilter("bd")}
-          />{" "}
-          Biodiesel
-        </label>
-
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.e85}
-            onChange={() => toggleFilter("e85")}
-          />{" "}
-          Ethanol (E85)
-        </label>
-
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.hy}
-            onChange={() => toggleFilter("hy")}
-          />{" "}
-          Hydrogen
-        </label>
-
-        <label style={{ display: "block", marginBottom: 8 }}>
-          <input
-            type="checkbox"
-            checked={filters.lpg}
-            onChange={() => toggleFilter("lpg")}
-          />{" "}
-          Propane (LPG)
-        </label>
-      </div>
-
-      <hr style={{ margin: "20px 0" }} />
-      <h3>Stations Displayed: {stationCount}</h3>
-    </div>
+              {/* Fuel Type Filter */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>Fuel Type</h4>
+                <div className={styles.filterItems}>
+                  {fuelLegends.map(({ key, label }) => (
+                    <label key={key} className={styles.filterLabel}>
+                      <input
+                        type="checkbox"
+                        className={styles.filterCheckbox}
+                        checked={filters[key]}
+                        onChange={() => toggleFilter(key)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
