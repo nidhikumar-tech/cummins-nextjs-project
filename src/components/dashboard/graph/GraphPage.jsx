@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./ContentPage.module.css";
+import styles from "./GraphPage.module.css";
 
 export default function GraphPage() {
   return (
@@ -8,7 +8,7 @@ export default function GraphPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Graph View</h1>
         <p className={styles.description}>
-          Interactive graphs showing fuel station density and analytical metrics
+          Interactive graphs showing vehicle density and analytical metrics
         </p>
       </div>
 
@@ -25,7 +25,7 @@ export default function GraphPage() {
           </svg>
           <p className={styles.placeholderText}>Graph Visualization</p>
           <p className={styles.placeholderSubtext}>
-            Your fuel station analytics graph will be displayed here
+            Your vehicle analytics graph will be displayed here
           </p>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./ContentPage.module.css";
+import styles from "./ChartPage.module.css";
 
 export default function ChartPage() {
   return (
@@ -8,7 +8,7 @@ export default function ChartPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Chart View</h1>
         <p className={styles.description}>
-          Comprehensive charts and detailed analytics of fuel station data
+          Comprehensive charts and detailed analytics of vehicle data
         </p>
       </div>
 
@@ -29,7 +29,7 @@ export default function ChartPage() {
           </svg>
           <p className={styles.placeholderText}>Chart Visualization</p>
           <p className={styles.placeholderSubtext}>
-            Your fuel station analytics chart will be displayed here
+            Your vehicle analytics chart will be displayed here
           </p>
         </div>
       </div>

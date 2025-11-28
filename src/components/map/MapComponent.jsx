@@ -4,12 +4,14 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import { useState, useEffect, useCallback } from "react";
 import MapLegendPanel from './MapLegendPanel';
 import MapView from './MapView';
+
+const libraries = ['places', 'visualization'];
 import styles from './MapComponent.module.css';
 
 export default function MapComponent() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    libraries: ["places", "visualization"],
+    libraries: libraries,
   });
 
   const [map, setMap] = useState(null);

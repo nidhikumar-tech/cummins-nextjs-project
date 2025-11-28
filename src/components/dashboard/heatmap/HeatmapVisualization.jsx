@@ -7,6 +7,7 @@ import {
   aggregateByLocation,
   getUniqueVehicleClasses,
   getClassColor,
+  getVehicleTypeDescription,
   getHeatmapIntensity,
 } from '@/utils/csvParser';
 import styles from './HeatmapVisualization.module.css';
@@ -22,7 +23,7 @@ const defaultCenter = {
   lng: -98.35,
 };
 
-const libraries = ['visualization'];
+const libraries = ['places', 'visualization'];
 
 export default function HeatmapVisualization() {
   const [vehicles, setVehicles] = useState([]);
@@ -62,7 +63,7 @@ export default function HeatmapVisualization() {
 
   // Compute aggregated locations and heatmap data
   const { locations, maxVehicleCount, heatmapData } = useMemo(() => {
-    if (vehicles.length === 0) {
+    if (vehicles.length === 0 || !isLoaded || !window.google) {
       return { locations: [], maxVehicleCount: 1, heatmapData: [] };
     }
 
@@ -96,7 +97,7 @@ export default function HeatmapVisualization() {
 
     console.log('Heatmap data points:', data.length, data.slice(0, 5));
     return { locations: aggregated, maxVehicleCount: max, heatmapData: data };
-  }, [vehicles, selectedClasses]);
+  }, [vehicles, selectedClasses, isLoaded]);
 
   // Handle class filter toggle
   const toggleClass = useCallback((vehicleClass) => {
@@ -109,13 +110,20 @@ export default function HeatmapVisualization() {
 
   // Update heatmap layer
   useEffect(() => {
-    if (!mapInstance || !isLoaded || heatmapData.length === 0) {
+    if (!mapInstance || !isLoaded) {
       return;
     }
 
     // Remove old heatmap layer
     if (heatmapLayerRef.current) {
       heatmapLayerRef.current.setMap(null);
+      heatmapLayerRef.current = null;
+    }
+
+    // If no data or no selected classes, just remove the layer and return
+    if (heatmapData.length === 0 || selectedClasses.length === 0) {
+      console.log('No heatmap data or no selected classes, layer removed');
+      return;
     }
 
     try {
@@ -133,7 +141,7 @@ export default function HeatmapVisualization() {
     } catch (error) {
       console.error('Error creating heatmap layer:', error);
     }
-  }, [mapInstance, isLoaded, heatmapData]);
+  }, [mapInstance, isLoaded, heatmapData, selectedClasses]);
 
   // Fit map to bounds
   const onMapLoad = useCallback((map) => {
@@ -194,7 +202,9 @@ export default function HeatmapVisualization() {
                     className={styles.checkbox}
                   />
                   <span className={styles.colorDot} style={{ backgroundColor: getClassColor(vehicleClass) }}></span>
-                  <span className={styles.labelText}>{vehicleClass}</span>
+                  <span className={styles.labelText}>
+                    Class {vehicleClass} - ({getVehicleTypeDescription(vehicleClass)})
+                  </span>
                 </label>
               ))}
             </div>
