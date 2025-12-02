@@ -29,6 +29,7 @@ export default function HeatmapVisualization() {
   const [vehicles, setVehicles] = useState([]);
   const [vehicleClasses, setVehicleClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [regionFilter, setRegionFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState(null);
   const heatmapLayerRef = useRef(null);
@@ -61,14 +62,57 @@ export default function HeatmapVisualization() {
     loadData();
   }, []);
 
+  // Region mapping for US states
+  const getRegionMatch = useCallback((state, selectedRegion) => {
+    if (!selectedRegion || selectedRegion === 'all' || !state) return true;
+    
+    // Convert full state name to state code
+    const stateNameToCode = {
+      'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+      'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+      'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+      'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+      'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+      'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+      'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+      'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+      'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+      'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
+      'District of Columbia': 'DC'
+    };
+    
+    const stateName = state.trim();
+    const stateCode = stateNameToCode[stateName] || stateName.toUpperCase();
+    
+    // US Regions mapping
+    const regions = {
+      northeast: ['CT', 'ME', 'MA', 'NH', 'RI', 'VT', 'NJ', 'NY', 'PA'],
+      southeast: ['DE', 'FL', 'GA', 'MD', 'NC', 'SC', 'VA', 'WV', 'AL', 'KY', 'MS', 'TN', 'AR', 'LA'],
+      midwest: ['IL', 'IN', 'MI', 'OH', 'WI', 'IA', 'KS', 'MN', 'MO', 'NE', 'ND', 'SD'],
+      southwest: ['AZ', 'NM', 'OK', 'TX'],
+      west: ['AK', 'CA', 'CO', 'HI', 'ID', 'MT', 'NV', 'OR', 'UT', 'WA', 'WY']
+    };
+    
+    const result = regions[selectedRegion]?.includes(stateCode) || false;
+    return result;
+  }, []);
+
   // Compute aggregated locations and heatmap data
   const { locations, maxVehicleCount, heatmapData } = useMemo(() => {
     if (vehicles.length === 0 || !isLoaded || !window.google) {
       return { locations: [], maxVehicleCount: 1, heatmapData: [] };
     }
 
-    const aggregated = aggregateByLocation(vehicles);
-    console.log('Aggregated locations:', aggregated.length, aggregated);
+    // Filter vehicles by region first
+    const filteredVehicles = vehicles.filter(vehicle => {
+      const match = getRegionMatch(vehicle.state, regionFilter);
+      return match;
+    });
+
+    console.log(`Region filter: ${regionFilter}, Total vehicles: ${vehicles.length}, Filtered: ${filteredVehicles.length}`);
+    
+    const aggregated = aggregateByLocation(filteredVehicles);
+    console.log('Aggregated locations:', aggregated.length, aggregated.slice(0, 3));
     
     const max = Math.max(...aggregated.map(loc => loc.totalVehicles), 1);
     console.log('Max vehicle count:', max);
@@ -93,7 +137,7 @@ export default function HeatmapVisualization() {
 
     console.log('Heatmap data points:', data.length, data.slice(0, 5));
     return { locations: aggregated, maxVehicleCount: max, heatmapData: data };
-  }, [vehicles, selectedClass, isLoaded]);
+  }, [vehicles, selectedClass, regionFilter, isLoaded, getRegionMatch]);
 
   // Handle class selection (single class only)
   const selectClass = useCallback((vehicleClass) => {
@@ -123,9 +167,9 @@ export default function HeatmapVisualization() {
       const heatmapLayer = new window.google.maps.visualization.HeatmapLayer({
         data: heatmapData,
         map: mapInstance,
-        radius: 30,
+        radius: 100,
         maxIntensity: 100,
-        dissipating: true,
+        dissipating: true ,
       });
 
       heatmapLayerRef.current = heatmapLayer;
@@ -135,10 +179,11 @@ export default function HeatmapVisualization() {
     }
   }, [mapInstance, isLoaded, heatmapData, selectedClass]);
 
-  // Fit map to bounds
+  // Fit map to bounds on initial load only
   const onMapLoad = useCallback((map) => {
     setMapInstance(map);
-
+    
+    // Only fit bounds on initial load
     if (locations.length > 0 && window.google) {
       const bounds = new window.google.maps.LatLngBounds();
       locations.forEach(loc => {
@@ -200,6 +245,24 @@ export default function HeatmapVisualization() {
                   </span>
                 </label>
               ))}
+            </div>
+          </div>
+
+          <div className={styles.filterSection}>
+            <h3 className={styles.filterTitle}>Region Filter</h3>
+            <div className={styles.filterOptions}>
+              <select
+                className={styles.regionSelect}
+                value={regionFilter}
+                onChange={(e) => setRegionFilter(e.target.value)}
+              >
+                <option value="all">All Regions</option>
+                <option value="northeast">Northeast</option>
+                <option value="southeast">Southeast</option>
+                <option value="midwest">Midwest</option>
+                <option value="southwest">Southwest</option>
+                <option value="west">West</option>
+              </select>
             </div>
           </div>
 

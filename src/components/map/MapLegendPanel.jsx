@@ -76,13 +76,18 @@ export default function MapLegendPanel({
               <div className={styles.filterGroup}>
                 <h4 className={styles.filterGroupTitle}>Region</h4>
                 <div className={styles.filterItems}>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Search by state or city..."
+                  <select
+                    className={styles.filterSelect}
                     value={regionFilter}
                     onChange={(e) => setRegionFilter(e.target.value)}
-                  />
+                  >
+                    <option value="all">All Regions</option>
+                    <option value="northeast">Northeast</option>
+                    <option value="southeast">Southeast</option>
+                    <option value="midwest">Midwest</option>
+                    <option value="southwest">Southwest</option>
+                    <option value="west">West</option>
+                  </select>
                 </div>
               </div>
 

@@ -115,6 +115,29 @@
   font-weight: 500;
 }
 
+.regionSelect {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background-color: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.regionSelect:hover {
+  border-color: #cbd5e1;
+}
+
+.regionSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .statItem {
   display: flex;
   justify-content: space-between;
