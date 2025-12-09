@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { iconMap } from '@/constants/mapConfig';
 import { getClassColor, getVehicleTypeDescription } from '@/utils/csvParser';
 import styles from './MapComponent.module.css';
@@ -23,6 +24,8 @@ export default function MapLegendPanel({
   heatmapPointCount,
   vehiclesLoading
 }) {
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [exportType, setExportType] = useState('all');
   // All US states
   const allStates = [
     { code: 'AL', name: 'Alabama' },
@@ -87,6 +90,42 @@ export default function MapLegendPanel({
     { key: 'cng', label: 'CNG', icon: iconMap.cng },
   ];
 
+  const handleExport = async () => {
+    try {
+      const response = await fetch(`/api/export-data?type=${exportType}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to export data');
+      }
+      
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Set filename based on export type
+      let filename = `cummins_data_${new Date().toISOString().slice(0, 10)}.csv`;
+      if (exportType === 'stations') {
+        filename = `fuel_stations_${new Date().toISOString().slice(0, 10)}.csv`;
+      } else if (exportType === 'vehicles') {
+        filename = `vehicle_data_${new Date().toISOString().slice(0, 10)}.csv`;
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      // Close the export panel after successful download
+      setIsExportOpen(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
   return (
     <>
       <div className={styles.legendSection}>
@@ -124,6 +163,101 @@ export default function MapLegendPanel({
           )}
         </div>
       </div>
+
+      <div className={styles.filterTriggerSection}>
+        <button 
+          className={styles.filterTriggerButton}
+          onClick={() => setIsExportOpen(true)}
+        >
+          {/* <span>⬇️</span> */}
+          <span>Export Data</span>
+        </button>
+      </div>
+
+      {/* Export Slide Panel */}
+      {isExportOpen && (
+        <div className={styles.filterOverlay} onClick={() => setIsExportOpen(false)}>
+          <div 
+            className={`${styles.filterSlidePanel} ${isExportOpen ? styles.open : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.filterPanelHeader}>
+              <h3 className={styles.filterPanelTitle}>Export Data</h3>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setIsExportOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className={styles.filterPanelContent}>
+              {/* Export Type Selection */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>Select Data to Export</h4>
+                <div className={styles.filterItems}>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="exportType"
+                      className={styles.filterCheckbox}
+                      checked={exportType === 'all'}
+                      onChange={() => setExportType('all')}
+                    />
+                    <span>All Data (Stations + Vehicles)</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="exportType"
+                      className={styles.filterCheckbox}
+                      checked={exportType === 'stations'}
+                      onChange={() => setExportType('stations')}
+                    />
+                    <span>Fuel Stations Only</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="exportType"
+                      className={styles.filterCheckbox}
+                      checked={exportType === 'vehicles'}
+                      onChange={() => setExportType('vehicles')}
+                    />
+                    <span>Vehicle Data Only</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Export Info */}
+              <div className={styles.filterGroup}>
+                <div style={{ padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '8px', fontSize: '13px' }}>
+                  <p style={{ margin: '0 0 8px', fontWeight: '500', color: '#0369a1' }}>
+                    📊 Export Information
+                  </p>
+                  <p style={{ margin: '0', color: '#075985', lineHeight: '1.5' }}>
+                    {exportType === 'all' && 'Downloads both fuel stations and vehicle data in a single CSV file.'}
+                    {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and status.'}
+                    {exportType === 'vehicles' && 'Downloads vehicle data including counts by class and fuel type.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Export Button */}
+              <div className={styles.filterGroup}>
+                <button 
+                  className={styles.filterTriggerButton}
+                  onClick={handleExport}
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  {/* <span>⬇️</span> */}
+                  <span>Download CSV</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filter Slide Panel */}
       {isFilterOpen && (

@@ -1,19 +1,10 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import Papa from 'papaparse';
+import { getFuelStations } from '@/lib/bigquery';
 
 export async function GET() {
   try {
-    // Read CSV file from public directory
-    const filePath = path.join(process.cwd(), 'public', 'custom_fuel_dataset_5000.csv');
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-
-    // Parse CSV
-    const { data } = Papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true,
-    });
+    // Fetch data from BigQuery
+    const data = await getFuelStations();
 
     // Transform data to match frontend format
     const formattedStations = data
@@ -36,11 +27,16 @@ export async function GET() {
         access_code: station.Access_Code,
       }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: formattedStations,
       count: formattedStations.length,
     });
+    
+    // Cache for 1 hour
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+    
+    return response;
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json(

@@ -50,7 +50,9 @@ export default function MapComponent() {
     setLoading(true);
     setError(null);
 
-    fetch("/api/fuel-stations")
+    fetch("/api/fuel-stations", {
+      next: { revalidate: 3600 } // Cache for 1 hour
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -131,11 +133,10 @@ export default function MapComponent() {
   };
 
   // Simple seeded random number generator for stable positions
-  const seededRandom = (seed) => {
+  const seededRandom = useCallback((seed) => {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
-  };
-
+  }, []);
 
   // Compute heatmap data (optimized to prevent unnecessary recalculations)
   const vehicleHeatmapData = useMemo(() => {
@@ -203,7 +204,7 @@ export default function MapComponent() {
       });
 
     return data;
-  }, [vehicles, vehicleClassFilter, selectedFuel, stateFilter, isLoaded, showHeatmap]);
+  }, [vehicles, vehicleClassFilter, selectedFuel, stateFilter, isLoaded, showHeatmap, seededRandom]);
 
   if (!isLoaded) return (
     <div className={styles.container}>

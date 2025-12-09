@@ -1,7 +1,7 @@
 "use client";
 
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { GoogleMapsOverlay } from '@deck.gl/google-maps';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import { iconMap } from '@/constants/mapConfig';
@@ -17,6 +17,88 @@ const US_CENTER = {
   lng: -98.5795,
 };
 
+// Deck.gl overlay component for heatmap - moved outside to prevent recreation
+function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
+  const deckRef = useRef(null);
+
+  // Initialize deck.gl overlay only once
+  useEffect(() => {
+    if (!mapInstance || deckRef.current) return;
+
+    const deck = new GoogleMapsOverlay({ layers: [] });
+    deckRef.current = deck;
+
+    const timeoutId = setTimeout(() => {
+      try {
+        deck.setMap(mapInstance);
+      } catch (error) {
+        console.warn('Error attaching deck.gl overlay:', error);
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (deckRef.current) {
+        try {
+          deckRef.current.setMap(null);
+          deckRef.current = null;
+        } catch (error) {
+          console.warn('Error detaching deck.gl overlay:', error);
+        }
+      }
+    };
+  }, [mapInstance]);
+
+  // Update layers when data changes
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck || !mapInstance) return;
+
+    if (!vehicleHeatmapData || vehicleHeatmapData.length === 0) {
+      try {
+        deck.setProps({ layers: [] });
+      } catch (error) {
+        console.warn('Error clearing deck.gl layers:', error);
+      }
+      return;
+    }
+
+    try {
+      // Map data for deck.gl: [{ position: [lng, lat], weight }]
+      const deckData = vehicleHeatmapData.map(d => ({
+        position: [d.location.lng, d.location.lat],
+        weight: d.weight
+      }));
+
+      const layer = new HeatmapLayer({
+        id: 'vehicle-heatmap-layer',
+        data: deckData,
+        getPosition: d => d.position,
+        getWeight: d => d.weight,
+        radiusPixels: 150, //150
+        intensity: 1.5, //1.5
+        threshold: 0.05, //0.05
+        colorRange: [
+          [0, 255, 128, 50],
+          [0, 255, 0, 120],
+          [255, 255, 0, 160],
+          [255, 200, 0, 200],
+          [255, 100, 0, 220],
+          [255, 0, 0, 240]
+        ],
+        aggregation: 'SUM',
+        opacity: 0.5
+      });
+      
+      deck.setProps({ layers: [layer] });
+    } catch (error) {
+      console.error('Error updating deck.gl heatmap layer:', error);
+    }
+  }, [vehicleHeatmapData, mapInstance]);
+
+  return null;
+}
+
 export default function MapView({ 
   onLoad, 
   filteredStations, 
@@ -26,92 +108,19 @@ export default function MapView({
   vehicleHeatmapData,
   mapInstance
 }) {
-  const getFuelTypeKey = (fuelType) => {
-    if (!fuelType) return 'unknown';
-    return fuelType.toLowerCase();
-  };
+  // Stable icon objects to prevent marker re-renders
+  const iconPlanned = useMemo(() => ({ 
+    url: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png' 
+  }), []);
+  
+  const iconAvailable = useMemo(() => ({ 
+    url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' 
+  }), []);
 
-  const getIcon = (station) => {
+  const getIcon = useCallback((station) => {
     // Use status-based icons instead of fuel-based
-    if (station.status_code === 'P') {
-      // Planned station - yellow marker
-      return 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
-    } else {
-      // Available/Existing station - green marker (default for all other statuses)
-      return 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
-    }
-  };
-
-  // Deck.gl overlay component for heatmap
-  function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
-    const deck = useMemo(() => new GoogleMapsOverlay({ layers: [] }), []);
-
-    useEffect(() => {
-      if (!mapInstance) return;
-
-      const timeoutId = setTimeout(() => {
-        try {
-          deck.setMap(mapInstance);
-        } catch (error) {
-          console.warn('Error attaching deck.gl overlay:', error);
-        }
-      }, 100);
-
-      return () => {
-        clearTimeout(timeoutId);
-        try {
-          deck.setMap(null);
-        } catch (error) {
-          console.warn('Error detaching deck.gl overlay:', error);
-        }
-      };
-    }, [mapInstance, deck]);
-
-    useEffect(() => {
-      if (!mapInstance || !vehicleHeatmapData || vehicleHeatmapData.length === 0) {
-        try {
-          deck.setProps({ layers: [] });
-        } catch (error) {
-          console.warn('Error clearing deck.gl layers:', error);
-        }
-        return;
-      }
-
-      try {
-        // Map data for deck.gl: [{ position: [lng, lat], weight }]
-        const deckData = vehicleHeatmapData.map(d => ({
-          position: [d.location.lng, d.location.lat],
-          weight: d.weight
-        }));
-
-        const layer = new HeatmapLayer({
-          id: 'vehicle-heatmap-layer',
-          data: deckData,
-          getPosition: d => d.position,
-          getWeight: d => d.weight,
-          radiusPixels: 150,
-          intensity: 1.5,
-          threshold: 0.05,
-          colorRange: [
-            [0, 255, 128, 50],
-            [0, 255, 0, 120],
-            [255, 255, 0, 160],
-            [255, 200, 0, 200],
-            [255, 100, 0, 220],
-            [255, 0, 0, 240]
-          ],
-          aggregation: 'SUM',
-          opacity: 0.7
-        });
-        
-        deck.setProps({ layers: [layer] });
-      } catch (error) {
-        console.error('Error updating deck.gl heatmap layer:', error);
-      }
-    }, [deck, vehicleHeatmapData, mapInstance]);
-
-    return null;
-  }
+    return station.status_code === 'P' ? iconPlanned : iconAvailable;
+  }, [iconPlanned, iconAvailable]);
 
   const shouldShowMarkers = showHeatmap === 'markers' || showHeatmap === 'both';
   const shouldShowHeatmap = showHeatmap === 'heatmap' || showHeatmap === 'both';
@@ -128,7 +137,7 @@ export default function MapView({
         <Marker
           key={`${s.station_id || s.ID || 'unknown'}-${index}`}
           position={{ lat: s.lat, lng: s.lng }}
-          icon={{ url: getIcon(s) }}
+          icon={getIcon(s)}
           onClick={() => setSelectedStation(s)}
         />
       ))}
