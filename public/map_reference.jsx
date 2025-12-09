@@ -2,6 +2,8 @@
 
 import { useJsApiLoader } from "@react-google-maps/api";
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { GoogleMapsOverlay } from '@deck.gl/google-maps';
+import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import MapLegendPanel from './MapLegendPanel';
 import MapView from './MapView';
 import {
@@ -26,8 +28,11 @@ export default function MapComponent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [selectedFuelType, setSelectedFuelType] = useState('all');
-  const [stationStatusFilter, setStationStatusFilter] = useState('all');
+  const [filters, setFilters] = useState({
+    elec: false,    
+    cng: true,
+  });
+
   const [stateFilter, setStateFilter] = useState('all');
   const [ownershipFilter, setOwnershipFilter] = useState('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -35,10 +40,8 @@ export default function MapComponent() {
   // Heatmap state
   const [vehicles, setVehicles] = useState([]);
   const [vehicleClasses, setVehicleClasses] = useState([]);
-  const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // '6', '7', or '8'
-  const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
-  const [showHeatmap, setShowHeatmap] = useState('markers'); // 'markers', 'heatmap', or 'both'
-  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [selectedVehicleClass, setSelectedVehicleClass] = useState(null);
+  const [showHeatmap, setShowHeatmap] = useState(true);
 
   const onLoad = useCallback((mapInst) => {
     setMap(mapInst);
@@ -50,6 +53,7 @@ export default function MapComponent() {
     setLoading(true);
     setError(null);
 
+    // Load fuel stations
     fetch("/api/fuel-stations")
       .then((res) => {
         if (!res.ok) {
@@ -71,18 +75,17 @@ export default function MapComponent() {
       .finally(() => {
         setLoading(false);
       });
+
     // Load vehicle data for heatmap
     const loadVehicleData = async () => {
-      setVehiclesLoading(true);
       try {
         const parsedVehicles = await parseVehicleCSV();
         setVehicles(parsedVehicles);
         const classes = getUniqueVehicleClasses(parsedVehicles);
         setVehicleClasses(classes);
+        setSelectedVehicleClass(classes[0] || null);
       } catch (error) {
         console.error('Error loading vehicle data:', error);
-      } finally {
-        setVehiclesLoading(false);
       }
     };
 
@@ -94,11 +97,9 @@ export default function MapComponent() {
     return fuelType.toLowerCase();
   };
 
-  // State filtering
+  // State matching for filtering
   const getStateMatch = (station, selectedState) => {
-    if (!station.state) return false;
-    if (!selectedState || selectedState === 'all') return true;
-    
+    if (!selectedState || selectedState === 'all' || !station.state) return true;
     const stateCode = station.state.toUpperCase();
     return stateCode === selectedState.toUpperCase();
   };
@@ -106,12 +107,7 @@ export default function MapComponent() {
   const filteredStations = stations.filter((s) => {
     // Fuel type filter
     const fuelKey = getFuelTypeKey(s.fuel_type);
-    const fuelMatch = selectedFuelType === 'all' || fuelKey === selectedFuelType;
-    
-    // Station status filter
-    const statusMatch = stationStatusFilter === 'all' || 
-      (stationStatusFilter === 'available' && s.status_code === 'E') ||
-      (stationStatusFilter === 'planned' && s.status_code === 'P');
+    const fuelMatch = filters[fuelKey] !== undefined ? filters[fuelKey] : true;
     
     // State filter
     const stateMatch = getStateMatch(s, stateFilter);
@@ -120,14 +116,14 @@ export default function MapComponent() {
     const ownershipMatch = ownershipFilter === 'all' || 
       s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
     
-    return fuelMatch && statusMatch && stateMatch && ownershipMatch;
+    return fuelMatch && stateMatch && ownershipMatch;
   });
 
   // Removed auto-zoom functionality - map stays at default US center view
   // Stations are filtered but map doesn't zoom to specific regions
 
-  const selectFuelType = (fuelType) => {
-    setSelectedFuelType(fuelType);
+  const toggleFilter = (fuel) => {
+    setFilters((prev) => ({ ...prev, [fuel]: !prev[fuel] }));
   };
 
   // Simple seeded random number generator for stable positions
@@ -136,54 +132,38 @@ export default function MapComponent() {
     return x - Math.floor(x);
   };
 
-
   // Compute heatmap data (optimized to prevent unnecessary recalculations)
-  const vehicleHeatmapData = useMemo(() => {
-    if (vehicles.length === 0 || !isLoaded || showHeatmap === 'markers') {
-      return [];
+  const { heatmapData, maxVehicleCount } = useMemo(() => {
+    if (vehicles.length === 0 || !isLoaded || !showHeatmap) {
+      return { heatmapData: [], maxVehicleCount: 1 };
     }
 
-    const stateNameToCode = {
-      'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
-      'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
-      'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
-      'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
-      'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
-      'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
-      'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
-      'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
-      'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
-      'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
-      'District of Columbia': 'DC'
-    };
-
-    // Filter vehicles by state, fuel type, and vehicle class
     const filteredVehicles = vehicles.filter(vehicle => {
-      // State filter
-      const stateMatch = !stateFilter || stateFilter === 'all' || !vehicle.state ? true :
-        (stateNameToCode[vehicle.state.trim()] || vehicle.state.toUpperCase()) === stateFilter.toUpperCase();
-      
-      // Fuel type filter
-      const fuelMatch = vehicle.fuelType && vehicle.fuelType.toUpperCase() === selectedFuel.toUpperCase();
-      
-      // Vehicle class filter
-      const classMatch = vehicle.vehicleClass && String(vehicle.vehicleClass) === String(vehicleClassFilter);
-      
-      return stateMatch && fuelMatch && classMatch;
+      if (!stateFilter || stateFilter === 'all' || !vehicle.state) return true;
+      const stateNameToCode = {
+        'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+        'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+        'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+        'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+        'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+        'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+        'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+        'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+        'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+        'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
+        'District of Columbia': 'DC'
+      };
+      const stateCode = stateNameToCode[vehicle.state.trim()] || vehicle.state.toUpperCase();
+      return stateCode === stateFilter.toUpperCase();
     });
 
     const aggregated = aggregateByLocation(filteredVehicles);
     const max = Math.max(...aggregated.map(loc => loc.totalVehicles), 1);
 
-    // Create heatmap data with point spreading for smooth blending
-    const data = aggregated
-      .filter(location => {
-        const classKey = String(vehicleClassFilter);
-        return location.byClass[classKey] && location.byClass[classKey] > 0;
-      })
+    const data = selectedVehicleClass ? aggregated
+      .filter(location => location.byClass[selectedVehicleClass] && location.byClass[selectedVehicleClass] > 0)
       .flatMap((location, locationIndex) => {
-        const classKey = String(vehicleClassFilter);
-        const count = location.byClass[classKey];
+        const count = location.byClass[selectedVehicleClass];
         const weight = getHeatmapIntensity(count, max);
         const pointCount = Math.max(1, Math.round(weight * 8));
         
@@ -200,10 +180,81 @@ export default function MapComponent() {
             weight: weight * 100,
           };
         });
-      });
+      }) : [];
 
-    return data;
-  }, [vehicles, vehicleClassFilter, selectedFuel, stateFilter, isLoaded, showHeatmap]);
+    return { heatmapData: data, maxVehicleCount: max };
+  }, [vehicles, selectedVehicleClass, stateFilter, isLoaded, showHeatmap]);
+
+  // Deck.gl overlay component
+  function DeckGlOverlay({ mapInstance, heatmapData }) {
+    const deck = useMemo(() => new GoogleMapsOverlay({ layers: [] }), []);
+
+    useEffect(() => {
+      if (!mapInstance) return;
+
+      const timeoutId = setTimeout(() => {
+        try {
+          deck.setMap(mapInstance);
+        } catch (error) {
+          console.warn('Error attaching deck.gl overlay:', error);
+        }
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+        try {
+          deck.setMap(null);
+        } catch (error) {
+          console.warn('Error detaching deck.gl overlay:', error);
+        }
+      };
+    }, [mapInstance, deck]);
+
+    useEffect(() => {
+      if (!mapInstance || !heatmapData || heatmapData.length === 0) {
+        try {
+          deck.setProps({ layers: [] });
+        } catch (error) {
+          console.warn('Error clearing deck.gl layers:', error);
+        }
+        return;
+      }
+
+      try {
+        // Memoize deckData transformation to avoid recalculation
+        const deckData = heatmapData.map(d => ({
+          position: [d.location.lng, d.location.lat],
+          weight: d.weight
+        }));
+
+        const layer = new HeatmapLayer({
+          id: 'vehicle-heatmap-layer',
+          data: deckData,
+          getPosition: d => d.position,
+          getWeight: d => d.weight,
+          radiusPixels: 80,
+          intensity: 1.5,
+          threshold: 0.05,
+          colorRange: [
+            [0, 255, 128, 50],
+            [0, 255, 0, 120],
+            [255, 255, 0, 160],
+            [255, 200, 0, 200],
+            [255, 100, 0, 220],
+            [255, 0, 0, 240]
+          ],
+          aggregation: 'SUM',
+          opacity: 0.7
+        });
+        
+        deck.setProps({ layers: [layer] });
+      } catch (error) {
+        console.error('Error updating deck.gl heatmap layer:', error);
+      }
+    }, [deck, heatmapData, mapInstance]);
+
+    return null;
+  }
 
   if (!isLoaded) return (
     <div className={styles.container}>
@@ -239,18 +290,19 @@ export default function MapComponent() {
             filteredStations={filteredStations}
             selectedStation={selectedStation}
             setSelectedStation={setSelectedStation}
-            showHeatmap={showHeatmap}
-            vehicleHeatmapData={vehicleHeatmapData}
-            mapInstance={map}
           />
+          {map && showHeatmap && (
+            <DeckGlOverlay
+              mapInstance={map}
+              heatmapData={heatmapData}
+            />
+          )}
         </div>
 
         <div className={styles.sidebar}>
           <MapLegendPanel 
-            selectedFuelType={selectedFuelType}
-            selectFuelType={selectFuelType}
-            stationStatusFilter={stationStatusFilter}
-            setStationStatusFilter={setStationStatusFilter}
+            filters={filters}
+            toggleFilter={toggleFilter}
             stateFilter={stateFilter}
             setStateFilter={setStateFilter}
             ownershipFilter={ownershipFilter}
@@ -260,12 +312,10 @@ export default function MapComponent() {
             setIsFilterOpen={setIsFilterOpen}
             showHeatmap={showHeatmap}
             setShowHeatmap={setShowHeatmap}
-            vehicleClassFilter={vehicleClassFilter}
-            setVehicleClassFilter={setVehicleClassFilter}
-            selectedFuel={selectedFuel}
-            setSelectedFuel={setSelectedFuel}
-            heatmapPointCount={vehicleHeatmapData.length}
-            vehiclesLoading={vehiclesLoading}
+            vehicleClasses={vehicleClasses}
+            selectedVehicleClass={selectedVehicleClass}
+            setSelectedVehicleClass={setSelectedVehicleClass}
+            heatmapPointCount={heatmapData.length}
           />
         </div>
       </div>

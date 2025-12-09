@@ -1,6 +1,9 @@
 "use client";
 
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
+import { useEffect, useMemo } from "react";
+import { GoogleMapsOverlay } from '@deck.gl/google-maps';
+import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import { iconMap } from '@/constants/mapConfig';
 
 const mapContainerStyle = {
@@ -18,7 +21,10 @@ export default function MapView({
   onLoad, 
   filteredStations, 
   selectedStation, 
-  setSelectedStation 
+  setSelectedStation,
+  showHeatmap,
+  vehicleHeatmapData,
+  mapInstance
 }) {
   const getFuelTypeKey = (fuelType) => {
     if (!fuelType) return 'unknown';
@@ -36,6 +42,80 @@ export default function MapView({
     }
   };
 
+  // Deck.gl overlay component for heatmap
+  function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
+    const deck = useMemo(() => new GoogleMapsOverlay({ layers: [] }), []);
+
+    useEffect(() => {
+      if (!mapInstance) return;
+
+      const timeoutId = setTimeout(() => {
+        try {
+          deck.setMap(mapInstance);
+        } catch (error) {
+          console.warn('Error attaching deck.gl overlay:', error);
+        }
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+        try {
+          deck.setMap(null);
+        } catch (error) {
+          console.warn('Error detaching deck.gl overlay:', error);
+        }
+      };
+    }, [mapInstance, deck]);
+
+    useEffect(() => {
+      if (!mapInstance || !vehicleHeatmapData || vehicleHeatmapData.length === 0) {
+        try {
+          deck.setProps({ layers: [] });
+        } catch (error) {
+          console.warn('Error clearing deck.gl layers:', error);
+        }
+        return;
+      }
+
+      try {
+        // Map data for deck.gl: [{ position: [lng, lat], weight }]
+        const deckData = vehicleHeatmapData.map(d => ({
+          position: [d.location.lng, d.location.lat],
+          weight: d.weight
+        }));
+
+        const layer = new HeatmapLayer({
+          id: 'vehicle-heatmap-layer',
+          data: deckData,
+          getPosition: d => d.position,
+          getWeight: d => d.weight,
+          radiusPixels: 150,
+          intensity: 1.5,
+          threshold: 0.05,
+          colorRange: [
+            [0, 255, 128, 50],
+            [0, 255, 0, 120],
+            [255, 255, 0, 160],
+            [255, 200, 0, 200],
+            [255, 100, 0, 220],
+            [255, 0, 0, 240]
+          ],
+          aggregation: 'SUM',
+          opacity: 0.7
+        });
+        
+        deck.setProps({ layers: [layer] });
+      } catch (error) {
+        console.error('Error updating deck.gl heatmap layer:', error);
+      }
+    }, [deck, vehicleHeatmapData, mapInstance]);
+
+    return null;
+  }
+
+  const shouldShowMarkers = showHeatmap === 'markers' || showHeatmap === 'both';
+  const shouldShowHeatmap = showHeatmap === 'heatmap' || showHeatmap === 'both';
+
   return (
     <GoogleMap
       onLoad={onLoad}
@@ -43,8 +123,8 @@ export default function MapView({
       center={US_CENTER}
       zoom={4}
     >
-      {/* Markers */}
-      {filteredStations.map((s, index) => (
+      {/* Markers - conditionally rendered based on showHeatmap mode */}
+      {shouldShowMarkers && filteredStations.map((s, index) => (
         <Marker
           key={`${s.station_id || s.ID || 'unknown'}-${index}`}
           position={{ lat: s.lat, lng: s.lng }}
@@ -100,6 +180,14 @@ export default function MapView({
             </p>
           </div>
         </InfoWindow>
+      )}
+
+      {/* Deck.gl Heatmap Overlay - conditionally rendered based on showHeatmap mode */}
+      {shouldShowHeatmap && mapInstance && vehicleHeatmapData && vehicleHeatmapData.length > 0 && (
+        <DeckGlOverlay
+          mapInstance={mapInstance}
+          vehicleHeatmapData={vehicleHeatmapData}
+        />
       )}
     </GoogleMap>
   );

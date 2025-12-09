@@ -1,4 +1,5 @@
 import { iconMap } from '@/constants/mapConfig';
+import { getClassColor, getVehicleTypeDescription } from '@/utils/csvParser';
 import styles from './MapComponent.module.css';
 
 export default function MapLegendPanel({ 
@@ -12,7 +13,15 @@ export default function MapLegendPanel({
   setOwnershipFilter,
   stationCount, 
   isFilterOpen, 
-  setIsFilterOpen 
+  setIsFilterOpen,
+  showHeatmap,
+  setShowHeatmap,
+  vehicleClassFilter,
+  setVehicleClassFilter,
+  selectedFuel,
+  setSelectedFuel,
+  heatmapPointCount,
+  vehiclesLoading
 }) {
   // All US states
   const allStates = [
@@ -107,6 +116,12 @@ export default function MapLegendPanel({
             <span className={styles.statLabel}>Stations Displayed</span>
             <span className={styles.statValue}>{stationCount}</span>
           </div>
+          {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
+            <div className={styles.statItem}>
+              <span className={styles.statLabel}>Heatmap Points</span>
+              <span className={styles.statValue}>{vehiclesLoading ? 'Loading...' : (heatmapPointCount || 0)}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -199,7 +214,112 @@ export default function MapLegendPanel({
                   </label>
                 </div>
               </div>
+              
+              {/* View Mode */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>View Mode</h4>
+                <div className={styles.filterItems}>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="viewMode"
+                      className={styles.filterCheckbox}
+                      checked={showHeatmap === 'markers'}
+                      onChange={() => setShowHeatmap('markers')}
+                    />
+                    <span>Markers Only</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="viewMode"
+                      className={styles.filterCheckbox}
+                      checked={showHeatmap === 'heatmap'}
+                      onChange={() => setShowHeatmap('heatmap')}
+                    />
+                    <span>Heatmap Only</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="viewMode"
+                      className={styles.filterCheckbox}
+                      checked={showHeatmap === 'both'}
+                      onChange={() => setShowHeatmap('both')}
+                    />
+                    <span>Both</span>
+                  </label>
+                </div>
+              </div>
 
+              {/* Vehicle Class Filter - shown when heatmap is active */}
+              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
+                <div className={styles.filterGroup}>
+                  <h4 className={styles.filterGroupTitle}>Vehicle Class</h4>
+                  <div className={styles.filterItems}>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleClass"
+                        className={styles.filterCheckbox}
+                        checked={vehicleClassFilter === '6'}
+                        onChange={() => setVehicleClassFilter('6')}
+                      />
+                      <span>Medium Duty (Class 6)</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleClass"
+                        className={styles.filterCheckbox}
+                        checked={vehicleClassFilter === '7'}
+                        onChange={() => setVehicleClassFilter('7')}
+                      />
+                      <span>Heavy Duty (Class 7)</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleClass"
+                        className={styles.filterCheckbox}
+                        checked={vehicleClassFilter === '8'}
+                        onChange={() => setVehicleClassFilter('8')}
+                      />
+                      <span>Bus (Class 8)</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Truck Fuel Type Filter - shown when heatmap is active */}
+              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
+                <div className={styles.filterGroup}>
+                  <h4 className={styles.filterGroupTitle}>Truck Fuel Type</h4>
+                  <div className={styles.filterItems}>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="truckFuelType"
+                        className={styles.filterCheckbox}
+                        checked={selectedFuel === 'CNG'}
+                        onChange={() => setSelectedFuel('CNG')}
+                      />
+                      <span>CNG</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="truckFuelType"
+                        className={styles.filterCheckbox}
+                        checked={selectedFuel === 'EV'}
+                        onChange={() => setSelectedFuel('EV')}
+                      />
+                      <span>EV</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+              
               {/* Station Status Filter */}
               <div className={styles.filterGroup}>
                 <h4 className={styles.filterGroupTitle}>Station Status</h4>
