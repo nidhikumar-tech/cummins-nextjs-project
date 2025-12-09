@@ -22,7 +22,6 @@ export default function MapComponent() {
 
   const [selectedFuelType, setSelectedFuelType] = useState('all');
   const [stationStatusFilter, setStationStatusFilter] = useState('all');
-  const [regionFilter, setRegionFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState('all');
   const [ownershipFilter, setOwnershipFilter] = useState('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -65,34 +64,13 @@ export default function MapComponent() {
     return fuelType.toLowerCase();
   };
 
-  // Region mapping for US states
-  const getRegionMatch = (station, selectedRegion, selectedState) => {
+  // State filtering
+  const getStateMatch = (station, selectedState) => {
     if (!station.state) return false;
+    if (!selectedState || selectedState === 'all') return true;
     
     const stateCode = station.state.toUpperCase();
-    
-    // If specific state is selected, only match that state
-    if (selectedState && selectedState !== 'all') {
-      return stateCode === selectedState.toUpperCase();
-    }
-    
-    // If no region selected, show all
-    if (!selectedRegion || selectedRegion === 'all') return true;
-    
-    // US Regions mapping
-    const regions = {
-      new_england: ['CT', 'ME', 'MA', 'NH', 'RI', 'VT'],
-      mid_atlantic: ['NJ', 'NY', 'PA'],
-      east_north_central: ['IL', 'IN', 'MI', 'OH', 'WI'],
-      west_north_central: ['IA', 'KS', 'MN', 'MO', 'NE', 'ND', 'SD'],
-      south_atlantic: ['DE', 'DC', 'FL', 'GA', 'MD', 'NC', 'SC', 'VA', 'WV'],
-      east_south_central: ['AL', 'KY', 'MS', 'TN'],
-      west_south_central: ['AR', 'LA', 'OK', 'TX'],
-      mountain: ['AZ', 'CO', 'ID', 'MT', 'NV', 'NM', 'UT', 'WY'],
-      pacific: ['AK', 'CA', 'HI', 'OR', 'WA']
-    };
-
-    return regions[selectedRegion]?.includes(stateCode) || false;
+    return stateCode === selectedState.toUpperCase();
   };
 
   const filteredStations = stations.filter((s) => {
@@ -105,14 +83,14 @@ export default function MapComponent() {
       (stationStatusFilter === 'available' && s.status_code === 'E') ||
       (stationStatusFilter === 'planned' && s.status_code === 'P');
     
-    // Region and state filter
-    const regionMatch = getRegionMatch(s, regionFilter, stateFilter);
+    // State filter
+    const stateMatch = getStateMatch(s, stateFilter);
     
     // Ownership filter
     const ownershipMatch = ownershipFilter === 'all' || 
       s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
     
-    return fuelMatch && statusMatch && regionMatch && ownershipMatch;
+    return fuelMatch && statusMatch && stateMatch && ownershipMatch;
   });
 
   // Removed auto-zoom functionality - map stays at default US center view
@@ -120,11 +98,6 @@ export default function MapComponent() {
 
   const selectFuelType = (fuelType) => {
     setSelectedFuelType(fuelType);
-    // When ELEC is selected, reset region to 'all' to show all states
-    if (fuelType === 'elec') {
-      setRegionFilter('all');
-      setStateFilter('all');
-    }
   };
 
   if (!isLoaded) return (
@@ -170,8 +143,6 @@ export default function MapComponent() {
             selectFuelType={selectFuelType}
             stationStatusFilter={stationStatusFilter}
             setStationStatusFilter={setStationStatusFilter}
-            regionFilter={regionFilter}
-            setRegionFilter={setRegionFilter}
             stateFilter={stateFilter}
             setStateFilter={setStateFilter}
             ownershipFilter={ownershipFilter}
