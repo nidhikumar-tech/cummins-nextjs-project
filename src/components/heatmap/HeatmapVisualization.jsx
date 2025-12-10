@@ -29,9 +29,11 @@ export default function HeatmapVisualization() {
   const [vehicles, setVehicles] = useState([]);
   const [vehicleClasses, setVehicleClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [regionFilter, setRegionFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState('all');
+  const [selectedFuel, setSelectedFuel] = useState('CNG');
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const heatmapLayerRef = useRef(null);
 
   const { isLoaded } = useJsApiLoader({
@@ -62,9 +64,10 @@ export default function HeatmapVisualization() {
     loadData();
   }, []);
 
-  // Region mapping for US states
-  const getRegionMatch = useCallback((state, selectedRegion) => {
-    if (!selectedRegion || selectedRegion === 'all' || !state) return true;
+  // State filtering
+  const getStateMatch = useCallback((state, selectedState) => {
+    if (!state) return false;
+    if (!selectedState || selectedState === 'all') return true;
     
     // Convert full state name to state code
     const stateNameToCode = {
@@ -84,17 +87,7 @@ export default function HeatmapVisualization() {
     const stateName = state.trim();
     const stateCode = stateNameToCode[stateName] || stateName.toUpperCase();
     
-    // US Regions mapping
-    const regions = {
-      northeast: ['CT', 'ME', 'MA', 'NH', 'RI', 'VT', 'NJ', 'NY', 'PA'],
-      southeast: ['DE', 'FL', 'GA', 'MD', 'NC', 'SC', 'VA', 'WV', 'AL', 'KY', 'MS', 'TN', 'AR', 'LA'],
-      midwest: ['IL', 'IN', 'MI', 'OH', 'WI', 'IA', 'KS', 'MN', 'MO', 'NE', 'ND', 'SD'],
-      southwest: ['AZ', 'NM', 'OK', 'TX'],
-      west: ['AK', 'CA', 'CO', 'HI', 'ID', 'MT', 'NV', 'OR', 'UT', 'WA', 'WY']
-    };
-    
-    const result = regions[selectedRegion]?.includes(stateCode) || false;
-    return result;
+    return stateCode === selectedState.toUpperCase();
   }, []);
 
   // Compute aggregated locations and heatmap data
@@ -103,13 +96,14 @@ export default function HeatmapVisualization() {
       return { locations: [], maxVehicleCount: 1, heatmapData: [] };
     }
 
-    // Filter vehicles by region first
+    // Filter vehicles by state and fuel type
     const filteredVehicles = vehicles.filter(vehicle => {
-      const match = getRegionMatch(vehicle.state, regionFilter);
-      return match;
+      const stateMatch = getStateMatch(vehicle.state, stateFilter);
+      const fuelMatch = vehicle.fuelType === selectedFuel;
+      return stateMatch && fuelMatch;
     });
 
-    console.log(`Region filter: ${regionFilter}, Total vehicles: ${vehicles.length}, Filtered: ${filteredVehicles.length}`);
+    console.log(`State filter: ${stateFilter}, Total vehicles: ${vehicles.length}, Filtered: ${filteredVehicles.length}`);
     
     const aggregated = aggregateByLocation(filteredVehicles);
     console.log('Aggregated locations:', aggregated.length, aggregated.slice(0, 3));
@@ -137,11 +131,16 @@ export default function HeatmapVisualization() {
 
     console.log('Heatmap data points:', data.length, data.slice(0, 5));
     return { locations: aggregated, maxVehicleCount: max, heatmapData: data };
-  }, [vehicles, selectedClass, regionFilter, isLoaded, getRegionMatch]);
+  }, [vehicles, selectedClass, stateFilter, selectedFuel, isLoaded, getStateMatch]);
 
   // Handle class selection (single class only)
   const selectClass = useCallback((vehicleClass) => {
     setSelectedClass(vehicleClass);
+  }, []);
+
+  // Handle fuel type selection (single fuel only)
+  const selectFuel = useCallback((fuelType) => {
+    setSelectedFuel(fuelType);
   }, []);
 
   // Update heatmap layer
@@ -239,31 +238,22 @@ export default function HeatmapVisualization() {
                     onChange={() => selectClass(vehicleClass)}
                     className={styles.radio}
                   />
-                  <span className={styles.colorDot} style={{ backgroundColor: getClassColor(vehicleClass) }}></span>
                   <span className={styles.labelText}>
-                    Class {vehicleClass} - ({getVehicleTypeDescription(vehicleClass)})
+                    {vehicleClass === '6' ? 'Medium Duty' : vehicleClass === '7' ? 'Heavy Duty' : 'Bus'}
                   </span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className={styles.filterSection}>
-            <h3 className={styles.filterTitle}>Region Filter</h3>
-            <div className={styles.filterOptions}>
-              <select
-                className={styles.regionSelect}
-                value={regionFilter}
-                onChange={(e) => setRegionFilter(e.target.value)}
-              >
-                <option value="all">All Regions</option>
-                <option value="northeast">Northeast</option>
-                <option value="southeast">Southeast</option>
-                <option value="midwest">Midwest</option>
-                <option value="southwest">Southwest</option>
-                <option value="west">West</option>
-              </select>
-            </div>
+          <div className={styles.filterTriggerSection}>
+            <button 
+              className={styles.filterTriggerButton}
+              onClick={() => setIsFilterOpen(true)}
+            >
+              <span>🔍</span>
+              <span>Filter Options</span>
+            </button>
           </div>
 
           <div className={styles.statsSection}>
@@ -291,6 +281,120 @@ export default function HeatmapVisualization() {
           </div>
         </div>
       </div>
+
+      {/* Filter Slide Panel */}
+      {isFilterOpen && (
+        <div className={styles.filterOverlay} onClick={() => setIsFilterOpen(false)}>
+          <div 
+            className={`${styles.filterSlidePanel} ${isFilterOpen ? styles.open : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.filterPanelHeader}>
+              <h3 className={styles.filterPanelTitle}>Filters</h3>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setIsFilterOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className={styles.filterPanelContent}>
+              {/* State Filter */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>State</h4>
+                <div className={styles.filterItems}>
+                  <select
+                    className={styles.filterSelect}
+                    value={stateFilter}
+                    onChange={(e) => setStateFilter(e.target.value)}
+                  >
+                    <option value="all">All States</option>
+                    <option value="AL">Alabama</option>
+                        <option value="AK">Alaska</option>
+                        <option value="AZ">Arizona</option>
+                        <option value="AR">Arkansas</option>
+                        <option value="CA">California</option>
+                        <option value="CO">Colorado</option>
+                        <option value="CT">Connecticut</option>
+                        <option value="DE">Delaware</option>
+                        <option value="DC">District of Columbia</option>
+                        <option value="FL">Florida</option>
+                        <option value="GA">Georgia</option>
+                        <option value="HI">Hawaii</option>
+                        <option value="ID">Idaho</option>
+                        <option value="IL">Illinois</option>
+                        <option value="IN">Indiana</option>
+                        <option value="IA">Iowa</option>
+                        <option value="KS">Kansas</option>
+                        <option value="KY">Kentucky</option>
+                        <option value="LA">Louisiana</option>
+                        <option value="ME">Maine</option>
+                        <option value="MD">Maryland</option>
+                        <option value="MA">Massachusetts</option>
+                        <option value="MI">Michigan</option>
+                        <option value="MN">Minnesota</option>
+                        <option value="MS">Mississippi</option>
+                        <option value="MO">Missouri</option>
+                        <option value="MT">Montana</option>
+                        <option value="NE">Nebraska</option>
+                        <option value="NV">Nevada</option>
+                        <option value="NH">New Hampshire</option>
+                        <option value="NJ">New Jersey</option>
+                        <option value="NM">New Mexico</option>
+                        <option value="NY">New York</option>
+                        <option value="NC">North Carolina</option>
+                        <option value="ND">North Dakota</option>
+                        <option value="OH">Ohio</option>
+                        <option value="OK">Oklahoma</option>
+                        <option value="OR">Oregon</option>
+                        <option value="PA">Pennsylvania</option>
+                        <option value="RI">Rhode Island</option>
+                        <option value="SC">South Carolina</option>
+                        <option value="SD">South Dakota</option>
+                        <option value="TN">Tennessee</option>
+                        <option value="TX">Texas</option>
+                        <option value="UT">Utah</option>
+                        <option value="VT">Vermont</option>
+                        <option value="VA">Virginia</option>
+                        <option value="WA">Washington</option>
+                        <option value="WV">West Virginia</option>
+                        <option value="WI">Wisconsin</option>
+                        <option value="WY">Wyoming</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Fuel Type Filter */}
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>Fuel Type</h4>
+                <div className={styles.filterItems}>
+                  <label className={styles.panelFilterLabel}>
+                    <input
+                      type="radio"
+                      name="fuelType"
+                      className={styles.filterRadio}
+                      checked={selectedFuel === 'CNG'}
+                      onChange={() => selectFuel('CNG')}
+                    />
+                    <span>CNG (Compressed Natural Gas)</span>
+                  </label>
+                  <label className={styles.panelFilterLabel}>
+                    <input
+                      type="radio"
+                      name="fuelType"
+                      className={styles.filterRadio}
+                      checked={selectedFuel === 'EV'}
+                      onChange={() => selectFuel('EV')}
+                    />
+                    <span>EV (Electric Vehicle)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

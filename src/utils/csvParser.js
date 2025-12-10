@@ -1,40 +1,25 @@
 /**
- * Parse vehicle CSV data from public folder
- * @returns {Promise<Array>} Array of vehicle records with parsed data
+ * Fetch vehicle data from BigQuery API
+ * @returns {Promise<Array>} Array of vehicle records
  */
 export async function parseVehicleCSV() {
   try {
-    const response = await fetch('/vehicle_demo_data.csv');
-    const csvText = await response.text();
-    
-    const lines = csvText.split('\n');
-    const headers = lines[0].split(',').map(h => h.trim());
-    
-    const data = [];
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      
-      const values = lines[i].split(',').map(v => v.trim());
-      const record = {};
-      
-      headers.forEach((header, index) => {
-        record[header] = values[index];
-      });
-      
-      data.push({
-        state: record.State,
-        city: record.City,
-        vehicleCount: parseInt(record.Vehicle_Count) || 0,
-        vehicleClass: record.Vehicle_Class,
-        vehicleType: record.Vehicle_Type,
-        fuelType: record.Fuel_Type,
-      });
+    const response = await fetch('/api/vehicle-data', {
+      next: { revalidate: 3600 } // Cache for 1 hour
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const result = await response.json();
     
-    console.log('CSV parsed successfully:', data.length, 'records', data.slice(0, 3));
-    return data;
+    if (result.success) {
+      console.log('Vehicle data loaded from BigQuery:', result.count, 'records');
+      return result.data;
+    } else {
+      throw new Error(result.message || 'Failed to fetch vehicle data');
+    }
   } catch (error) {
-    console.error('Error parsing CSV:', error);
+    console.error('Error fetching vehicle data:', error);
     return [];
   }
 }

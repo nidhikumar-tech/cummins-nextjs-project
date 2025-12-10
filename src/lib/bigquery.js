@@ -8,24 +8,30 @@ const bigquery = new BigQuery({
 
 // Returns the array of fuel stations from BigQuery
 export async function getFuelStations() {
+
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    console.log('⚠️  Skipping BigQuery query during build phase');
+    return [];
+  }
+
   const query = `
     SELECT 
-      \`Fuel Type Code\` as Fuel_Type_Code,
-      \`Station Name\` as Station_Name,
-      \`Street Address\` as Street_Address,
+      Fuel_Type_Code,
+      Station_Name,
+      Street_Address,
       City,
       State,
       ZIP,
       Plus4,
       Country,
-      \`Status Code\` as Status_Code,
-      \`Station Phone\` as Station_Phone,
-      \`Expected Date\` as Expected_Date,
-      \`Access Code\` as Access_Code,
+      Status_Code,
+      Station_Phone,
+      Expected_Date,
+      Access_Code,
       Latitude,
       Longitude,
       ID
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}\`
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_2}\`
     WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL
   `;
 
@@ -39,6 +45,39 @@ export async function getFuelStations() {
     return rows;
   } catch (error) {
     console.error('BigQuery Error:', error);
+    throw error;
+  }
+}
+
+// Returns the array of vehicle data from BigQuery
+export async function getVehicleData() {
+
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    console.log('⚠️  Skipping BigQuery query during build phase');
+    return [];
+  }
+  
+  const query = `
+    SELECT 
+      State,
+      City,
+      Vehicle_Count,
+      Vehicle_Class,
+      Vehicle_Type,
+      Fuel_Type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_1}\`
+  `;
+
+  const options = {
+    query: query,
+    location: 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error('BigQuery Error (Vehicle Data):', error);
     throw error;
   }
 }
