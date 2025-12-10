@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getFuelStations, getVehicleData } from '@/lib/bigquery';
 
+export const dynamic = 'force-dynamic';
+// export const revalidate = 3600; // Cache for 1 hour
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

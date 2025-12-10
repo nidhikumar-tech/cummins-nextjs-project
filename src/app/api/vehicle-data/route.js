@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getVehicleData } from '@/lib/bigquery';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour
+
 export async function GET() {
   try {
     // Fetch data from BigQuery
@@ -40,4 +43,4 @@ export async function GET() {
 }
 
 // Cache for 1 hour
-export const revalidate = 3600;
+// export const revalidate = 3600;

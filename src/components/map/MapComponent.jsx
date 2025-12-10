@@ -11,7 +11,7 @@ import {
   getHeatmapIntensity,
 } from '@/utils/csvParser';
 
-const libraries = ['places'];
+const libraries = ['places', 'visualization'];
 import styles from './MapComponent.module.css';
 
 export default function MapComponent() {
@@ -39,9 +39,16 @@ export default function MapComponent() {
   const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
   const [showHeatmap, setShowHeatmap] = useState('markers'); // 'markers', 'heatmap', or 'both'
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(4); // Track map zoom level
 
   const onLoad = useCallback((mapInst) => {
     setMap(mapInst);
+    
+    // Listen to zoom changes
+    mapInst.addListener('zoom_changed', () => {
+      const newZoom = mapInst.getZoom();
+      setCurrentZoom(newZoom);
+    });
   }, []);
 
   useEffect(() => {
@@ -105,25 +112,61 @@ export default function MapComponent() {
     return stateCode === selectedState.toUpperCase();
   };
 
-  const filteredStations = stations.filter((s) => {
-    // Fuel type filter
-    const fuelKey = getFuelTypeKey(s.fuel_type);
-    const fuelMatch = selectedFuelType === 'all' || fuelKey === selectedFuelType;
-    
-    // Station status filter
-    const statusMatch = stationStatusFilter === 'all' || 
-      (stationStatusFilter === 'available' && s.status_code === 'E') ||
-      (stationStatusFilter === 'planned' && s.status_code === 'P');
-    
-    // State filter
-    const stateMatch = getStateMatch(s, stateFilter);
-    
-    // Ownership filter
-    const ownershipMatch = ownershipFilter === 'all' || 
-      s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
-    
-    return fuelMatch && statusMatch && stateMatch && ownershipMatch;
-  });
+  const filteredStations = useMemo(() => {
+    const filtered = stations.filter((s) => {
+      // Fuel type filter
+      const fuelKey = getFuelTypeKey(s.fuel_type);
+      const fuelMatch = selectedFuelType === 'all' || fuelKey === selectedFuelType;
+      
+      // Station status filter
+      const statusMatch = stationStatusFilter === 'all' || 
+        (stationStatusFilter === 'available' && s.status_code === 'E') ||
+        (stationStatusFilter === 'planned' && s.status_code === 'P');
+      
+      // State filter
+      const stateMatch = getStateMatch(s, stateFilter);
+      
+      // Ownership filter
+      const ownershipMatch = ownershipFilter === 'all' || 
+        s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
+      
+      return fuelMatch && statusMatch && stateMatch && ownershipMatch;
+    });
+
+    // Limit markers based on zoom level to prevent crowding
+    // Zoom 4 (default): Show ~250 stations
+    // Zoom 6+: Show ~500 stations
+    // Zoom 8+: Show all stations
+    const maxMarkersMap = {
+      1: 100,
+      2: 100,
+      3: 150,
+      4: 250,  // default zoom
+      5: 350,
+      6: 500,
+      7: 750,
+      8: Infinity, // Show all at high zoom
+    };
+
+    const zoomLevel = Math.floor(currentZoom);
+    const maxMarkers = maxMarkersMap[zoomLevel] || maxMarkersMap[8];
+
+    if (filtered.length <= maxMarkers) {
+      return filtered;
+    }
+
+    // Evenly sample stations to show representative distribution
+    const step = filtered.length / maxMarkers;
+    const sampled = [];
+    for (let i = 0; i < maxMarkers; i++) {
+      const index = Math.floor(i * step);
+      if (index < filtered.length) {
+        sampled.push(filtered[index]);
+      }
+    }
+
+    return sampled;
+  }, [stations, selectedFuelType, stationStatusFilter, stateFilter, ownershipFilter, currentZoom]);
 
   // Removed auto-zoom functionality - map stays at default US center view
   // Stations are filtered but map doesn't zoom to specific regions
