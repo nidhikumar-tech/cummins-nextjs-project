@@ -12,35 +12,25 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={styles.navbar}>
+    <nav className={styles.navbar}> {/* Wrap entire navbar into a container */}
       {/* Left Section - Logo */}
-      <div className={styles.navLeft}>
-        <Link href="/dashboard" className={styles.logo}>
+      <div className={styles.navLeft}> {/* Logo wrapped into a div*/}
+        <Link href="/dashboard/map" className={styles.logo}> {/* Redirect to /dashboard/map when you click the logo*/}
+          {/* Logo is made by using <path> inside <svg> to manually draw the letter C */}
           <svg
             className={styles.logoIcon}
             viewBox="0 0 40 40"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <rect
-              x="8"
-              y="8"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              strokeWidth="2"
-              rx="4"
-            />
-            <circle cx="14" cy="14" r="2" fill="currentColor" />
             <path
-              d="M8 24L14 18L22 24L32 14"
+              d="M 30 12 A 12 12 0 1 0 30 28"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="8"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          <span className={styles.logoText}>Cummins Analytics</span>
         </Link>
       </div>
 
