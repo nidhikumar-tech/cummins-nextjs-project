@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; //to keep navbar links highlighted when clicked 
 import styles from "./Navbar.module.css";
+
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname(); //to get current url to signify which navbar button should be highlighted
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const isActive = (path) => pathname === path ? styles.activeLink : ""; //return styles.activeLink if the paths match, shows that link was clicked
 
   return (
     <nav className={styles.navbar}> {/* Wrap entire navbar into a container */}
@@ -49,7 +54,7 @@ export default function Navbar() {
       <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
         <Link
           href="/dashboard/heatmap"
-          className={styles.navLink}
+          className={`${styles.navLink} ${isActive("/dashboard/heatmap")}`} //classname activeLink will be active only if clicked
           onClick={() => setIsMenuOpen(false)}
           style={{ pointerEvents: "none", opacity: 0.5 }}
           aria-disabled="true"
@@ -63,7 +68,7 @@ export default function Navbar() {
 
         <Link
           href="/dashboard/chart"
-          className={styles.navLink}
+          className={`${styles.navLink} ${isActive("/dashboard/chart")}`}
           onClick={() => setIsMenuOpen(false)}
           style={{ pointerEvents: "none", opacity: 0.5 }}
           aria-disabled="true"
@@ -77,7 +82,7 @@ export default function Navbar() {
 
         <Link
           href="/dashboard/graph"
-          className={styles.navLink}
+          className={`${styles.navLink} ${isActive("/dashboard/graph")}`}
           onClick={() => setIsMenuOpen(false)}
           style={{ pointerEvents: "none", opacity: 0.5 }}
           aria-disabled="true"
@@ -91,7 +96,7 @@ export default function Navbar() {
 
         <Link
           href="/dashboard/map"
-          className={styles.navLink}
+          className={`${styles.navLink} ${isActive("/dashboard/map")}`}
           onClick={() => setIsMenuOpen(false)}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">

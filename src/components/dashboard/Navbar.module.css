@@ -98,6 +98,15 @@
   color: inherit;
 }
 
+  .activeLink {
+  color: #0f172a;               /* Darker text color (same as hover) */
+  background: rgba(59, 130, 246, 0.06); /* Slight blue background (Matches hover) */
+  font-weight: 600;             /* Make text slightly bolder */
+  }
+.activeLink::before {
+  width: 100%;
+  }
+
 /* Right Section - User/Account */
 .navRight {
   display: flex;
@@ -229,6 +238,16 @@
   .navRight {
     display: none;
   }
+
+  .activeLink {
+  color: #0f172a;               /* Darker text color (same as hover) */
+  background: rgba(59, 130, 246, 0.06); /* Slight blue background (Matches hover) */
+  font-weight: 600;             /* Make text slightly bolder */
+  }
+.activeLink::before {
+  width: 100%;
+  }
+
 }
 
 @media (max-width: 480px) {
@@ -253,5 +272,15 @@
   .navIcon {
     width: 16px;
     height: 16px;
+  }
+
+  .activeLink {
+  color: #0f172a;               /* Darker text color (same as hover) */
+  background: rgba(59, 130, 246, 0.06); /* Slight blue background (Matches hover) */
+  font-weight: 600;             /* Make text slightly bolder */
+  }
+
+  .activeLink::before {
+  width: 100%;
   }
 }
