@@ -108,30 +108,33 @@
 }
 
 .userButton {
+  width: 30px;
+  height:30px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  background: #3b82f6;
+  padding: 0;
+  background: #000000;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 50%;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  justify-content: center;
 }
 
 .userButton:hover {
-  background: #2563eb;
+  background: #000000;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .userIcon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
 /* Hamburger Menu */
