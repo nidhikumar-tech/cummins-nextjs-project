@@ -63,7 +63,7 @@
   padding: 8px 16px;
   color: #475569;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   border-radius: 6px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -245,7 +245,11 @@
   font-weight: 600;             /* Make text slightly bolder */
   }
 .activeLink::before {
-  width: 100%;
+  width: 4px;
+  height: 100%;    /* Full height of the button */
+  left: 0;         /* Stick it to the left edge */
+  bottom: auto;    /* Reset desktop positioning */
+  top: 0;
   }
 
 }
@@ -266,7 +270,7 @@
   }
 
   .navLink {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .navIcon {
@@ -281,6 +285,10 @@
   }
 
   .activeLink::before {
-  width: 100%;
+  width: 4px;
+  height: 100%;    /* Full height of the button */
+  left: 0;         /* Stick it to the left edge */
+  bottom: auto;    /* Reset desktop positioning */
+  top: 0;
   }
 }
