@@ -128,6 +128,7 @@ export default function MapLegendPanel({
 
   return (
     <>
+
       <div className={styles.legendSection}>
         <h3 className={styles.sectionTitle}>Station Status</h3>
         {legends.map(({ key, label, icon }) => (
@@ -164,13 +165,13 @@ export default function MapLegendPanel({
         </div>
       </div>
 
-      <div className={styles.filterTriggerSection}>
+      <div>
         <button 
-          className={styles.filterTriggerButton}
+          className={styles.downloadButton}
           onClick={() => setIsExportOpen(true)}
         >
-          {/* <span>⬇️</span> */}
-          <span>Export Data</span>
+          {/* <span>⬇️</span> 
+          <img src="/images/download.png" />*/}
         </button>
       </div>
 
@@ -257,6 +258,7 @@ export default function MapLegendPanel({
             </div>
           </div>
         </div>
+        
       )}
 
       {/* Filter Slide Panel */}

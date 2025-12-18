@@ -4,6 +4,7 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MapLegendPanel from './MapLegendPanel';
 import MapView from './MapView';
+import MinMaxChart from './MinMaxChart';
 import {
   parseVehicleCSV,
   aggregateByLocation,
@@ -11,31 +12,33 @@ import {
   getHeatmapIntensity,
 } from '@/utils/csvParser';
 
+{/* Defines which Google Maps libraries to load */}
 const libraries = ['places', 'visualization'];
 import styles from './MapComponent.module.css';
 
 export default function MapComponent() {
+  {/* Asynchronously loads Google Maps Javascript script from servers */}
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
 
-  const [map, setMap] = useState(null);
-  const [stations, setStations] = useState([]);
-  const [selectedStation, setSelectedStation] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [map, setMap] = useState(null); {/* map stores the actual Google Map object so we can control it programmatically */}
+  const [stations, setStations] = useState([]); {/*stations is raw list of all fuel stations fetched from the API*/}
+  const [selectedStation, setSelectedStation] = useState(null); {/*Tracks which pin the user clicked on*/}
+  const [loading, setLoading] = useState(true); {/*UI states for the API fetch*/}
+  const [error, setError] = useState(null); {/*UI states for the API fetch*/}
 
-  const [selectedFuelType, setSelectedFuelType] = useState('all');
-  const [stationStatusFilter, setStationStatusFilter] = useState('all');
-  const [stateFilter, setStateFilter] = useState('all');
-  const [ownershipFilter, setOwnershipFilter] = useState('all');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedFuelType, setSelectedFuelType] = useState('all'); {/*for filter*/}
+  const [stationStatusFilter, setStationStatusFilter] = useState('all'); {/*for filter*/}
+  const [stateFilter, setStateFilter] = useState('all'); {/*for filter*/}
+  const [ownershipFilter, setOwnershipFilter] = useState('all'); {/*for filter*/}
+  const [isFilterOpen, setIsFilterOpen] = useState(false); {/*for filter*/}
 
   // Heatmap state
   const [vehicles, setVehicles] = useState([]);
   const [vehicleClasses, setVehicleClasses] = useState([]);
-  const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // '6', '7', or '8'
+  const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // Medium Duty/Heavy Duty/Bus
   const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
   const [showHeatmap, setShowHeatmap] = useState('markers'); // 'markers', 'heatmap', or 'both'
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
@@ -268,12 +271,15 @@ export default function MapComponent() {
   );
 
   return (
+    <div>
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Fuel Station Locator</h1>
+        <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
+        {/*}
         <p className={styles.description}>
           Find alternative fuel stations across the United States
         </p>
+        */}
       </div>
 
       <div className={styles.content}>
@@ -313,6 +319,18 @@ export default function MapComponent() {
           />
         </div>
       </div>
+    </div>
+
+    {/* Div for Min-Max Chart */}
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Min-Max Charts</h1>
+      </div>
+      <div className={`${styles.contentChart} ${styles.chartBase}`}>
+        <MinMaxChart />
+
+      </div>
+    </div>
     </div>
   );
 }
