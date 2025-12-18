@@ -9,7 +9,6 @@ import { iconMap } from '@/constants/mapConfig';
 const mapContainerStyle = {
   width: '100%',
   height: '600px',
-  borderRadius: '12px',
 };
 
 const US_CENTER = {

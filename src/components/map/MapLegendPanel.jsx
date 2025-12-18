@@ -81,8 +81,8 @@ export default function MapLegendPanel({
     { code: 'WY', name: 'Wyoming' }
   ];
   const legends = [
-    { key: 'available', label: 'Available Stations', icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' },
-    { key: 'planned', label: 'Planned Stations', icon: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png' },
+    { key: 'available', label: 'Available Stations', icon: 'https://maps.gstatic.com/mapfiles/ms2/micons/blue.png' },
+    { key: 'planned', label: 'Planned Stations', icon: 'https://maps.gstatic.com/mapfiles/ms2/micons/red.png' },
   ];
 
   const fuelLegends = [
@@ -128,27 +128,14 @@ export default function MapLegendPanel({
 
   return (
     <>
-
-      <div className={styles.legendSection}>
-        <h3 className={styles.sectionTitle}>Station Status</h3>
-        {legends.map(({ key, label, icon }) => (
-          <div key={key} className={styles.legendItem}>
-            <img src={icon} className={styles.legendIcon} alt={label} />
-            <span className={styles.legendLabel}>{label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.filterTriggerSection}>
-        <button 
+      <button 
           className={styles.filterTriggerButton}
           onClick={() => setIsFilterOpen(true)}
         >
-          <span>🔍</span>
-          <span>Filter Stations</span>
-        </button>
-      </div>
-
+          <span>Apply Filters</span><span className={styles.spanChild}></span>
+      </button>
+      
+{/* Panel to show number of heatpoints and fuel stations in focus
       <div className={styles.statsSection}>
         <h3 className={styles.sectionTitle}>Statistics</h3>
         <div className={styles.statsGrid}>
@@ -164,6 +151,18 @@ export default function MapLegendPanel({
           )}
         </div>
       </div>
+*/}
+
+      {/*Legend Here */}
+      <div className={styles.legendSection}>
+        <h3 className={styles.sectionTitle}>Legend</h3>
+        {legends.map(({ key, label, icon }) => (
+          <div key={key} className={styles.legendItem}>
+            <img src={icon} className={styles.legendIcon} alt={label} />
+            <span className={styles.legendLabel}>{label}</span>
+          </div>
+        ))}
+      </div>
 
       <div>
         <button 
@@ -174,6 +173,8 @@ export default function MapLegendPanel({
           <img src="/images/download.png" />*/}
         </button>
       </div>
+
+      
 
       {/* Export Slide Panel */}
       {isExportOpen && (

@@ -40,7 +40,7 @@ export default function MapComponent() {
   const [vehicleClasses, setVehicleClasses] = useState([]);
   const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // Medium Duty/Heavy Duty/Bus
   const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
-  const [showHeatmap, setShowHeatmap] = useState('markers'); // 'markers', 'heatmap', or 'both'
+  const [showHeatmap, setShowHeatmap] = useState('heatmap'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(4); // Track map zoom level
 
@@ -326,7 +326,7 @@ export default function MapComponent() {
       <div className={styles.header}>
         <h1 className={styles.title}>Min-Max Charts</h1>
       </div>
-      <div className={`${styles.contentChart} ${styles.chartBase}`}>
+      <div className={`${styles.chartContent} ${styles.chartBase}`}>
         <MinMaxChart />
 
       </div>
