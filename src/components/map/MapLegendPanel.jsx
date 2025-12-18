@@ -270,7 +270,7 @@ export default function MapLegendPanel({
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles.filterPanelHeader}>
-              <h3 className={styles.filterPanelTitle}>Filters</h3>
+              <h3 className={styles.filterPanelTitle}>Apply Filters</h3>
               <button 
                 className={styles.closeButton}
                 onClick={() => setIsFilterOpen(false)}
@@ -300,6 +300,8 @@ export default function MapLegendPanel({
               </div>
 
               {/* Ownership Filter */}
+
+              {/* 
               <div className={styles.filterGroup}>
                 <h4 className={styles.filterGroupTitle}>Ownership</h4>
                 <div className={styles.filterItems}>
@@ -314,8 +316,10 @@ export default function MapLegendPanel({
                   </select>
                 </div>
               </div>
+              */}
 
-              {/* Fuel Type Filter */}
+              {/* Fuel Type Filter Stations*/}
+              {/* 
               <div className={styles.filterGroup}>
                 <h4 className={styles.filterGroupTitle}>Fuel Type</h4>
                 <div className={styles.filterItems}>
@@ -351,7 +355,8 @@ export default function MapLegendPanel({
                   </label>
                 </div>
               </div>
-              
+              */}
+
               {/* View Mode */}
               <div className={styles.filterGroup}>
                 <h4 className={styles.filterGroupTitle}>View Mode</h4>
