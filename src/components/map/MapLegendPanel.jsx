@@ -154,6 +154,7 @@ export default function MapLegendPanel({
 */}
 
       {/*Legend Here */}
+      {/*Hide for now 
       <div className={styles.legendSection}>
         <h3 className={styles.sectionTitle}>Legend</h3>
         {legends.map(({ key, label, icon }) => (
@@ -163,19 +164,19 @@ export default function MapLegendPanel({
           </div>
         ))}
       </div>
+      */}
 
+
+      {/* Download button*/}
       <div>
         <button 
           className={styles.downloadButton}
           onClick={() => setIsExportOpen(true)}
         >
-          {/* <span>⬇️</span> 
-          <img src="/images/download.png" />*/}
         </button>
       </div>
 
-      
-
+    
       {/* Export Slide Panel */}
       {isExportOpen && (
         <div className={styles.filterOverlay} onClick={() => setIsExportOpen(false)}>
@@ -253,7 +254,7 @@ export default function MapLegendPanel({
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
                   {/* <span>⬇️</span> */}
-                  <span>Download CSV</span>
+                  <span style={{ textDecoration: 'underline'}}>Download CSV</span>
                 </button>
               </div>
             </div>
@@ -299,29 +300,123 @@ export default function MapLegendPanel({
                 </div>
               </div>
 
-              {/* Ownership Filter */}
 
-              {/* 
+
+
+              {/* View Mode Filter - Heatmap Only or Fuel Stations Only or Both*/}
               <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Ownership</h4>
+                <h4 className={styles.filterGroupTitle}>View Mode</h4>
                 <div className={styles.filterItems}>
-                  <select 
-                    className={styles.filterSelect}
-                    value={ownershipFilter}
-                    onChange={(e) => setOwnershipFilter(e.target.value)}
-                  >
-                    <option value="all">All</option>
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
-                  </select>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="viewMode"
+                      className={styles.filterCheckbox}
+                      checked={showHeatmap === 'markers'}
+                      onChange={() => setShowHeatmap('markers')}
+                    />
+                    <span>Fuel Stations Only</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="viewMode"
+                      className={styles.filterCheckbox}
+                      checked={showHeatmap === 'heatmap'}
+                      onChange={() => setShowHeatmap('heatmap')}
+                    />
+                    <span>Heatmap Only</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="viewMode"
+                      className={styles.filterCheckbox}
+                      checked={showHeatmap === 'both'}
+                      onChange={() => setShowHeatmap('both')}
+                    />
+                    <span>Both</span>
+                  </label>
                 </div>
               </div>
-              */}
 
-              {/* Fuel Type Filter Stations*/}
-              {/* 
+
+
+              {/* Truck Fuel Type Filter - for Heatmap */}
+              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
+                <div className={styles.filterGroup}>
+                  <h4 className={styles.filterGroupTitle}>Heatmap - Fuel Type</h4>
+                  <div className={styles.filterItems}>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="truckFuelType"
+                        className={styles.filterCheckbox}
+                        checked={selectedFuel === 'CNG'}
+                        onChange={() => setSelectedFuel('CNG')}
+                      />
+                      <span>CNG</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="truckFuelType"
+                        className={styles.filterCheckbox}
+                        checked={selectedFuel === 'EV'}
+                        onChange={() => setSelectedFuel('EV')}
+                      />
+                      <span>Hybrid</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+              
+
+              {/* Truck Type Filter - for Heatmap */}
+              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
+                <div className={styles.filterGroup}>
+                  <h4 className={styles.filterGroupTitle}>Heatmap - Truck Type</h4>
+                  <div className={styles.filterItems}>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleClass"
+                        className={styles.filterCheckbox}
+                        checked={vehicleClassFilter === '6'}
+                        onChange={() => setVehicleClassFilter('6')}
+                      />
+                      <span>Medium Duty</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleClass"
+                        className={styles.filterCheckbox}
+                        checked={vehicleClassFilter === '7'}
+                        onChange={() => setVehicleClassFilter('7')}
+                      />
+                      <span>Heavy Duty</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleClass"
+                        className={styles.filterCheckbox}
+                        checked={vehicleClassFilter === '8'}
+                        onChange={() => setVehicleClassFilter('8')}
+                      />
+                      <span>Bus</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+
+
+
+              {/* Fuel Type Filter - Fuel Stations */}
               <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Fuel Type</h4>
+                <h4 className={styles.filterGroupTitle}>Fuel Stations - Fuel Type</h4>
                 <div className={styles.filterItems}>
                   <label className={styles.filterLabel}>
                     <input
@@ -355,116 +450,17 @@ export default function MapLegendPanel({
                   </label>
                 </div>
               </div>
-              */}
-
-              {/* View Mode */}
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>View Mode</h4>
-                <div className={styles.filterItems}>
-                  <label className={styles.filterLabel}>
-                    <input
-                      type="radio"
-                      name="viewMode"
-                      className={styles.filterCheckbox}
-                      checked={showHeatmap === 'markers'}
-                      onChange={() => setShowHeatmap('markers')}
-                    />
-                    <span>Markers Only</span>
-                  </label>
-                  <label className={styles.filterLabel}>
-                    <input
-                      type="radio"
-                      name="viewMode"
-                      className={styles.filterCheckbox}
-                      checked={showHeatmap === 'heatmap'}
-                      onChange={() => setShowHeatmap('heatmap')}
-                    />
-                    <span>Heatmap Only</span>
-                  </label>
-                  <label className={styles.filterLabel}>
-                    <input
-                      type="radio"
-                      name="viewMode"
-                      className={styles.filterCheckbox}
-                      checked={showHeatmap === 'both'}
-                      onChange={() => setShowHeatmap('both')}
-                    />
-                    <span>Both</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Vehicle Class Filter - shown when heatmap is active */}
-              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Vehicle Class</h4>
-                  <div className={styles.filterItems}>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleClass"
-                        className={styles.filterCheckbox}
-                        checked={vehicleClassFilter === '6'}
-                        onChange={() => setVehicleClassFilter('6')}
-                      />
-                      <span>Medium Duty (Class 6)</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleClass"
-                        className={styles.filterCheckbox}
-                        checked={vehicleClassFilter === '7'}
-                        onChange={() => setVehicleClassFilter('7')}
-                      />
-                      <span>Heavy Duty (Class 7)</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleClass"
-                        className={styles.filterCheckbox}
-                        checked={vehicleClassFilter === '8'}
-                        onChange={() => setVehicleClassFilter('8')}
-                      />
-                      <span>Bus (Class 8)</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* Truck Fuel Type Filter - shown when heatmap is active */}
-              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Truck Fuel Type</h4>
-                  <div className={styles.filterItems}>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="truckFuelType"
-                        className={styles.filterCheckbox}
-                        checked={selectedFuel === 'CNG'}
-                        onChange={() => setSelectedFuel('CNG')}
-                      />
-                      <span>CNG</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="truckFuelType"
-                        className={styles.filterCheckbox}
-                        checked={selectedFuel === 'EV'}
-                        onChange={() => setSelectedFuel('EV')}
-                      />
-                      <span>EV</span>
-                    </label>
-                  </div>
-                </div>
-              )}
               
-              {/* Station Status Filter */}
+
+
+
+
+
+
+              
+              {/* Station Status Filter - Fuel Stations*/}
               <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Station Status</h4>
+                <h4 className={styles.filterGroupTitle}>Fuel Stations - Station Status</h4>
                 <div className={styles.filterItems}>
                   <label className={styles.filterLabel}>
                     <input
@@ -498,6 +494,26 @@ export default function MapLegendPanel({
                   </label>
                 </div>
               </div>
+
+              {/* Station Type Filter - Fuel Stations*/}
+              
+              <div className={styles.filterGroup}>
+                <h4 className={styles.filterGroupTitle}>Fuel Stations - Station Type</h4>
+                <div className={styles.filterItems}>
+                  <select 
+                    className={styles.filterSelect}
+                    value={ownershipFilter}
+                    onChange={(e) => setOwnershipFilter(e.target.value)}
+                  >
+                    <option value="all">Both</option>
+                    <option value="public">Non-Commercial</option>
+                    <option value="private">Commerical</option>
+                  </select>
+                </div>
+              </div>
+              
+
+
             </div>
           </div>
         </div>

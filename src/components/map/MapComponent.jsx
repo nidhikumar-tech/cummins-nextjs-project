@@ -40,7 +40,7 @@ export default function MapComponent() {
   const [vehicleClasses, setVehicleClasses] = useState([]);
   const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // Medium Duty/Heavy Duty/Bus
   const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
-  const [showHeatmap, setShowHeatmap] = useState('heatmap'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
+  const [showHeatmap, setShowHeatmap] = useState('both'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(4); // Track map zoom level
 
