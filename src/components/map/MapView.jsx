@@ -16,6 +16,13 @@ const US_CENTER = {
   lng: -98.5795,
 };
 
+const PIN_IMAGES = {
+  available_public:     '/images/green.png',      
+  available_commercial: '/images/green-dot.png',        
+  planned_public:       '/images/red.png',    
+  planned_commercial:   '/images/red-dot.png',
+}
+
 // Deck.gl overlay component for heatmap - moved outside to prevent recreation
 function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
   const deckRef = useRef(null);
@@ -107,6 +114,35 @@ export default function MapView({
   vehicleHeatmapData,
   mapInstance
 }) {
+
+//Pick correct pin image logic 
+const getIcon = useCallback((station) => {
+    // 1. Check Status
+    const isAvailable = station.status_code === 'E';
+    
+    // 2. Check Access (Commercial/Private vs Public)
+    const isCommercial = station.access_code && station.access_code.toLowerCase() === 'private';
+
+    // 3. Select Image URL based on the 4 combinations
+    let iconUrl;
+    if (isAvailable) {
+      iconUrl = isCommercial ? PIN_IMAGES.available_commercial : PIN_IMAGES.available_public;
+    } else {
+      // Planned
+      iconUrl = isCommercial ? PIN_IMAGES.planned_commercial : PIN_IMAGES.planned_public;
+    }
+
+    return {
+      url: iconUrl,
+      // You may need to adjust these dimensions based on your actual image size
+      scaledSize: new window.google.maps.Size(30, 30), // Width, Height in pixels
+      anchor: new window.google.maps.Point(16, 40),    // The point of the image that touches the map (usually bottom-center)
+    };
+  }, []);
+
+
+{/*Disable for now  
+
   // Stable icon objects to prevent marker re-renders
   const iconPlanned = useMemo(() => ({ 
     url: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png' 
@@ -120,6 +156,8 @@ export default function MapView({
     // Use status-based icons instead of fuel-based
     return station.status_code === 'P' ? iconPlanned : iconAvailable;
   }, [iconPlanned, iconAvailable]);
+
+  */}
 
   const shouldShowMarkers = showHeatmap === 'markers' || showHeatmap === 'both';
   const shouldShowHeatmap = showHeatmap === 'heatmap' || showHeatmap === 'both';
