@@ -141,7 +141,7 @@ const getIcon = useCallback((station) => {
   }, []);
 
 
-{/*Disable for now  
+{/*Disable old icon picker   
 
   // Stable icon objects to prevent marker re-renders
   const iconPlanned = useMemo(() => ({ 

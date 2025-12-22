@@ -81,8 +81,10 @@ export default function MapLegendPanel({
     { code: 'WY', name: 'Wyoming' }
   ];
   const legends = [
-    { key: 'available', label: 'Available Stations', icon: 'https://maps.gstatic.com/mapfiles/ms2/micons/blue.png' },
-    { key: 'planned', label: 'Planned Stations', icon: 'https://maps.gstatic.com/mapfiles/ms2/micons/red.png' },
+    { key: 'available_public', label: 'Available / Non-Commercial', icon: '/images/green.png' },
+    { key: 'available_commercial', label: 'Available / Commercial', icon: '/images/green-dot.png' },
+    { key: 'planned_public', label: 'Planned / Non-Commercial', icon: '/images/red.png' },
+    { key: 'planned_commercial', label: 'Planned / Commercial', icon: '/images/red-dot.png' },
   ];
 
   const fuelLegends = [
@@ -135,7 +137,7 @@ export default function MapLegendPanel({
           <span>Apply Filters</span><span className={styles.spanChild}></span>
       </button>
       
-{/* Panel to show number of heatpoints and fuel stations in focus
+{/* Disabled - Panel to show number of heatpoints and fuel stations in focus
       <div className={styles.statsSection}>
         <h3 className={styles.sectionTitle}>Statistics</h3>
         <div className={styles.statsGrid}>
@@ -153,8 +155,7 @@ export default function MapLegendPanel({
       </div>
 */}
 
-      {/*Legend Here */}
-      {/*Hide for now 
+      {/* Legend  */}
       <div className={styles.legendSection}>
         <h3 className={styles.sectionTitle}>Legend</h3>
         {legends.map(({ key, label, icon }) => (
@@ -164,7 +165,7 @@ export default function MapLegendPanel({
           </div>
         ))}
       </div>
-      */}
+      
 
 
       {/* Download button*/}
