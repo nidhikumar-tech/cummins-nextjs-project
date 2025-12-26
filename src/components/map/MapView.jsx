@@ -1,10 +1,9 @@
 "use client";
 
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { GoogleMapsOverlay } from '@deck.gl/google-maps';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
-import { iconMap } from '@/constants/mapConfig';
 
 const mapContainerStyle = {
   width: '100%',
@@ -16,61 +15,51 @@ const US_CENTER = {
   lng: -98.5795,
 };
 
+// --- url to pin images ---
 const PIN_IMAGES = {
+  // AVAILABLE (Status: 'E')
   available_public:     '/images/green.png',      
   available_commercial: '/images/green-dot.png',        
+  
+  // PLANNED (Status: 'P')
   planned_public:       '/images/red.png',    
-  planned_commercial:   '/images/red-dot.png',
-}
+  planned_commercial:   '/images/red-dot.png',     
+};
+// --------------------------------------------------
 
-// Deck.gl overlay component for heatmap - moved outside to prevent recreation
+// --- DECK.GL OVERLAY (Heatmap) ---
 function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
   const deckRef = useRef(null);
 
-  // Initialize deck.gl overlay only once
   useEffect(() => {
     if (!mapInstance || deckRef.current) return;
-
     const deck = new GoogleMapsOverlay({ layers: [] });
     deckRef.current = deck;
 
     const timeoutId = setTimeout(() => {
-      try {
-        deck.setMap(mapInstance);
-      } catch (error) {
-        console.warn('Error attaching deck.gl overlay:', error);
-      }
+      try { deck.setMap(mapInstance); } 
+      catch (error) { console.warn('Error attaching deck.gl:', error); }
     }, 100);
 
     return () => {
       clearTimeout(timeoutId);
       if (deckRef.current) {
-        try {
-          deckRef.current.setMap(null);
-          deckRef.current = null;
-        } catch (error) {
-          console.warn('Error detaching deck.gl overlay:', error);
-        }
+        try { deckRef.current.setMap(null); deckRef.current = null; } 
+        catch (error) { console.warn('Error detaching deck.gl:', error); }
       }
     };
   }, [mapInstance]);
 
-  // Update layers when data changes
   useEffect(() => {
     const deck = deckRef.current;
     if (!deck || !mapInstance) return;
 
     if (!vehicleHeatmapData || vehicleHeatmapData.length === 0) {
-      try {
-        deck.setProps({ layers: [] });
-      } catch (error) {
-        console.warn('Error clearing deck.gl layers:', error);
-      }
+      deck.setProps({ layers: [] });
       return;
     }
 
     try {
-      // Map data for deck.gl: [{ position: [lng, lat], weight }]
       const deckData = vehicleHeatmapData.map(d => ({
         position: [d.location.lng, d.location.lat],
         weight: d.weight
@@ -81,25 +70,18 @@ function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
         data: deckData,
         getPosition: d => d.position,
         getWeight: d => d.weight,
-        radiusPixels: 150, //150
-        intensity: 1.5, //1.5
-        threshold: 0.05, //0.05
+        radiusPixels: 150,
+        intensity: 1.5,
+        threshold: 0.05,
         colorRange: [
-          [0, 255, 128, 50],
-          [0, 255, 0, 120],
-          [255, 255, 0, 160],
-          [255, 200, 0, 200],
-          [255, 100, 0, 220],
-          [255, 0, 0, 240]
+          [0, 255, 128, 50], [0, 255, 0, 120], [255, 255, 0, 160],
+          [255, 200, 0, 200], [255, 100, 0, 220], [255, 0, 0, 240]
         ],
         aggregation: 'SUM',
         opacity: 0.5
       });
-      
       deck.setProps({ layers: [layer] });
-    } catch (error) {
-      console.error('Error updating deck.gl heatmap layer:', error);
-    }
+    } catch (error) { console.error('Error updating heatmap:', error); }
   }, [vehicleHeatmapData, mapInstance]);
 
   return null;
@@ -112,52 +94,42 @@ export default function MapView({
   setSelectedStation,
   showHeatmap,
   vehicleHeatmapData,
-  mapInstance
+  mapInstance,
+  productionPlants,      // New Prop
+  showProductionPlants   // New Prop
 }) {
-
-//Pick correct pin image logic 
-const getIcon = useCallback((station) => {
-    // 1. Check Status
+  
+  // --- 1. STATIC IMAGE PIN LOGIC (Fuel Stations) ---
+  const getIcon = useCallback((station) => {
+    // Check Status
     const isAvailable = station.status_code === 'E';
-    
-    // 2. Check Access (Commercial/Private vs Public)
+    // Check Access (Commercial/Private vs Public)
     const isCommercial = station.access_code && station.access_code.toLowerCase() === 'private';
 
-    // 3. Select Image URL based on the 4 combinations
+    // Select Image URL based on the 4 combinations
     let iconUrl;
     if (isAvailable) {
       iconUrl = isCommercial ? PIN_IMAGES.available_commercial : PIN_IMAGES.available_public;
     } else {
-      // Planned
       iconUrl = isCommercial ? PIN_IMAGES.planned_commercial : PIN_IMAGES.planned_public;
     }
 
     return {
       url: iconUrl,
-      // You may need to adjust these dimensions based on your actual image size
-      scaledSize: new window.google.maps.Size(30, 30), // Width, Height in pixels
-      anchor: new window.google.maps.Point(16, 40),    // The point of the image that touches the map (usually bottom-center)
+      scaledSize: new window.google.maps.Size(32, 30), 
+      anchor: new window.google.maps.Point(16, 40),    
     };
   }, []);
 
-
-{/*Disable old icon picker   
-
-  // Stable icon objects to prevent marker re-renders
-  const iconPlanned = useMemo(() => ({ 
-    url: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png' 
-  }), []);
-  
-  const iconAvailable = useMemo(() => ({ 
-    url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' 
+  // --- 2. PRODUCTION PLANT ICON LOGIC ---
+  const plantIcon = useMemo(() => ({
+    url: '/images/round.png',
+    scaledSize: new window.google.maps.Size(30, 30), 
+    anchor: new window.google.maps.Point(15, 15)     
   }), []);
 
-  const getIcon = useCallback((station) => {
-    // Use status-based icons instead of fuel-based
-    return station.status_code === 'P' ? iconPlanned : iconAvailable;
-  }, [iconPlanned, iconAvailable]);
-
-  */}
+  // --- 3. STATE FOR PLANT POPUP ---
+  const [selectedPlant, setSelectedPlant] = useState(null);
 
   const shouldShowMarkers = showHeatmap === 'markers' || showHeatmap === 'both';
   const shouldShowHeatmap = showHeatmap === 'heatmap' || showHeatmap === 'both';
@@ -169,7 +141,7 @@ const getIcon = useCallback((station) => {
       center={US_CENTER}
       zoom={4}
     >
-      {/* Markers - conditionally rendered based on showHeatmap mode */}
+      {/* --- RENDER FUEL STATIONS --- */}
       {shouldShowMarkers && filteredStations.map((s, index) => (
         <Marker
           key={`${s.station_id || s.ID || 'unknown'}-${index}`}
@@ -179,7 +151,18 @@ const getIcon = useCallback((station) => {
         />
       ))}
 
-      {/* Info Window */}
+      {/* --- RENDER PRODUCTION PLANTS --- */}
+      {showProductionPlants && productionPlants && productionPlants.map((plant, index) => (
+        <Marker
+          key={`plant-${index}`}
+          position={{ lat: plant.lat, lng: plant.lng }}
+          icon={plantIcon}
+          onClick={() => setSelectedPlant(plant)}
+          zIndex={1000} // Keeps plants on top of fuel stations
+        />
+      ))}
+
+      {/* --- INFO WINDOW: FUEL STATIONS --- */}
       {selectedStation && (
         <InfoWindow
           position={{ lat: selectedStation.lat, lng: selectedStation.lng }}
@@ -189,46 +172,68 @@ const getIcon = useCallback((station) => {
             <h4 style={{ margin: "0 0 10px", color: "#333" }}>
               {selectedStation.station_name || "Station"}
             </h4>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                <span style={{ 
+                    fontSize: '10px', padding: '2px 6px', borderRadius: '4px', 
+                    background: (selectedStation.access_code || '').toLowerCase() === 'private' ? '#e5e7eb' : '#f3f4f6',
+                    color: '#374151', fontWeight: 'bold',
+                    border: '1px solid #d1d5db'
+                }}>
+                    {(selectedStation.access_code || 'PUBLIC').toUpperCase()}
+                </span>
+                
+                <span style={{ 
+                    fontSize: '10px', padding: '2px 6px', borderRadius: '4px', 
+                    background: selectedStation.status_code === 'E' ? '#DBEAFE' : '#FFF7ED',
+                    color: selectedStation.status_code === 'E' ? '#1E40AF' : '#9A3412',
+                    border: '1px solid',
+                    borderColor: selectedStation.status_code === 'E' ? '#93C5FD' : '#FED7AA',
+                    fontWeight: 'bold'
+                }}>
+                    {selectedStation.status_code === 'E' ? 'AVAILABLE' : 'PLANNED'}
+                </span>
+            </div>
+            
             <p style={{ margin: "5px 0", fontSize: "13px" }}>
-              <strong>Fuel Type:</strong> {selectedStation.fuel_type?.toUpperCase() || 'N/A'}
+              <strong>Fuel Type:</strong> {selectedStation.fuel_type?.toUpperCase()}
             </p>
             <p style={{ margin: "5px 0", fontSize: "13px" }}>
               <strong>Address:</strong> {selectedStation.street_address || 'N/A'}
-            </p>
-            <p style={{ margin: "5px 0", fontSize: "13px" }}>
-              <strong>City:</strong> {selectedStation.city}, {selectedStation.state} {selectedStation.zip}
-            </p>
-            {selectedStation.station_phone && (
-              <p style={{ margin: "5px 0", fontSize: "13px" }}>
-                <strong>Phone:</strong> {selectedStation.station_phone}
-              </p>
-            )}
-            <p style={{ margin: "5px 0", fontSize: "13px" }}>
-              <strong>Status:</strong> {selectedStation.status_code === 'E' ? 'Available' : 
-                                       selectedStation.status_code === 'P' ? 'Planned' : 'N/A'}
-            </p>
-            {selectedStation.access_code && (
-              <p style={{ margin: "5px 0", fontSize: "13px" }}>
-                <strong>Access:</strong> {selectedStation.access_code}
-              </p>
-            )}
-            {selectedStation.status_code === 'P' && selectedStation.expected_date && (
-              <p style={{ margin: "5px 0", fontSize: "13px" }}>
-                <strong>Expected Date:</strong> {new Date(selectedStation.expected_date).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                })}
-              </p>
-            )}
-            <p style={{ margin: "5px 0", fontSize: "11px", color: "#666" }}>
-              ID: {selectedStation.station_id}
             </p>
           </div>
         </InfoWindow>
       )}
 
-      {/* Deck.gl Heatmap Overlay - conditionally rendered based on showHeatmap mode */}
+      {/* --- INFO WINDOW: PRODUCTION PLANTS --- */}
+      {selectedPlant && (
+        <InfoWindow
+          position={{ lat: selectedPlant.lat, lng: selectedPlant.lng }}
+          onCloseClick={() => setSelectedPlant(null)}
+        >
+          <div style={{ minWidth: "220px", maxWidth: "300px" }}>
+            <h4 style={{ margin: "0 0 8px", color: "#b91c1c", borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
+              🏭 {selectedPlant.vendor}
+            </h4>
+            
+            <p style={{ margin: "4px 0", fontSize: "13px" }}>
+              <strong>Service:</strong> {selectedPlant.description || 'N/A'}
+            </p>
+            
+            <p style={{ margin: "4px 0", fontSize: "13px" }}>
+              <strong>Phone:</strong> {selectedPlant.phone || 'N/A'}
+            </p>
+            
+            <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '4px', marginTop: '8px' }}>
+              <p style={{ margin: "0", fontSize: "12px", color: "#64748b" }}>
+                {selectedPlant.address}<br/>
+                {selectedPlant.city}, {selectedPlant.state} {selectedPlant.zip}
+              </p>
+            </div>
+          </div>
+        </InfoWindow>
+      )}
+
+      {/* --- HEATMAP OVERLAY --- */}
       {shouldShowHeatmap && mapInstance && vehicleHeatmapData && vehicleHeatmapData.length > 0 && (
         <DeckGlOverlay
           mapInstance={mapInstance}

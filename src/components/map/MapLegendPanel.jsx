@@ -22,7 +22,9 @@ export default function MapLegendPanel({
   selectedFuel,
   setSelectedFuel,
   heatmapPointCount,
-  vehiclesLoading
+  vehiclesLoading,
+  showProductionPlants,
+  setShowProductionPlants
 }) {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportType, setExportType] = useState('all');
@@ -154,6 +156,20 @@ export default function MapLegendPanel({
         </div>
       </div>
 */}
+
+      <div className={styles.filterTriggerSection} style={{ marginBottom: '16px' }}>
+         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              checked={showProductionPlants}
+              onChange={(e) => setShowProductionPlants(e.target.checked)}
+              style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
+            />
+            <span style={{ fontWeight: '600', color: '#1e293b' }}>
+              Show Production Plants
+            </span>
+         </label>
+      </div>
 
       {/* Legend  */}
       <div className={styles.legendSection}>

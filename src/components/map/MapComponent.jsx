@@ -29,6 +29,9 @@ export default function MapComponent() {
   const [loading, setLoading] = useState(true); {/*UI states for the API fetch*/}
   const [error, setError] = useState(null); {/*UI states for the API fetch*/}
 
+  const [productionPlants, setProductionPlants] = useState([]); {/*New state for production plants*/}
+  const [showProductionPlants, setShowProductionPlants] = useState(false); // Default unchecked
+
   const [selectedFuelType, setSelectedFuelType] = useState('all'); {/*for filter*/}
   const [stationStatusFilter, setStationStatusFilter] = useState('all'); {/*for filter*/}
   const [stateFilter, setStateFilter] = useState('all'); {/*for filter*/}
@@ -83,6 +86,19 @@ export default function MapComponent() {
       .finally(() => {
         setLoading(false);
       });
+
+      // 2. New fetch for Production Plants
+    fetch("/api/production-plants")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setProductionPlants(data.data);
+        }
+      })
+      .catch(err => console.error("Error fetching plants:", err));
+
+
+
     // Load vehicle data for heatmap
     const loadVehicleData = async () => {
       setVehiclesLoading(true);
@@ -292,6 +308,9 @@ export default function MapComponent() {
             showHeatmap={showHeatmap}
             vehicleHeatmapData={vehicleHeatmapData}
             mapInstance={map}
+
+            productionPlants={productionPlants}
+            showProductionPlants={showProductionPlants}
           />
         </div>
 
@@ -316,6 +335,9 @@ export default function MapComponent() {
             setSelectedFuel={setSelectedFuel}
             heatmapPointCount={vehicleHeatmapData.length}
             vehiclesLoading={vehiclesLoading}
+
+            showProductionPlants={showProductionPlants}
+            setShowProductionPlants={setShowProductionPlants}
           />
         </div>
       </div>
