@@ -7,8 +7,7 @@ import MapView from './MapView';
 import MinMaxChart from './MinMaxChart';
 import {
   parseVehicleCSV,
-  aggregateByLocation,
-  getUniqueVehicleClasses,
+  aggregateByState,
   getHeatmapIntensity,
 } from '@/utils/csvParser';
 
@@ -40,9 +39,7 @@ export default function MapComponent() {
 
   // Heatmap state
   const [vehicles, setVehicles] = useState([]);
-  const [vehicleClasses, setVehicleClasses] = useState([]);
-  const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // Medium Duty/Heavy Duty/Bus
-  const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
+  const [selectedYear, setSelectedYear] = useState('all'); // Year filter: 'all', '2020', '2021', etc.
   const [showHeatmap, setShowHeatmap] = useState('both'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(4); // Track map zoom level
@@ -57,6 +54,7 @@ export default function MapComponent() {
     });
   }, []);
 
+  // Load fuel stations and production plants once on mount
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -80,7 +78,6 @@ export default function MapComponent() {
         }
       })
       .catch((err) => {
-        console.error("Error fetching fuel stations:", err);
         setError(err.message);
       })
       .finally(() => {
@@ -95,27 +92,26 @@ export default function MapComponent() {
           setProductionPlants(data.data);
         }
       })
-      .catch(err => console.error("Error fetching plants:", err));
+      .catch(err => {});
+  }, [isLoaded]); // Only run once when map loads
 
+  // Separate effect for vehicle data - only refetch when year changes
+  useEffect(() => {
+    if (!isLoaded) return;
 
-
-    // Load vehicle data for heatmap
     const loadVehicleData = async () => {
       setVehiclesLoading(true);
       try {
-        const parsedVehicles = await parseVehicleCSV();
+        const parsedVehicles = await parseVehicleCSV(selectedYear);
         setVehicles(parsedVehicles);
-        const classes = getUniqueVehicleClasses(parsedVehicles);
-        setVehicleClasses(classes);
       } catch (error) {
-        console.error('Error loading vehicle data:', error);
       } finally {
         setVehiclesLoading(false);
       }
     };
 
     loadVehicleData();
-  }, [isLoaded]);
+  }, [isLoaded, selectedYear]); // Only refetch vehicle data when year changes
 
   const getFuelTypeKey = (fuelType) => {
     if (!fuelType) return 'unknown';
@@ -194,79 +190,48 @@ export default function MapComponent() {
     setSelectedFuelType(fuelType);
   };
 
-  // Simple seeded random number generator for stable positions
-  const seededRandom = useCallback((seed) => {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-  }, []);
-
   // Compute heatmap data (optimized to prevent unnecessary recalculations)
   const vehicleHeatmapData = useMemo(() => {
     if (vehicles.length === 0 || !isLoaded || showHeatmap === 'markers') {
       return [];
     }
 
-    const stateNameToCode = {
-      'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
-      'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
-      'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
-      'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
-      'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
-      'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
-      'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
-      'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
-      'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
-      'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
-      'District of Columbia': 'DC'
-    };
-
-    // Filter vehicles by state, fuel type, and vehicle class
+    // Filter vehicles by state only (data already filtered by year from API)
     const filteredVehicles = vehicles.filter(vehicle => {
       // State filter
-      const stateMatch = !stateFilter || stateFilter === 'all' || !vehicle.state ? true :
-        (stateNameToCode[vehicle.state.trim()] || vehicle.state.toUpperCase()) === stateFilter.toUpperCase();
+      const stateMatch = !stateFilter || stateFilter === 'all' || 
+        vehicle.state === stateFilter || vehicle.state?.toUpperCase() === stateFilter.toUpperCase();
       
-      // Fuel type filter
-      const fuelMatch = vehicle.fuelType && vehicle.fuelType.toUpperCase() === selectedFuel.toUpperCase();
-      
-      // Vehicle class filter
-      const classMatch = vehicle.vehicleClass && String(vehicle.vehicleClass) === String(vehicleClassFilter);
-      
-      return stateMatch && fuelMatch && classMatch;
+      return stateMatch;
     });
 
-    const aggregated = aggregateByLocation(filteredVehicles);
-    const max = Math.max(...aggregated.map(loc => loc.totalVehicles), 1);
+    // Aggregate by state (no cities, no classes)
+    const aggregated = aggregateByState(filteredVehicles);
+    
+    const max = Math.max(...aggregated.map(state => state.totalVehicles), 1);
+    const min = Math.min(...aggregated.map(state => state.totalVehicles), 1);
 
-    // Create heatmap data with point spreading for smooth blending
-    const data = aggregated
-      .filter(location => {
-        const classKey = String(vehicleClassFilter);
-        return location.byClass[classKey] && location.byClass[classKey] > 0;
-      })
-      .flatMap((location, locationIndex) => {
-        const classKey = String(vehicleClassFilter);
-        const count = location.byClass[classKey];
-        const weight = getHeatmapIntensity(count, max);
-        const pointCount = Math.max(1, Math.round(weight * 8));
-        
-        // Use stable seeded random positions based on location coordinates
-        const seed = location.lat * 1000 + location.lng * 1000;
-        
-        return Array(pointCount).fill(0).map((_, pointIndex) => {
-          const offsetSeed = seed + pointIndex * 0.1;
-          return {
-            location: {
-              lat: location.lat + (seededRandom(offsetSeed) - 0.5) * 0.1,
-              lng: location.lng + (seededRandom(offsetSeed + 0.5) - 0.5) * 0.1
-            },
-            weight: weight * 100,
-          };
-        });
-      });
+    // Create heatmap data with logarithmic scaling for better visual balance
+    const data = aggregated.map((stateData) => {
+      // Use logarithmic scaling to compress the range
+      const logValue = Math.log10(stateData.totalVehicles + 1);
+      const logMax = Math.log10(max + 1);
+      const logMin = Math.log10(min + 1);
+      
+      // Normalize between 0.3 and 1.0 (avoid values too close to 0)
+      const normalizedWeight = 0.3 + (0.7 * (logValue - logMin) / (logMax - logMin));
+      
+      return {
+        location: {
+          lat: stateData.lat,
+          lng: stateData.lng
+        },
+        weight: normalizedWeight * 100,
+      };
+    });
 
     return data;
-  }, [vehicles, vehicleClassFilter, selectedFuel, stateFilter, isLoaded, showHeatmap, seededRandom]);
+  }, [vehicles, stateFilter, isLoaded, showHeatmap, selectedYear]);
 
   if (!isLoaded) return (
     <div className={styles.container}>
@@ -329,10 +294,8 @@ export default function MapComponent() {
             setIsFilterOpen={setIsFilterOpen}
             showHeatmap={showHeatmap}
             setShowHeatmap={setShowHeatmap}
-            vehicleClassFilter={vehicleClassFilter}
-            setVehicleClassFilter={setVehicleClassFilter}
-            selectedFuel={selectedFuel}
-            setSelectedFuel={setSelectedFuel}
+            selectedYear={selectedYear}
+            setSelectedYear={setSelectedYear}
             heatmapPointCount={vehicleHeatmapData.length}
             vehiclesLoading={vehiclesLoading}
 

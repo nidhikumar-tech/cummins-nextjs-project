@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { iconMap } from '@/constants/mapConfig';
-import { getClassColor, getVehicleTypeDescription } from '@/utils/csvParser';
 import styles from './MapComponent.module.css';
 
 export default function MapLegendPanel({ 
@@ -17,10 +16,8 @@ export default function MapLegendPanel({
   setIsFilterOpen,
   showHeatmap,
   setShowHeatmap,
-  vehicleClassFilter,
-  setVehicleClassFilter,
-  selectedFuel,
-  setSelectedFuel,
+  selectedYear,
+  setSelectedYear,
   heatmapPointCount,
   vehiclesLoading,
   showProductionPlants,
@@ -28,6 +25,10 @@ export default function MapLegendPanel({
 }) {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportType, setExportType] = useState('all');
+  
+  // Generate years array from 2020 to 2040
+  const years = ['all', ...Array.from({ length: 21 }, (_, i) => (2020 + i).toString())];
+  
   // All US states
   const allStates = [
     { code: 'AL', name: 'Alabama' },
@@ -359,75 +360,36 @@ export default function MapLegendPanel({
 
 
 
-              {/* Truck Fuel Type Filter - for Heatmap */}
+              {/* Year Filter - for Heatmap */}
               {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
                 <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Heatmap - Fuel Type</h4>
+                  <h4 className={styles.filterGroupTitle}>Heatmap - Year</h4>
                   <div className={styles.filterItems}>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="truckFuelType"
-                        className={styles.filterCheckbox}
-                        checked={selectedFuel === 'CNG'}
-                        onChange={() => setSelectedFuel('CNG')}
-                      />
-                      <span>CNG</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="truckFuelType"
-                        className={styles.filterCheckbox}
-                        checked={selectedFuel === 'EV'}
-                        onChange={() => setSelectedFuel('EV')}
-                      />
-                      <span>Hybrid</span>
-                    </label>
+                    <select
+                      className={styles.filterSelect}
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {years.map(year => (
+                        <option key={year} value={year}>
+                          {year === 'all' ? 'All Years (2020-2040)' : year}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}
               
-
-              {/* Truck Type Filter - for Heatmap */}
-              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Heatmap - Truck Type</h4>
-                  <div className={styles.filterItems}>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleClass"
-                        className={styles.filterCheckbox}
-                        checked={vehicleClassFilter === '6'}
-                        onChange={() => setVehicleClassFilter('6')}
-                      />
-                      <span>Medium Duty</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleClass"
-                        className={styles.filterCheckbox}
-                        checked={vehicleClassFilter === '7'}
-                        onChange={() => setVehicleClassFilter('7')}
-                      />
-                      <span>Heavy Duty</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleClass"
-                        className={styles.filterCheckbox}
-                        checked={vehicleClassFilter === '8'}
-                        onChange={() => setVehicleClassFilter('8')}
-                      />
-                      <span>Bus</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
 
 
 

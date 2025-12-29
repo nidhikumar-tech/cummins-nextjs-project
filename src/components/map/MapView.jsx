@@ -38,14 +38,14 @@ function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
 
     const timeoutId = setTimeout(() => {
       try { deck.setMap(mapInstance); } 
-      catch (error) { console.warn('Error attaching deck.gl:', error); }
+      catch (error) { }
     }, 100);
 
     return () => {
       clearTimeout(timeoutId);
       if (deckRef.current) {
         try { deckRef.current.setMap(null); deckRef.current = null; } 
-        catch (error) { console.warn('Error detaching deck.gl:', error); }
+        catch (error) { }
       }
     };
   }, [mapInstance]);
@@ -70,18 +70,22 @@ function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
         data: deckData,
         getPosition: d => d.position,
         getWeight: d => d.weight,
-        radiusPixels: 150,
-        intensity: 1.5,
-        threshold: 0.05,
+        radiusPixels: 150,        // Slightly reduced for better definition
+        intensity: 2.5,            // Adjusted for better balance
+        threshold: 0.02,           // Fine-tuned threshold
         colorRange: [
-          [0, 255, 128, 50], [0, 255, 0, 120], [255, 255, 0, 160],
-          [255, 200, 0, 200], [255, 100, 0, 220], [255, 0, 0, 240]
+          [100, 255, 100, 180],    // Bright green (low) - more visible
+          [150, 255, 50, 200],     // Yellow-green
+          [255, 255, 0, 220],      // Yellow (medium-low)
+          [255, 200, 0, 230],      // Orange (medium)
+          [255, 150, 0, 240],      // Red-orange (medium-high)
+          [255, 50, 0, 255]        // Red (high)
         ],
         aggregation: 'SUM',
         opacity: 0.5
       });
       deck.setProps({ layers: [layer] });
-    } catch (error) { console.error('Error updating heatmap:', error); }
+    } catch (error) { }
   }, [vehicleHeatmapData, mapInstance]);
 
   return null;

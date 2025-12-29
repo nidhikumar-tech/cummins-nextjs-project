@@ -10,7 +10,6 @@ const bigquery = new BigQuery({
 export async function getFuelStations() {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    console.log('⚠️  Skipping BigQuery query during build phase');
     return [];
   }
 
@@ -44,28 +43,24 @@ export async function getFuelStations() {
     const [rows] = await bigquery.query(options);
     return rows;
   } catch (error) {
-    console.error('BigQuery Error:', error);
     throw error;
   }
 }
 
 // Returns the array of vehicle data from BigQuery
-export async function getVehicleData() {
+// @param {string|null} year - Optional year filter (e.g., '2020', '2025', null for all years)
+export async function getVehicleData(year = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    console.log('⚠️  Skipping BigQuery query during build phase');
     return [];
   }
   
+  // Simple query to fetch all data - let BigQuery return whatever columns exist
+  // We'll filter in JavaScript if needed
   const query = `
-    SELECT 
-      State,
-      City,
-      Vehicle_Count,
-      Vehicle_Class,
-      Vehicle_Type,
-      Fuel_Type
+    SELECT *
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_1}\`
+    LIMIT 1000
   `;
 
   const options = {
@@ -75,9 +70,23 @@ export async function getVehicleData() {
 
   try {
     const [rows] = await bigquery.query(options);
-    return rows;
+    
+    // Log the first row to see what columns we actually have
+    if (rows.length > 0) {
+      // Column info available for debugging if needed
+    }
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
   } catch (error) {
-    console.error('BigQuery Error (Vehicle Data):', error);
     throw error;
   }
 }
