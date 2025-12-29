@@ -16,23 +16,23 @@ export async function getFuelStations() {
 
   const query = `
     SELECT 
-      Fuel_Type_Code,
-      Station_Name,
-      Street_Address,
-      City,
-      State,
-      ZIP,
-      Plus4,
-      Country,
-      Status_Code,
-      Station_Phone,
-      Expected_Date,
-      Access_Code,
-      Latitude,
-      Longitude,
-      ID
+      fuel_type_code,
+      station_name,
+      street_address,
+      city,
+      state,
+      zip,
+      plus4,
+      country,
+      status_code,
+      station_phone,
+      expected_date,
+      access_code,
+      latitude,
+      longitude,
+      id
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_2}\`
-    WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL
+    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
   `;
 
   const options = {

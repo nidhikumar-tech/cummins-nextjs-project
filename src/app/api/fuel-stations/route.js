@@ -11,23 +11,23 @@ export async function GET() {
 
     // Transform data to match frontend format
     const formattedStations = data
-      .filter(station => station.Latitude && station.Longitude)
+      .filter(station => station.latitude && station.longitude)
       .map((station) => ({
-        lat: parseFloat(station.Latitude),
-        lng: parseFloat(station.Longitude),
-        station_id: station.ID || station.Station_Name,
-        fuel_type: station.Fuel_Type_Code ? station.Fuel_Type_Code.toLowerCase() : 'unknown',
-        station_name: station.Station_Name,
-        street_address: station.Street_Address,
-        city: station.City,
-        state: station.State,
-        zip: station.ZIP,
-        plus4: station.Plus4,
-        country: station.Country,
-        status_code: station.Status_Code,
-        station_phone: station.Station_Phone,
-        expected_date: station.Expected_Date,
-        access_code: station.Access_Code,
+        lat: parseFloat(station.latitude),
+        lng: parseFloat(station.longitude),
+        station_id: station.id || station.station_name,
+        fuel_type: station.fuel_type_code ? station.fuel_type_code.toLowerCase() : 'unknown',
+        station_name: station.station_name,
+        street_address: station.street_address,
+        city: station.city,
+        state: station.state,
+        zip: station.zip,
+        plus4: station.plus4,
+        country: station.country,
+        status_code: station.status_code,
+        station_phone: station.station_phone,
+        expected_date: station.expected_date,
+        access_code: station.access_code,
       }));
 
     const response = NextResponse.json({
