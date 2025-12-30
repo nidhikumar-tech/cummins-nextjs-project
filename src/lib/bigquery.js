@@ -59,7 +59,7 @@ export async function getVehicleData(year = null) {
   // We'll filter in JavaScript if needed
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_1}\`
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
     LIMIT 1000
   `;
 
