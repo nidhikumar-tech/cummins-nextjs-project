@@ -104,6 +104,7 @@ export default function MapLegendPanel({
     { key: 'cng', label: 'CNG', icon: iconMap.cng },
   ];
 
+  const isStateSelected = stateFilter && stateFilter !== 'all';
   const handleExport = async () => {
     try {
       const response = await fetch(`/api/export-data?type=${exportType}`);
@@ -167,24 +168,43 @@ export default function MapLegendPanel({
       </div>
 */}
 
-      <div className={styles.filterTriggerSection}>
-         {/* Main Parent Checkbox */}
-         <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
-            <input 
-              type="checkbox" 
-              checked={showProductionPlants}
-              onChange={(e) => setShowProductionPlants(e.target.checked)}
-              style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
-            />
-            <span className={styles.filterTriggerButton}>
-              Show Production Plants
-            </span>
-         </label>
+      <div className={styles.filterTriggerSection} style={{ marginBottom: '16px' }}>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+           <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px', 
+              // 1. Change cursor based on state
+              cursor: isStateSelected ? 'pointer' : 'not-allowed', 
+              marginBottom: '4px',
+              // 2. Change opacity based on state (visual cue)
+              opacity: isStateSelected ? 1 : 0.5 
+            }}>
+              <input 
+                type="checkbox" 
+                checked={showProductionPlants}
+                onChange={(e) => setShowProductionPlants(e.target.checked)}
+                // 3. Physically disable the input if no state is selected
+                disabled={!isStateSelected} 
+                style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
+              />
+              <span className={styles.filterTriggerButton}>
+                Show Production Plants
+              </span>
+           </label>
+           
+           {/* 4. Helper Text to explain why it's disabled */}
+           {!isStateSelected && (
+             <span style={{ fontSize: '11px', color: '#dc2626', marginLeft: '28px', fontStyle: 'italic' }}>
+               * Select a state filter to enable
+             </span>
+           )}
+         </div>
 
-         {/* Sub-Checkboxes (Only visible if parent is checked) */}
+         {/* Sub-Checkboxes (Only visible if checked) */}
          {showProductionPlants && (
-           <div style={{ marginLeft: '28px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-             
+           <div style={{ marginLeft: '28px', display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+             {/* ... (CNG/Diesel/Electric Checkboxes remain same) ... */}
              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
                   type="checkbox" 
@@ -194,7 +214,6 @@ export default function MapLegendPanel({
                 />
                 <span style={{ fontSize: '14px', color: '#475569' }}>CNG</span>
              </label>
-
              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
                   type="checkbox" 
@@ -204,7 +223,6 @@ export default function MapLegendPanel({
                 />
                 <span style={{ fontSize: '14px', color: '#475569' }}>Diesel</span>
              </label>
-
              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
                   type="checkbox" 
@@ -214,7 +232,6 @@ export default function MapLegendPanel({
                 />
                 <span style={{ fontSize: '14px', color: '#475569' }}>Electric</span>
              </label>
-
            </div>
          )}
       </div>

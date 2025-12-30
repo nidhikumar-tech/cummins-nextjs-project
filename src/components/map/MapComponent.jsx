@@ -61,11 +61,32 @@ export default function MapComponent() {
     return fuelType.toLowerCase();
   };
 
-  const getStateMatch = (station, selectedState) => {
-    if (!station.state) return false;
+  const getStateMatch = (item, selectedState) => {
+    if (!item.state) return false;
     if (!selectedState || selectedState === 'all') return true;
-    const stateCode = station.state.toUpperCase();
-    return stateCode === selectedState.toUpperCase();
+    
+    const itemState = item.state.toUpperCase();
+    const filterState = selectedState.toUpperCase();
+
+    // Direct match
+    if (itemState === filterState) return true;
+
+    // Lookup table for Full Name -> Code
+    const stateNameToCode = {
+      'ALABAMA': 'AL', 'ALASKA': 'AK', 'ARIZONA': 'AZ', 'ARKANSAS': 'AR', 'CALIFORNIA': 'CA',
+      'COLORADO': 'CO', 'CONNECTICUT': 'CT', 'DELAWARE': 'DE', 'FLORIDA': 'FL', 'GEORGIA': 'GA',
+      'HAWAII': 'HI', 'IDAHO': 'ID', 'ILLINOIS': 'IL', 'INDIANA': 'IN', 'IOWA': 'IA',
+      'KANSAS': 'KS', 'KENTUCKY': 'KY', 'LOUISIANA': 'LA', 'MAINE': 'ME', 'MARYLAND': 'MD',
+      'MASSACHUSETTS': 'MA', 'MICHIGAN': 'MI', 'MINNESOTA': 'MN', 'MISSISSIPPI': 'MS', 'MISSOURI': 'MO',
+      'MONTANA': 'MT', 'NEBRASKA': 'NE', 'NEVADA': 'NV', 'NEW HAMPSHIRE': 'NH', 'NEW JERSEY': 'NJ',
+      'NEW MEXICO': 'NM', 'NEW YORK': 'NY', 'NORTH CAROLINA': 'NC', 'NORTH DAKOTA': 'ND', 'OHIO': 'OH',
+      'OKLAHOMA': 'OK', 'OREGON': 'OR', 'PENNSYLVANIA': 'PA', 'RHODE ISLAND': 'RI', 'SOUTH CAROLINA': 'SC',
+      'SOUTH DAKOTA': 'SD', 'TENNESSEE': 'TN', 'TEXAS': 'TX', 'UTAH': 'UT', 'VERMONT': 'VT',
+      'VIRGINIA': 'VA', 'WASHINGTON': 'WA', 'WEST VIRGINIA': 'WV', 'WISCONSIN': 'WI', 'WYOMING': 'WY',
+      'DISTRICT OF COLUMBIA': 'DC'
+    };
+
+    return stateNameToCode[itemState] === filterState;
   };
 
   const selectFuelType = (fuelType) => {
@@ -88,15 +109,32 @@ export default function MapComponent() {
 
   // --- 3. FILTER LOGIC (useMemos) ---
 
+  useEffect(() => {
+    // If user switches back to "All States", force uncheck the plants
+    if (stateFilter === 'all') {
+      setShowProductionPlants(false);
+    }
+  }, [stateFilter]);
+
   // Filter Production Plants
-  const filteredProductionPlants = useMemo(() => {
+    const filteredProductionPlants = useMemo(() => {
+    // 1. Basic check: is checkbox checked?
     if (!showProductionPlants) return [];
     
+    // 2. SECURITY CHECK: If no specific state is selected, return nothing.
+    // This enforces the "State has to be selected" rule.
+    if (stateFilter === 'all') return [];
+
     return productionPlants.filter(plant => {
-      // Check if the plant's fuel type matches one of our active filters
-      return ppFilters[plant.fuel_type]; 
+      // 3. Match the selected State (using the helper above)
+      const stateMatch = getStateMatch(plant, stateFilter);
+
+      // 4. Match the sub-checkboxes (CNG/Diesel/Electric)
+      const fuelMatch = ppFilters[plant.fuel_type];
+
+      return stateMatch && fuelMatch;
     });
-  }, [productionPlants, showProductionPlants, ppFilters]);
+  }, [productionPlants, showProductionPlants, ppFilters, stateFilter]);
 
   // Filter Fuel Stations
   const filteredStations = useMemo(() => {
