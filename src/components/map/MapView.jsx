@@ -4,6 +4,7 @@ import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { GoogleMapsOverlay } from '@deck.gl/google-maps';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
+import styles from './MapView.module.css';
 
 const mapContainerStyle = {
   width: '100%',
@@ -162,79 +163,74 @@ export default function MapView({
         />
       ))}
 
-      {/* --- INFO WINDOW: FUEL STATIONS --- */}
+      {/* Info Window for Fuel Stations */}
       {selectedStation && (
         <InfoWindow
           position={{ lat: selectedStation.lat, lng: selectedStation.lng }}
           onCloseClick={() => setSelectedStation(null)}
         >
-          <div style={{ minWidth: "200px", maxWidth: "300px" }}>
-            <h4 style={{ margin: "0 0 10px", color: "#333" }}>
+          <div className={styles.InfoWindow}>
+            <h4 className={styles.infoWindowTitle}>
               {selectedStation.station_name || "Station"}
             </h4>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <span style={{ 
-                    fontSize: '10px', padding: '2px 6px', borderRadius: '4px', 
+            <div className={styles.infoWindowPopupWrapper}>
+                <span className={styles.infoWindowPopup} style={{ 
                     background: (selectedStation.access_code || '').toLowerCase() === 'private' ? '#e5e7eb' : '#f3f4f6',
-                    color: '#374151', fontWeight: 'bold',
-                    border: '1px solid #d1d5db'
                 }}>
                     {(selectedStation.access_code || 'PUBLIC').toUpperCase()}
                 </span>
                 
-                <span style={{ 
-                    fontSize: '10px', padding: '2px 6px', borderRadius: '4px', 
+                <span className={styles.infoWindowPopup} style={{ 
                     background: selectedStation.status_code === 'E' ? '#DBEAFE' : '#FFF7ED',
                     color: selectedStation.status_code === 'E' ? '#1E40AF' : '#9A3412',
-                    border: '1px solid',
                     borderColor: selectedStation.status_code === 'E' ? '#93C5FD' : '#FED7AA',
-                    fontWeight: 'bold'
                 }}>
                     {selectedStation.status_code === 'E' ? 'AVAILABLE' : 'PLANNED'}
                 </span>
             </div>
             
-            <p style={{ margin: "5px 0", fontSize: "13px" }}>
+            <p className={styles.infoWindowSection}>
               <strong>Fuel Type:</strong> {selectedStation.fuel_type?.toUpperCase()}
             </p>
-            <p style={{ margin: "5px 0", fontSize: "13px" }}>
+            <p className={styles.infoWindowSection}>
               <strong>Address:</strong> {selectedStation.street_address || 'N/A'}
             </p>
           </div>
         </InfoWindow>
       )}
 
-      {/* --- INFO WINDOW: PRODUCTION PLANTS --- */}
+      {/* Info Window for Production Plant */}
       {selectedPlant && (
         <InfoWindow
           position={{ lat: selectedPlant.lat, lng: selectedPlant.lng }}
           onCloseClick={() => setSelectedPlant(null)}
         >
-          <div style={{ minWidth: "220px", maxWidth: "300px" }}>
-            <h4 style={{ margin: "0 0 8px", color: "#b91c1c", borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
-              🏭 Production Plant
+          <div className={styles.InfoWindow}>
+            <h4 className={styles.infoWindowTitle}>
+              Production Plant
             </h4>
             
-            <p style={{ margin: "4px 0", fontSize: "13px" }}>
+            <p className={styles.infoWindowSection} >
               <strong>Vendor:</strong> {selectedPlant.vendor || 'N/A'}
             </p>
             
-            <p style={{ margin: "4px 0", fontSize: "13px" }}>
+            <p className={styles.infoWindowSection} >
               <strong>Operator:</strong> {selectedPlant.operator || 'N/A'}
             </p>
             
-            <p style={{ margin: "4px 0", fontSize: "13px" }}>
+            <p className={styles.infoWindowSection} >
               <strong>Fuel Type:</strong> {selectedPlant.fuel_type ? selectedPlant.fuel_type.toUpperCase() : 'N/A'}
             </p>
-            
-            <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '4px', marginTop: '8px' }}>
-               <p style={{ margin: "2px 0", fontSize: "12px", color: "#64748b" }}>
-                <strong>State:</strong> {selectedPlant.state}
-              </p>
-              <p style={{ margin: "2px 0", fontSize: "12px", color: "#64748b" }}>
-                <strong>Coords:</strong> {selectedPlant.lat.toFixed(4)}, {selectedPlant.lng.toFixed(4)}
-              </p>
-            </div>
+
+            <p className={styles.infoWindowSection} >
+              <strong>State: </strong> {selectedPlant.state}
+            </p>
+
+            <p className={styles.infoWindowSection} >
+              <strong>Coordinates:</strong> {selectedPlant.lat.toFixed(4)}, {selectedPlant.lng.toFixed(4)}
+            </p>
+
+
           </div>
         </InfoWindow>
       )}

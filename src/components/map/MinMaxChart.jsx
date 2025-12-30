@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler, // <--- IMPORTANT: Required for the area fill effect
+  Filler, 
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
