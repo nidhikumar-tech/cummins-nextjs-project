@@ -10,29 +10,28 @@ const bigquery = new BigQuery({
 export async function getFuelStations() {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    console.log('⚠️  Skipping BigQuery query during build phase');
     return [];
   }
 
   const query = `
     SELECT 
-      Fuel_Type_Code,
-      Station_Name,
-      Street_Address,
-      City,
-      State,
-      ZIP,
-      Plus4,
-      Country,
-      Status_Code,
-      Station_Phone,
-      Expected_Date,
-      Access_Code,
-      Latitude,
-      Longitude,
-      ID
+      fuel_type_code,
+      station_name,
+      street_address,
+      city,
+      state,
+      zip,
+      plus4,
+      country,
+      status_code,
+      station_phone,
+      expected_date,
+      access_code,
+      latitude,
+      longitude,
+      id
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_2}\`
-    WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL
+    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
   `;
 
   const options = {
@@ -44,28 +43,24 @@ export async function getFuelStations() {
     const [rows] = await bigquery.query(options);
     return rows;
   } catch (error) {
-    console.error('BigQuery Error:', error);
     throw error;
   }
 }
 
 // Returns the array of vehicle data from BigQuery
-export async function getVehicleData() {
+// @param {string|null} year - Optional year filter (e.g., '2020', '2025', null for all years)
+export async function getVehicleData(year = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    console.log('⚠️  Skipping BigQuery query during build phase');
     return [];
   }
   
+  // Simple query to fetch all data - let BigQuery return whatever columns exist
+  // We'll filter in JavaScript if needed
   const query = `
-    SELECT 
-      State,
-      City,
-      Vehicle_Count,
-      Vehicle_Class,
-      Vehicle_Type,
-      Fuel_Type
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_1}\`
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    LIMIT 1000
   `;
 
   const options = {
@@ -75,9 +70,23 @@ export async function getVehicleData() {
 
   try {
     const [rows] = await bigquery.query(options);
-    return rows;
+    
+    // Log the first row to see what columns we actually have
+    if (rows.length > 0) {
+      // Column info available for debugging if needed
+    }
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
   } catch (error) {
-    console.error('BigQuery Error (Vehicle Data):', error);
     throw error;
   }
 }
