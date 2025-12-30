@@ -28,7 +28,7 @@ export default function MapLegendPanel({
   ppFilters,    
   setPpFilters
 }) {
-  // Helper to toggle specific fuel filters
+  //Helper to toggle specific fuel filters
   const togglePpFilter = (type) => {
     setPpFilters(prev => ({
       ...prev,
@@ -38,7 +38,7 @@ export default function MapLegendPanel({
 
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportType, setExportType] = useState('all');
-  // All US states
+  //All US states
   const allStates = [
     { code: 'AL', name: 'Alabama' },
     { code: 'AK', name: 'Alaska' },
@@ -97,6 +97,7 @@ export default function MapLegendPanel({
     { key: 'available_commercial', label: 'Available / Commercial', icon: '/images/green-dot.png' },
     { key: 'planned_public', label: 'Planned / Non-Commercial', icon: '/images/red.png' },
     { key: 'planned_commercial', label: 'Planned / Commercial', icon: '/images/red-dot.png' },
+    { key: 'production_plant', label: 'Production Plant', icon: '/images/round.png' }
   ];
 
   const fuelLegends = [
@@ -174,17 +175,17 @@ export default function MapLegendPanel({
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px', 
-              // 1. Change cursor based on state
+              //Change cursor based on state
               cursor: isStateSelected ? 'pointer' : 'not-allowed', 
               marginBottom: '4px',
-              // 2. Change opacity based on state (visual cue)
+              //Change opacity based on state (visual cue)
               opacity: isStateSelected ? 1 : 0.5 
             }}>
               <input 
                 type="checkbox" 
                 checked={showProductionPlants}
                 onChange={(e) => setShowProductionPlants(e.target.checked)}
-                // 3. Physically disable the input if no state is selected
+                //Disable the input if no state is selected
                 disabled={!isStateSelected} 
                 style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
               />
@@ -193,7 +194,7 @@ export default function MapLegendPanel({
               </span>
            </label>
            
-           {/* 4. Helper Text to explain why it's disabled */}
+           {/*Helper Text to explain why it's disabled */}
            {!isStateSelected && (
              <span style={{ fontSize: '11px', color: '#dc2626', marginLeft: '28px', fontStyle: 'italic' }}>
                * Select a state filter to enable
@@ -204,7 +205,7 @@ export default function MapLegendPanel({
          {/* Sub-Checkboxes (Only visible if checked) */}
          {showProductionPlants && (
            <div style={{ marginLeft: '28px', display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
-             {/* ... (CNG/Diesel/Electric Checkboxes remain same) ... */}
+             {/* CNG/Diesel/Electric Checkboxes */}
              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
                   type="checkbox" 
