@@ -1,51 +1,56 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { getProductionPlants } from '@/lib/bigquery';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour
 
 export async function GET() {
   try {
-    // 1. Locate the file
-    const filePath = path.join(process.cwd(), 'public', 'all_pp_cleaned.csv');
-    
-    // 2. Read the file
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    //Fetch data from BigQuery
+    const plants = await getProductionPlants();
 
-    // 3. Parse CSV manually (No external library required)
-    const rows = fileContent.split(/\r?\n/); // Split by new line (handles Windows/Mac)
-    const headers = rows[0].split(',').map(h => h.trim()); // Get headers from first line
-    
-    const plants = rows.slice(1)
-      .filter(row => row.trim() !== '') // Remove empty lines
-      .map(row => {
-        // This regex splits by comma ONLY if the comma is not inside quotes
-        // Matches standard CSV format: "Value, Inc",Address,City
-        const values = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        
-        // Map headers to values
-        const entry = {};
-        headers.forEach((header, index) => {
-          // Clean up quotes and whitespace (removes surrounding "" if present)
-          const val = values[index] ? values[index].trim().replace(/^"|"$/g, '') : '';
-          entry[header] = val;
-        });
-        
-        return entry;
-      })
-      // 4. Map to your frontend structure
-      .filter(plant => plant.Latitude && plant.Longitude) // Ensure coords exist
-      .map(plant => ({
-        vendor: plant.Vendor,
-        operator: plant.Operator,
-        state: plant.State,
-        fuel_type: plant.Fuel_Type ? plant.Fuel_Type.toLowerCase() : 'unknown', 
-        lat: parseFloat(plant.Latitude),
-        lng: parseFloat(plant.Longitude)
-      }));
+    //Transform data to match frontend format
+    // BigQuery returns an array of objects. We map them to the structure
+    // your frontend expects: { vendor, operator, state, fuel_type, lat, lng }
+    const formattedPlants = plants.map(plant => {
+      // Handle potential casing differences (CSV headers vs BigQuery schema)
+      const vendor = plant.Vendor || plant.vendor || '';
+      const operator = plant.Operator || plant.operator || '';
+      const state = plant.State || plant.state || '';
+      
+      // Handle Fuel Type safely
+      const rawFuel = plant.Fuel_Type || plant.fuel_type || 'unknown';
+      const fuelType = rawFuel.toLowerCase();
 
-    return NextResponse.json({ success: true, data: plants });
+      // Handle Coordinates
+      const lat = plant.Latitude || plant.latitude;
+      const lng = plant.Longitude || plant.longitude;
+
+      return {
+        vendor: vendor,
+        operator: operator,
+        state: state,
+        fuel_type: fuelType,
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      };
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      data: formattedPlants,
+      count: formattedPlants.length 
+    });
 
   } catch (error) {
     console.error('Error loading production plants:', error);
-    return NextResponse.json({ success: false, error: 'Failed to load production plants' }, { status: 500 });
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to load production plants',
+        message: error.message 
+      }, 
+      { status: 500 }
+    );
   }
 }

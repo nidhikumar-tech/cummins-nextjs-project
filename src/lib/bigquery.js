@@ -91,4 +91,31 @@ export async function getVehicleData(year = null) {
   }
 }
 
+export async function getProductionPlants() {
+
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  // Selects all columns from the production plants table
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_PP}\`
+    WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL
+  `;
+
+  const options = {
+    query: query,
+    location: 'US', 
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error('BigQuery Production Plant Fetch Error:', error);
+    throw error;
+  }
+}
+
 export default bigquery;
