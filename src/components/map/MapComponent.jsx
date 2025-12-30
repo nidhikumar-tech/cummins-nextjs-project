@@ -136,7 +136,8 @@ export default function MapComponent() {
     });
   }, [productionPlants, showProductionPlants, ppFilters, stateFilter]);
 
-  // Filter Fuel Stations
+  // Load stations and production plants once when map loads
+  useEffect(() => {
     if (!isLoaded) return;
 
     setLoading(true);
@@ -194,20 +195,6 @@ export default function MapComponent() {
     loadVehicleData();
   }, [isLoaded, selectedYear]); // Only refetch vehicle data when year changes
 
-  const getFuelTypeKey = (fuelType) => {
-    if (!fuelType) return 'unknown';
-    return fuelType.toLowerCase();
-  };
-
-  // State filtering
-  const getStateMatch = (station, selectedState) => {
-    if (!station.state) return false;
-    if (!selectedState || selectedState === 'all') return true;
-    
-    const stateCode = station.state.toUpperCase();
-    return stateCode === selectedState.toUpperCase();
-  };
-
   const filteredStations = useMemo(() => {
     const filtered = stations.filter((s) => {
       // Fuel type filter
@@ -256,10 +243,6 @@ export default function MapComponent() {
   // Removed auto-zoom functionality - map stays at default US center view
   // Stations are filtered but map doesn't zoom to specific regions
 
-  const selectFuelType = (fuelType) => {
-    setSelectedFuelType(fuelType);
-  };
-
   // Compute heatmap data (optimized to prevent unnecessary recalculations)
   // Compute Heatmap Data
   const vehicleHeatmapData = useMemo(() => {
@@ -303,60 +286,6 @@ export default function MapComponent() {
 
     return data;
   }, [vehicles, stateFilter, isLoaded, showHeatmap, selectedYear]);
-
-  // --- 4. DATA FETCHING EFFECT ---
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    setLoading(true);
-    setError(null);
-
-    // 1. Fetch Stations
-    fetch("/api/fuel-stations", {
-      next: { revalidate: 3600 }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (data.success) setStations(data.data);
-        else throw new Error(data.message || "Failed to fetch stations");
-      })
-      .catch((err) => {
-        console.error("Error fetching fuel stations:", err);
-        setError(err.message);
-      })
-      .finally(() => setLoading(false));
-
-    // 2. Fetch Production Plants (New)
-    fetch("/api/production-plants")
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-            setProductionPlants(data.data);
-        }
-      })
-      .catch(err => console.error("Error fetching plants:", err));
-
-    // 3. Load vehicle data for heatmap
-    const loadVehicleData = async () => {
-      setVehiclesLoading(true);
-      try {
-        const parsedVehicles = await parseVehicleCSV();
-        setVehicles(parsedVehicles);
-        const classes = getUniqueVehicleClasses(parsedVehicles);
-        setVehicleClasses(classes);
-      } catch (error) {
-        console.error('Error loading vehicle data:', error);
-      } finally {
-        setVehiclesLoading(false);
-      }
-    };
-
-    loadVehicleData();
-  }, [isLoaded]);
 
   // --- 5. EARLY RETURNS (AFTER ALL HOOKS) ---
 
