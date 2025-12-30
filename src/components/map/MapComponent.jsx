@@ -11,126 +11,94 @@ import {
   getUniqueVehicleClasses,
   getHeatmapIntensity,
 } from '@/utils/csvParser';
-
-{/* Defines which Google Maps libraries to load */}
-const libraries = ['places', 'visualization'];
 import styles from './MapComponent.module.css';
 
+const libraries = ['places', 'visualization'];
+
 export default function MapComponent() {
-  {/* Asynchronously loads Google Maps Javascript script from servers */}
+  // --- 1. HOOKS & STATE (MUST BE AT THE VERY TOP) ---
+  
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
 
-  const [map, setMap] = useState(null); {/* map stores the actual Google Map object so we can control it programmatically */}
-  const [stations, setStations] = useState([]); {/*stations is raw list of all fuel stations fetched from the API*/}
-  const [selectedStation, setSelectedStation] = useState(null); {/*Tracks which pin the user clicked on*/}
-  const [loading, setLoading] = useState(true); {/*UI states for the API fetch*/}
-  const [error, setError] = useState(null); {/*UI states for the API fetch*/}
+  const [map, setMap] = useState(null);
+  const [stations, setStations] = useState([]);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [productionPlants, setProductionPlants] = useState([]); {/*New state for production plants*/}
-  const [showProductionPlants, setShowProductionPlants] = useState(false); // Default unchecked
+  // Filters
+  const [selectedFuelType, setSelectedFuelType] = useState('all');
+  const [stationStatusFilter, setStationStatusFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState('all');
+  const [ownershipFilter, setOwnershipFilter] = useState('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const [selectedFuelType, setSelectedFuelType] = useState('all'); {/*for filter*/}
-  const [stationStatusFilter, setStationStatusFilter] = useState('all'); {/*for filter*/}
-  const [stateFilter, setStateFilter] = useState('all'); {/*for filter*/}
-  const [ownershipFilter, setOwnershipFilter] = useState('all'); {/*for filter*/}
-  const [isFilterOpen, setIsFilterOpen] = useState(false); {/*for filter*/}
-
-  // Heatmap state
+  // Heatmap State
   const [vehicles, setVehicles] = useState([]);
   const [vehicleClasses, setVehicleClasses] = useState([]);
   const [vehicleClassFilter, setVehicleClassFilter] = useState('6'); // Medium Duty/Heavy Duty/Bus
   const [selectedFuel, setSelectedFuel] = useState('CNG'); // 'CNG' or 'EV'
-  const [showHeatmap, setShowHeatmap] = useState('both'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
+  const [showHeatmap, setShowHeatmap] = useState('both'); 
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
-  const [currentZoom, setCurrentZoom] = useState(4); // Track map zoom level
+  const [currentZoom, setCurrentZoom] = useState(4);
 
-  const onLoad = useCallback((mapInst) => {
-    setMap(mapInst);
-    
-    // Listen to zoom changes
-    mapInst.addListener('zoom_changed', () => {
-      const newZoom = mapInst.getZoom();
-      setCurrentZoom(newZoom);
-    });
-  }, []);
+  // Production Plant State
+  const [productionPlants, setProductionPlants] = useState([]);
+  const [showProductionPlants, setShowProductionPlants] = useState(false);
+  const [ppFilters, setPpFilters] = useState({
+    cng: true,
+    diesel: true,
+    electric: true
+  });
 
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    setLoading(true);
-    setError(null);
-
-    fetch("/api/fuel-stations", {
-      next: { revalidate: 3600 } // Cache for 1 hour
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          setStations(data.data);
-        } else {
-          throw new Error(data.message || "Failed to fetch stations");
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching fuel stations:", err);
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-      // 2. New fetch for Production Plants
-    fetch("/api/production-plants")
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setProductionPlants(data.data);
-        }
-      })
-      .catch(err => console.error("Error fetching plants:", err));
-
-
-
-    // Load vehicle data for heatmap
-    const loadVehicleData = async () => {
-      setVehiclesLoading(true);
-      try {
-        const parsedVehicles = await parseVehicleCSV();
-        setVehicles(parsedVehicles);
-        const classes = getUniqueVehicleClasses(parsedVehicles);
-        setVehicleClasses(classes);
-      } catch (error) {
-        console.error('Error loading vehicle data:', error);
-      } finally {
-        setVehiclesLoading(false);
-      }
-    };
-
-    loadVehicleData();
-  }, [isLoaded]);
+  // --- 2. HELPERS & HANDLERS ---
 
   const getFuelTypeKey = (fuelType) => {
     if (!fuelType) return 'unknown';
     return fuelType.toLowerCase();
   };
 
-  // State filtering
   const getStateMatch = (station, selectedState) => {
     if (!station.state) return false;
     if (!selectedState || selectedState === 'all') return true;
-    
     const stateCode = station.state.toUpperCase();
     return stateCode === selectedState.toUpperCase();
   };
 
+  const selectFuelType = (fuelType) => {
+    setSelectedFuelType(fuelType);
+  };
+
+  // Simple seeded random number generator for stable positions
+  const seededRandom = useCallback((seed) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }, []);
+
+  const onLoad = useCallback((mapInst) => {
+    setMap(mapInst);
+    mapInst.addListener('zoom_changed', () => {
+      const newZoom = mapInst.getZoom();
+      setCurrentZoom(newZoom);
+    });
+  }, []);
+
+  // --- 3. FILTER LOGIC (useMemos) ---
+
+  // Filter Production Plants
+  const filteredProductionPlants = useMemo(() => {
+    if (!showProductionPlants) return [];
+    
+    return productionPlants.filter(plant => {
+      // Check if the plant's fuel type matches one of our active filters
+      return ppFilters[plant.fuel_type]; 
+    });
+  }, [productionPlants, showProductionPlants, ppFilters]);
+
+  // Filter Fuel Stations
   const filteredStations = useMemo(() => {
     const filtered = stations.filter((s) => {
       // Fuel type filter
@@ -153,18 +121,8 @@ export default function MapComponent() {
     });
 
     // Limit markers based on zoom level to prevent crowding
-    // Zoom 4 (default): Show ~250 stations
-    // Zoom 6+: Show ~500 stations
-    // Zoom 8+: Show all stations
     const maxMarkersMap = {
-      1: 100,
-      2: 100,
-      3: 150,
-      4: 250,  // default zoom
-      5: 350,
-      6: 500,
-      7: 750,
-      8: Infinity, // Show all at high zoom
+      1: 100, 2: 100, 3: 150, 4: 250, 5: 350, 6: 500, 7: 750, 8: Infinity,
     };
 
     const zoomLevel = Math.floor(currentZoom);
@@ -174,7 +132,7 @@ export default function MapComponent() {
       return filtered;
     }
 
-    // Evenly sample stations to show representative distribution
+    // Evenly sample stations
     const step = filtered.length / maxMarkers;
     const sampled = [];
     for (let i = 0; i < maxMarkers; i++) {
@@ -183,24 +141,10 @@ export default function MapComponent() {
         sampled.push(filtered[index]);
       }
     }
-
     return sampled;
   }, [stations, selectedFuelType, stationStatusFilter, stateFilter, ownershipFilter, currentZoom]);
 
-  // Removed auto-zoom functionality - map stays at default US center view
-  // Stations are filtered but map doesn't zoom to specific regions
-
-  const selectFuelType = (fuelType) => {
-    setSelectedFuelType(fuelType);
-  };
-
-  // Simple seeded random number generator for stable positions
-  const seededRandom = useCallback((seed) => {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-  }, []);
-
-  // Compute heatmap data (optimized to prevent unnecessary recalculations)
+  // Compute Heatmap Data
   const vehicleHeatmapData = useMemo(() => {
     if (vehicles.length === 0 || !isLoaded || showHeatmap === 'markers') {
       return [];
@@ -244,7 +188,7 @@ export default function MapComponent() {
         const classKey = String(vehicleClassFilter);
         return location.byClass[classKey] && location.byClass[classKey] > 0;
       })
-      .flatMap((location, locationIndex) => {
+      .flatMap((location) => {
         const classKey = String(vehicleClassFilter);
         const count = location.byClass[classKey];
         const weight = getHeatmapIntensity(count, max);
@@ -268,6 +212,62 @@ export default function MapComponent() {
     return data;
   }, [vehicles, vehicleClassFilter, selectedFuel, stateFilter, isLoaded, showHeatmap, seededRandom]);
 
+  // --- 4. DATA FETCHING EFFECT ---
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    setLoading(true);
+    setError(null);
+
+    // 1. Fetch Stations
+    fetch("/api/fuel-stations", {
+      next: { revalidate: 3600 }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (data.success) setStations(data.data);
+        else throw new Error(data.message || "Failed to fetch stations");
+      })
+      .catch((err) => {
+        console.error("Error fetching fuel stations:", err);
+        setError(err.message);
+      })
+      .finally(() => setLoading(false));
+
+    // 2. Fetch Production Plants (New)
+    fetch("/api/production-plants")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+            setProductionPlants(data.data);
+        }
+      })
+      .catch(err => console.error("Error fetching plants:", err));
+
+    // 3. Load vehicle data for heatmap
+    const loadVehicleData = async () => {
+      setVehiclesLoading(true);
+      try {
+        const parsedVehicles = await parseVehicleCSV();
+        setVehicles(parsedVehicles);
+        const classes = getUniqueVehicleClasses(parsedVehicles);
+        setVehicleClasses(classes);
+      } catch (error) {
+        console.error('Error loading vehicle data:', error);
+      } finally {
+        setVehiclesLoading(false);
+      }
+    };
+
+    loadVehicleData();
+  }, [isLoaded]);
+
+  // --- 5. EARLY RETURNS (AFTER ALL HOOKS) ---
+
   if (!isLoaded) return (
     <div className={styles.container}>
       <div className={styles.loading}>Loading map…</div>
@@ -276,7 +276,7 @@ export default function MapComponent() {
   
   if (loading) return (
     <div className={styles.container}>
-      <div className={styles.loading}>Loading fuel stations from BigQuery…</div>
+      <div className={styles.loading}>Loading data from BigQuery…</div>
     </div>
   );
   
@@ -291,11 +291,6 @@ export default function MapComponent() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
-        {/*}
-        <p className={styles.description}>
-          Find alternative fuel stations across the United States
-        </p>
-        */}
       </div>
 
       <div className={styles.content}>
@@ -308,8 +303,8 @@ export default function MapComponent() {
             showHeatmap={showHeatmap}
             vehicleHeatmapData={vehicleHeatmapData}
             mapInstance={map}
-
-            productionPlants={productionPlants}
+            // NEW PROPS
+            productionPlants={filteredProductionPlants}
             showProductionPlants={showProductionPlants}
           />
         </div>
@@ -335,22 +330,22 @@ export default function MapComponent() {
             setSelectedFuel={setSelectedFuel}
             heatmapPointCount={vehicleHeatmapData.length}
             vehiclesLoading={vehiclesLoading}
-
+            // NEW PROPS
             showProductionPlants={showProductionPlants}
             setShowProductionPlants={setShowProductionPlants}
+            ppFilters={ppFilters}
+            setPpFilters={setPpFilters}
           />
         </div>
       </div>
     </div>
 
-    {/* Div for Min-Max Chart */}
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Min-Max Charts</h1>
       </div>
       <div className={`${styles.chartContent} ${styles.chartBase}`}>
         <MinMaxChart />
-
       </div>
     </div>
     </div>

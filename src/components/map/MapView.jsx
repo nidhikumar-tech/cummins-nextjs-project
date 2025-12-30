@@ -212,21 +212,27 @@ export default function MapView({
         >
           <div style={{ minWidth: "220px", maxWidth: "300px" }}>
             <h4 style={{ margin: "0 0 8px", color: "#b91c1c", borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
-              🏭 {selectedPlant.vendor}
+              🏭 Production Plant
             </h4>
             
             <p style={{ margin: "4px 0", fontSize: "13px" }}>
-              <strong>Service:</strong> {selectedPlant.description || 'N/A'}
+              <strong>Vendor:</strong> {selectedPlant.vendor || 'N/A'}
             </p>
             
             <p style={{ margin: "4px 0", fontSize: "13px" }}>
-              <strong>Phone:</strong> {selectedPlant.phone || 'N/A'}
+              <strong>Operator:</strong> {selectedPlant.operator || 'N/A'}
+            </p>
+            
+            <p style={{ margin: "4px 0", fontSize: "13px" }}>
+              <strong>Fuel Type:</strong> {selectedPlant.fuel_type ? selectedPlant.fuel_type.toUpperCase() : 'N/A'}
             </p>
             
             <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '4px', marginTop: '8px' }}>
-              <p style={{ margin: "0", fontSize: "12px", color: "#64748b" }}>
-                {selectedPlant.address}<br/>
-                {selectedPlant.city}, {selectedPlant.state} {selectedPlant.zip}
+               <p style={{ margin: "2px 0", fontSize: "12px", color: "#64748b" }}>
+                <strong>State:</strong> {selectedPlant.state}
+              </p>
+              <p style={{ margin: "2px 0", fontSize: "12px", color: "#64748b" }}>
+                <strong>Coords:</strong> {selectedPlant.lat.toFixed(4)}, {selectedPlant.lng.toFixed(4)}
               </p>
             </div>
           </div>

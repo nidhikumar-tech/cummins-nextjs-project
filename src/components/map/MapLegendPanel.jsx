@@ -24,8 +24,18 @@ export default function MapLegendPanel({
   heatmapPointCount,
   vehiclesLoading,
   showProductionPlants,
-  setShowProductionPlants
+  setShowProductionPlants,
+  ppFilters,    
+  setPpFilters
 }) {
+  // Helper to toggle specific fuel filters
+  const togglePpFilter = (type) => {
+    setPpFilters(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
+  };
+
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportType, setExportType] = useState('all');
   // All US states
@@ -157,18 +167,56 @@ export default function MapLegendPanel({
       </div>
 */}
 
-      <div className={styles.filterTriggerSection} style={{ marginBottom: '16px' }}>
-         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+      <div className={styles.filterTriggerSection}>
+         {/* Main Parent Checkbox */}
+         <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
             <input 
               type="checkbox" 
               checked={showProductionPlants}
               onChange={(e) => setShowProductionPlants(e.target.checked)}
               style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
             />
-            <span style={{ fontWeight: '600', color: '#1e293b' }}>
+            <span className={styles.filterTriggerButton}>
               Show Production Plants
             </span>
          </label>
+
+         {/* Sub-Checkboxes (Only visible if parent is checked) */}
+         {showProductionPlants && (
+           <div style={{ marginLeft: '28px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+             
+             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={ppFilters.cng}
+                  onChange={() => togglePpFilter('cng')}
+                  style={{ width: '16px', height: '16px', accentColor: '#2563eb' }}
+                />
+                <span style={{ fontSize: '14px', color: '#475569' }}>CNG</span>
+             </label>
+
+             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={ppFilters.diesel}
+                  onChange={() => togglePpFilter('diesel')}
+                  style={{ width: '16px', height: '16px', accentColor: '#2563eb' }}
+                />
+                <span style={{ fontSize: '14px', color: '#475569' }}>Diesel</span>
+             </label>
+
+             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={ppFilters.electric}
+                  onChange={() => togglePpFilter('electric')}
+                  style={{ width: '16px', height: '16px', accentColor: '#2563eb' }}
+                />
+                <span style={{ fontSize: '14px', color: '#475569' }}>Electric</span>
+             </label>
+
+           </div>
+         )}
       </div>
 
       {/* Legend  */}

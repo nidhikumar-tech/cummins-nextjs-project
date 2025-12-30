@@ -5,7 +5,7 @@ import path from 'path';
 export async function GET() {
   try {
     // 1. Locate the file
-    const filePath = path.join(process.cwd(), 'public', 'us_cng_fuel_suppliers.csv');
+    const filePath = path.join(process.cwd(), 'public', 'all_pp_cleaned.csv');
     
     // 2. Read the file
     const fileContent = fs.readFileSync(filePath, 'utf8');
@@ -35,12 +35,9 @@ export async function GET() {
       .filter(plant => plant.Latitude && plant.Longitude) // Ensure coords exist
       .map(plant => ({
         vendor: plant.Vendor,
-        address: plant.Street_Address,
-        city: plant.City,
+        operator: plant.Operator,
         state: plant.State,
-        zip: plant.Zip_Code,
-        phone: plant.Telephone,
-        description: plant.Description_of_Service,
+        fuel_type: plant.Fuel_Type ? plant.Fuel_Type.toLowerCase() : 'unknown', 
         lat: parseFloat(plant.Latitude),
         lng: parseFloat(plant.Longitude)
       }));
@@ -49,6 +46,6 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error loading production plants:', error);
-    return NextResponse.json({ success: false, error: 'Failed to load plants' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to load production plants' }, { status: 500 });
   }
 }
