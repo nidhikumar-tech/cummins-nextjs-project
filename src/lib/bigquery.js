@@ -58,10 +58,14 @@ export async function getVehicleData(year = null) {
   // Simple query to fetch all data - let BigQuery return whatever columns exist
   // We'll filter in JavaScript if needed
   const query = `
-    SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
-    
-  `;
+  SELECT *
+  FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+
+  UNION ALL
+
+  SELECT *
+  FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+`;
 
   const options = {
     query: query,
@@ -70,7 +74,7 @@ export async function getVehicleData(year = null) {
 
   try {
     const [rows] = await bigquery.query(options);
-    
+    console.log('BigQuery Vehicle Data Fetch - Rows Retrieved:', rows.length);
     // Log the first row to see what columns we actually have
     if (rows.length > 0) {
       // Column info available for debugging if needed
