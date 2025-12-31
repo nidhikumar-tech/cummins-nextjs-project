@@ -25,6 +25,7 @@ export default function MapLegendPanel({
 }) {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportType, setExportType] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
   
   // Generate years array from 2020 to 2040
   const years = ['all', ...Array.from({ length: 21 }, (_, i) => (2020 + i).toString())];
@@ -96,12 +97,21 @@ export default function MapLegendPanel({
   ];
 
   const handleExport = async () => {
+    if (isExporting) return; // Prevent multiple clicks
+    
+    setIsExporting(true);
     try {
+      console.log('📥 Starting export...', { type: exportType });
       const response = await fetch(`/api/export-data?type=${exportType}`);
       
       if (!response.ok) {
-        throw new Error('Failed to export data');
+        throw new Error(`Export failed with status: ${response.status}`);
       }
+      
+      // Log data source from headers
+      const stationsSource = response.headers.get('X-Data-Source-Stations');
+      const vehiclesSource = response.headers.get('X-Data-Source-Vehicles');
+      console.log('📊 Data sources:', { stations: stationsSource, vehicles: vehiclesSource });
       
       // Create blob and download
       const blob = await response.blob();
@@ -110,11 +120,12 @@ export default function MapLegendPanel({
       a.href = url;
       
       // Set filename based on export type
-      let filename = `cummins_data_${new Date().toISOString().slice(0, 10)}.csv`;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      let filename = `cummins_data_${dateStr}.csv`;
       if (exportType === 'stations') {
-        filename = `fuel_stations_${new Date().toISOString().slice(0, 10)}.csv`;
+        filename = `fuel_stations_${dateStr}.csv`;
       } else if (exportType === 'vehicles') {
-        filename = `vehicle_data_${new Date().toISOString().slice(0, 10)}.csv`;
+        filename = `cng_vehicle_forecast_${dateStr}.csv`;
       }
       
       a.download = filename;
@@ -123,11 +134,15 @@ export default function MapLegendPanel({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
+      console.log('✅ Export completed:', filename);
+      
       // Close the export panel after successful download
       setIsExportOpen(false);
     } catch (error) {
-      console.error('Export error:', error);
-      alert('Failed to export data. Please try again.');
+      console.error('❌ Export error:', error);
+      alert(`Failed to export data: ${error.message}\n\nPlease check the console for more details.`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -257,9 +272,12 @@ export default function MapLegendPanel({
                     📊 Export Information
                   </p>
                   <p style={{ margin: '0', color: '#075985', lineHeight: '1.5' }}>
-                    {exportType === 'all' && 'Downloads both fuel stations and vehicle data in a single CSV file.'}
-                    {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and status.'}
-                    {exportType === 'vehicles' && 'Downloads vehicle data including counts by class and fuel type.'}
+                    {exportType === 'all' && 'Downloads both fuel stations and CNG vehicle forecast data from BigQuery in a single CSV file.'}
+                    {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and availability status from BigQuery.'}
+                    {exportType === 'vehicles' && 'Downloads CNG vehicle forecast data (2020-2040) including predicted/actual vehicles, CNG prices, and state-level data from BigQuery.'}
+                  </p>
+                  <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>
+                    {isExporting ? 'Fetching data from BigQuery...' : 'Data source: BigQuery (with CSV fallback)'}
                   </p>
                 </div>
               </div>
@@ -269,10 +287,25 @@ export default function MapLegendPanel({
                 <button 
                   className={styles.filterTriggerButton}
                   onClick={handleExport}
-                  style={{ width: '100%', justifyContent: 'center' }}
+                  disabled={isExporting}
+                  style={{ 
+                    width: '100%', 
+                    justifyContent: 'center',
+                    opacity: isExporting ? 0.6 : 1,
+                    cursor: isExporting ? 'not-allowed' : 'pointer'
+                  }}
                 >
-                  {/* <span>⬇️</span> */}
-                  <span style={{ textDecoration: 'underline'}}>Download CSV</span>
+                  {isExporting ? (
+                    <>
+                      <span>⏳</span>
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⬇️</span>
+                      <span style={{ textDecoration: 'underline'}}>Download CSV</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

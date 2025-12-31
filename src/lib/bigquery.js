@@ -3,7 +3,9 @@ import { BigQuery } from '@google-cloud/bigquery';
 // Initialize BigQuery client
 const bigquery = new BigQuery({
   projectId: process.env.GCP_PROJECT_ID,
-//   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  ...(process.env.GOOGLE_APPLICATION_CREDENTIALS && {
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  }),
 });
 
 // Returns the array of fuel stations from BigQuery
@@ -36,7 +38,7 @@ export async function getFuelStations() {
 
   const options = {
     query: query,
-    location: 'US',
+    location: 'US', // frontend_custom_data is in US multi-region (Default)
   };
 
   try {
@@ -52,7 +54,14 @@ export async function getFuelStations() {
 export async function getVehicleData(year = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    console.warn('BigQuery disabled: Build phase or missing GCP_PROJECT_ID');
     return [];
+  }
+
+  // Validate required environment variables
+  if (!process.env.BIGQUERY_DATASET_2 || !process.env.BIGQUERY_TABLE_1) {
+    console.error('Missing required environment variables: BIGQUERY_DATASET_2 or BIGQUERY_TABLE_1');
+    throw new Error('BigQuery configuration incomplete');
   }
   
   // Simple query to fetch all data - let BigQuery return whatever columns exist
@@ -65,8 +74,14 @@ export async function getVehicleData(year = null) {
 
   const options = {
     query: query,
-    location: 'US',
+    location: process.env.BIGQUERY_LOCATION_2, // Changed from 'US' to match dataset region
   };
+
+  console.log('BigQuery Query Config:', {
+    project: process.env.GCP_PROJECT_ID,
+    dataset: process.env.BIGQUERY_DATASET_2,
+    table: process.env.BIGQUERY_TABLE_1
+  });
 
   try {
     const [rows] = await bigquery.query(options);
@@ -87,6 +102,13 @@ export async function getVehicleData(year = null) {
     
     return filteredRows;
   } catch (error) {
+    console.error('BigQuery Error Details:', {
+      message: error.message,
+      code: error.code,
+      dataset: process.env.BIGQUERY_DATASET_2,
+      table: process.env.BIGQUERY_TABLE_1,
+      project: process.env.GCP_PROJECT_ID
+    });
     throw error;
   }
 }
