@@ -91,6 +91,39 @@ export default function MinMaxChartCNG() {
     const actuals = stateData.map(d => d.year > currentYear ? null : d.actualVehicles);
     const forecasts = stateData.map(d => d.vehicleCount);
 
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    let minIndex = -1;
+    let maxIndex = -1;
+
+    stateData.forEach((d, index) => {
+        // Only consider current year onwards for forecast highlights
+        if (d.year >= currentYear) {
+            const val = d.vehicleCount;
+            
+            // STRICT INEQUALITY (<) ensures we only update if we find a SMALLER value.
+            // If we find an EQUAL value later, we ignore it, preserving the FIRST one.
+            if (val < minVal) {
+                minVal = val;
+                minIndex = index;
+            }
+
+            // STRICT INEQUALITY (>) ensures we only update if we find a LARGER value.
+            // If we find an EQUAL value later, we ignore it, preserving the FIRST one.
+            if (val > maxVal) {
+                maxVal = val;
+                maxIndex = index;
+            }
+        }
+    });
+
+    // Create sparse arrays containing only the min and max points at the correct positions
+    const minPointData = Array(labels.length).fill(null);
+    if (minIndex !== -1) minPointData[minIndex] = minVal;
+
+    const maxPointData = Array(labels.length).fill(null);
+    if (maxIndex !== -1) maxPointData[maxIndex] = maxVal;
+
 
     return {
       labels,
@@ -114,6 +147,30 @@ export default function MinMaxChartCNG() {
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
+        },
+        {
+            label: 'Forecast Max',
+            data: maxPointData,
+            borderColor: '#16a34a', // Green border
+            backgroundColor: '#22c55e', // Green fill
+            pointStyle: 'circle',
+            pointRadius: 10,
+            pointHoverRadius: 12,
+            borderWidth: 3,
+            showLine: false,
+            order: 0 // brings to front
+        },
+        {
+            label: 'Forecast Min',
+            data: minPointData,
+            borderColor: '#ea580c', // Orange/Amber border
+            backgroundColor: '#f97316', // Orange/Amber fill
+            pointStyle: 'circle',
+            pointRadius: 10,
+            pointHoverRadius: 12,
+            borderWidth: 3,
+            showLine: false,
+            order: 0 // brings to front
         },
       ],
     };
