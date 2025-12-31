@@ -4,7 +4,7 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MapLegendPanel from './MapLegendPanel';
 import MapView from './MapView';
-import MinMaxChart from './MinMaxChart';
+import MinMaxChartCNG from './MinMaxChartCNG';
 import {
   parseVehicleCSV,
   aggregateByState,
@@ -364,7 +364,7 @@ export default function MapComponent() {
         <h1 className={styles.title}>Min-Max Charts</h1>
       </div>
       <div className={`${styles.chartContent} ${styles.chartBase}`}>
-        <MinMaxChart />
+        <MinMaxChartCNG />
       </div>
     </div>
     </div>
