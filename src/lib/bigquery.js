@@ -58,14 +58,9 @@ export async function getVehicleData(year = null) {
   // Simple query to fetch all data - let BigQuery return whatever columns exist
   // We'll filter in JavaScript if needed
   const query = `
-  SELECT *
-  FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
-
-  UNION ALL
-
-  SELECT *
-  FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
-`;
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+  `;
 
   const options = {
     query: query,
@@ -118,6 +113,40 @@ export async function getProductionPlants() {
     return rows;
   } catch (error) {
     console.error('BigQuery Production Plant Fetch Error:', error);
+    throw error;
+  }
+}
+
+// Returns the array of HYBRID vehicle data
+export async function getHybridVehicleData(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_HYBRID}\`
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
     throw error;
   }
 }

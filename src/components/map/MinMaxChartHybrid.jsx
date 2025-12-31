@@ -10,10 +10,9 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler,
+  Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-
 
 ChartJS.register(
   CategoryScale,
@@ -22,7 +21,7 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend, 
+  Legend,
   Filler
 );
 
@@ -35,7 +34,7 @@ const US_STATES = new Set([
   'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
-export default function MinMaxChartCNG() {
+export default function MinMaxChartHybrid() {
   const [rawData, setRawData] = useState([]);
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState('');
@@ -46,21 +45,19 @@ export default function MinMaxChartCNG() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Reuse existing API that queries the correct BigQuery table
-        const response = await fetch('/api/vehicle-data?year=all');
+        // CHANGE 1: Point to the new Hybrid API
+        const response = await fetch('/api/hybrid-data?year=all');
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {
           setRawData(result.data);
 
-          // Extract unique states, FILTER for only US states, and sort them
           const uniqueStates = [...new Set(result.data.map(item => item.state))]
-            .filter(state => US_STATES.has(state)) // <--- Only allow valid US states
+            .filter(state => US_STATES.has(state))
             .sort();
           
           setStates(uniqueStates);
           
-          // Default to first state if available, prioritize 'TX' if it exists
           if (uniqueStates.length > 0) {
             setSelectedState(uniqueStates.includes('TX') ? 'TX' : uniqueStates[0]);
           }
@@ -80,16 +77,12 @@ export default function MinMaxChartCNG() {
   const chartData = useMemo(() => {
     if (!selectedState || rawData.length === 0) return null;
 
-    // Filter by selected state and Sort by Year
     const stateData = rawData
       .filter(d => d.state === selectedState)
       .sort((a, b) => a.year - b.year);
 
-
     const labels = stateData.map(d => d.year);
-    // Calculate current year dynamically
     const currentYear = new Date().getFullYear();
-    // If the data year is greater than current year, return null to stop drawing the line
     const actuals = stateData.map(d => d.year > currentYear ? null : d.actualVehicles);
     const forecasts = stateData.map(d => d.vehicleCount);
 
@@ -99,19 +92,12 @@ export default function MinMaxChartCNG() {
     let maxIndex = -1;
 
     stateData.forEach((d, index) => {
-        // Only consider current year onwards for forecast highlights
         if (d.year >= currentYear) {
             const val = d.vehicleCount;
-            
-            // STRICT INEQUALITY (<) ensures we only update if we find a SMALLER value.
-            // If we find an EQUAL value later, we ignore it, preserving the FIRST one.
             if (val < minVal) {
                 minVal = val;
                 minIndex = index;
             }
-
-            // STRICT INEQUALITY (>) ensures we only update if we find a LARGER value.
-            // If we find an EQUAL value later, we ignore it, preserving the FIRST one.
             if (val > maxVal) {
                 maxVal = val;
                 maxIndex = index;
@@ -119,14 +105,12 @@ export default function MinMaxChartCNG() {
         }
     });
 
-    // Create sparse arrays containing only the min and max points at the correct positions
     const minPointData = Array(labels.length).fill(null);
     if (minIndex !== -1) minPointData[minIndex] = minVal;
 
     const maxPointData = Array(labels.length).fill(null);
     if (maxIndex !== -1) maxPointData[maxIndex] = maxVal;
-
-    // Create arrays that are NULL for past years, and CONSTANT value for future years
+    
     const maxLineData = stateData.map(d => d.year >= currentYear ? maxVal : null);
     const minLineData = stateData.map(d => d.year >= currentYear ? minVal : null);
 
@@ -141,7 +125,7 @@ export default function MinMaxChartCNG() {
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
-          spanGaps: false, // Ensures the line stops exactly at null, doesn't jump gaps
+          spanGaps: false,
           order: 1
         },
         {
@@ -149,7 +133,7 @@ export default function MinMaxChartCNG() {
           data: forecasts,
           borderColor: '#dc2626', // Red
           backgroundColor: '#dc2626',
-          borderDash: [5, 5], // Dashed line for forecast distinction
+          borderDash: [5, 5],
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -158,44 +142,44 @@ export default function MinMaxChartCNG() {
         {
             label: 'Forecast Max',
             data: maxPointData,
-            borderColor: '#16a34a', // Green border
-            backgroundColor: '#22c55e', // Green fill
+            borderColor: '#16a34a',
+            backgroundColor: '#22c55e',
             pointStyle: 'circle',
             pointRadius: 10,
             pointHoverRadius: 12,
             borderWidth: 3,
             showLine: false,
-            order: 0 // brings to front
+            order: 0
         },
         {
             label: 'Forecast Min',
             data: minPointData,
-            borderColor: '#ea580c', // Orange/Amber border
-            backgroundColor: '#f97316', // Orange/Amber fill
+            borderColor: '#ea580c',
+            backgroundColor: '#f97316',
             pointStyle: 'circle',
             pointRadius: 10,
             pointHoverRadius: 12,
             borderWidth: 3,
             showLine: false,
-            order: 0 // brings to front
+            order: 0
         },
         {
             label: 'Max Fill',
             data: maxLineData,
-            borderColor: 'transparent', // Invisible line
-            pointRadius: 0,             // No dots
-            backgroundColor: 'rgba(220, 38, 38, 0.1)', // Light Red shading
-            fill: 1, // Fills to Dataset Index 1 (Forecasted Data)
-            order: 2 // Draw behind lines
+            borderColor: 'transparent',
+            pointRadius: 0,
+            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+            fill: 1, 
+            order: 2
         },
         {
             label: 'Min Fill',
             data: minLineData,
-            borderColor: 'transparent', // Invisible line
-            pointRadius: 0,             // No dots
-            backgroundColor: 'rgba(220, 38, 38, 0.1)', // Light Red shading
-            fill: 1, // Fills to Dataset Index 1 (Forecasted Data)
-            order: 2 // Draw behind lines
+            borderColor: 'transparent',
+            pointRadius: 0,
+            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+            fill: 1,
+            order: 2
         }
       ],
     };
@@ -210,13 +194,11 @@ export default function MinMaxChartCNG() {
         align: 'end',
         labels: {
             filter: function(item, chart) {
-                // Only show legends for Actual, Forecast, and the Min/Max Dots
                 return item.text === 'ACTUAL DATA' || 
                        item.text === 'FORECASTED DATA' ||
                        item.text === 'Forecast Max' || 
                        item.text === 'Forecast Min';
             },
-            // Sort by dataset index to keep logical order (Actual -> Forecast -> Dots)
             sort: (a, b) => a.datasetIndex - b.datasetIndex
         }
       },
@@ -224,14 +206,14 @@ export default function MinMaxChartCNG() {
         mode: 'index',
         intersect: false,
         filter: function(tooltipItem) {
-            // Hide tooltips for the shading layers
             return tooltipItem.dataset.label !== 'Max Fill' && 
                    tooltipItem.dataset.label !== 'Min Fill';
         }
       },
       title: {
         display: true,
-        text: `CNG Vehicle Adoption Trend`,
+        // CHANGE 2: Updated Title
+        text: `Hybrid Vehicle Adoption Trend`,
         align: 'start',
         font: { size: 16 }
       },
@@ -258,15 +240,12 @@ export default function MinMaxChartCNG() {
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
-  
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      
-      {/* State Filter Dropdown */}
       <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label htmlFor="state-select" style={{ fontWeight: '600', color: '#475569' }}>Select State:</label>
+        <label htmlFor="state-select-hybrid" style={{ fontWeight: '600', color: '#475569' }}>Select State:</label>
         <select
-          id="state-select"
+          id="state-select-hybrid"
           value={selectedState}
           onChange={(e) => setSelectedState(e.target.value)}
           style={{
@@ -284,7 +263,6 @@ export default function MinMaxChartCNG() {
         </select>
       </div>
 
-      {/* Chart Container */}
       <div style={{ height: '400px', width: '100%' }}>
         {chartData && <Line data={chartData} options={options} />}
         {!chartData && <p>No data available for this state.</p>}
