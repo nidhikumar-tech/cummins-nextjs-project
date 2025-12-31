@@ -81,12 +81,6 @@ export async function getVehicleData(year = null) {
     location: process.env.BIGQUERY_LOCATION_2 || 'US',
   };
 
-  console.log('BigQuery Query Config:', {
-    project: process.env.GCP_PROJECT_ID,
-    dataset: process.env.BIGQUERY_DATASET_2,
-    table: process.env.BIGQUERY_TABLE_1
-  });
-
   try {
     const [rows] = await bigquery.query(options);
     console.log('BigQuery Vehicle Data Fetch - Rows Retrieved:', rows.length);
@@ -109,37 +103,7 @@ export async function getVehicleData(year = null) {
     console.error('BigQuery Error Details:', {
       message: error.message,
       code: error.code,
-      dataset: process.env.BIGQUERY_DATASET_2,
-      table: process.env.BIGQUERY_TABLE_1,
-      project: process.env.GCP_PROJECT_ID
     });
-    throw error;
-  }
-}
-
-export async function getProductionPlants() {
-
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    return [];
-  }
-
-  // Selects all columns from the production plants table
-  const query = `
-    SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_PP}\`
-    WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL
-  `;
-
-  const options = {
-    query: query,
-    location: 'US', 
-  };
-
-  try {
-    const [rows] = await bigquery.query(options);
-    return rows;
-  } catch (error) {
-    console.error('BigQuery Production Plant Fetch Error:', error);
     throw error;
   }
 }
