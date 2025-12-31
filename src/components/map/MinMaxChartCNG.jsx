@@ -10,7 +10,6 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -22,8 +21,7 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend, 
-  Filler
+  Legend
 );
 
 // Standard US State Codes (50 States + DC)
@@ -126,11 +124,6 @@ export default function MinMaxChartCNG() {
     const maxPointData = Array(labels.length).fill(null);
     if (maxIndex !== -1) maxPointData[maxIndex] = maxVal;
 
-    //Logic for min-max shading  
-    // Create arrays that are NULL for past years, and CONSTANT value for future years
-    const maxLineData = stateData.map(d => d.year >= currentYear ? maxVal : null);
-    const minLineData = stateData.map(d => d.year >= currentYear ? minVal : null);
-
 
     return {
       labels,
@@ -144,7 +137,6 @@ export default function MinMaxChartCNG() {
           pointRadius: 4,
           pointHoverRadius: 6,
           spanGaps: false, // Ensures the line stops exactly at null, doesn't jump gaps
-          order: 1
         },
         {
           label: 'FORECASTED DATA',
@@ -155,7 +147,6 @@ export default function MinMaxChartCNG() {
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
-          order: 1
         },
         {
             label: 'Forecast Max',
@@ -181,26 +172,6 @@ export default function MinMaxChartCNG() {
             showLine: false,
             order: 0 // brings to front
         },
-        // Index 4: Max Line (Fills down to Forecast at Index 1)
-        {
-            label: 'Max Fill',
-            data: maxLineData,
-            borderColor: 'transparent', // Invisible line
-            pointRadius: 0,             // No dots
-            backgroundColor: 'rgba(220, 38, 38, 0.1)', // Light Red shading
-            fill: 1, // <--- Fills the space between this line and Dataset Index 1 (Forecast)
-            order: 2 // Draw behind lines
-        },
-        // Index 5: Min Line (Fills up to Forecast at Index 1)
-        {
-            label: 'Min Fill',
-            data: minLineData,
-            borderColor: 'transparent', // Invisible line
-            pointRadius: 0,             // No dots
-            backgroundColor: 'rgba(220, 38, 38, 0.1)', // Light Red shading
-            fill: 1, // <--- Fills the space between this line and Dataset Index 1 (Forecast)
-            order: 2 // Draw behind lines
-        }
       ],
     };
   }, [selectedState, rawData]);
@@ -212,23 +183,10 @@ export default function MinMaxChartCNG() {
       legend: {
         position: 'top',
         align: 'end',
-        labels: {
-            filter: function(item, chart) {
-                // Only show legends for Actual and Forecasted data
-                // This hides: Max Dot, Min Dot, Max Fill, Min Fill
-                return item.text === 'ACTUAL DATA' || item.text === 'FORECASTED DATA' || item.text === 'Forecast Max' || item.text === 'Forecast Min';
-            }, 
-            sort: (a, b) => a.datasetIndex - b.datasetIndex
-        }
       },
       tooltip: {
         mode: 'index',
         intersect: false,
-        filter: function(tooltipItem) {
-            // Only show tooltip for valid data, hide the background fill lines
-            return tooltipItem.dataset.label !== 'Max Fill' && 
-                   tooltipItem.dataset.label !== 'Min Fill';
-        }
       },
       title: {
         display: true,
