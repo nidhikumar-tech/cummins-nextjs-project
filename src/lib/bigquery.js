@@ -3,9 +3,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 // Initialize BigQuery client
 const bigquery = new BigQuery({
   projectId: process.env.GCP_PROJECT_ID,
-  ...(process.env.GOOGLE_APPLICATION_CREDENTIALS && {
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  }),
+//   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 });
 
 // Returns the array of fuel stations from BigQuery
@@ -32,13 +30,13 @@ export async function getFuelStations() {
       latitude,
       longitude,
       id
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_2}\`
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_2}\`
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
   `;
 
   const options = {
     query: query,
-    location: 'US', // frontend_custom_data is in US multi-region (Default)
+    location: process.env.BIGQUERY_LOCATION_2 || 'us-central1',
   };
 
   try {
@@ -54,14 +52,7 @@ export async function getFuelStations() {
 export async function getVehicleData(year = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    console.warn('BigQuery disabled: Build phase or missing GCP_PROJECT_ID');
     return [];
-  }
-
-  // Validate required environment variables
-  if (!process.env.BIGQUERY_DATASET_2 || !process.env.BIGQUERY_TABLE_1) {
-    console.error('Missing required environment variables: BIGQUERY_DATASET_2 or BIGQUERY_TABLE_1');
-    throw new Error('BigQuery configuration incomplete');
   }
   
   // Simple query to fetch all data - let BigQuery return whatever columns exist
@@ -83,11 +74,6 @@ export async function getVehicleData(year = null) {
 
   try {
     const [rows] = await bigquery.query(options);
-    console.log('BigQuery Vehicle Data Fetch - Rows Retrieved:', rows.length);
-    // Log the first row to see what columns we actually have
-    if (rows.length > 0) {
-      // Column info available for debugging if needed
-    }
     
     // Filter by year in JavaScript if needed
     let filteredRows = rows;
@@ -100,10 +86,76 @@ export async function getVehicleData(year = null) {
     
     return filteredRows;
   } catch (error) {
-    console.error('BigQuery Error Details:', {
-      message: error.message,
-      code: error.code,
-    });
+    throw error;
+  }
+}
+
+// Returns CNG XGBoost vehicle data only from BigQuery
+// @param {string|null} year - Optional year filter
+export async function getCNGVehicleData(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    LIMIT 10000
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Returns Hybrid XGBoost vehicle data only from BigQuery
+// @param {string|null} year - Optional year filter
+export async function getHybridVehicleData(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    LIMIT 10000
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
     throw error;
   }
 }
