@@ -18,6 +18,8 @@ export default function MapLegendPanel({
   setShowHeatmap,
   selectedYear,
   setSelectedYear,
+  vehicleFuelTypeFilter,
+  setVehicleFuelTypeFilter,
   heatmapPointCount,
   vehiclesLoading,
   showProductionPlants,
@@ -435,16 +437,6 @@ export default function MapLegendPanel({
                       className={styles.filterSelect}
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #d1d5db',
-                        fontSize: '14px',
-                        backgroundColor: 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
                     >
                       {years.map(year => (
                         <option key={year} value={year}>
@@ -452,6 +444,45 @@ export default function MapLegendPanel({
                         </option>
                       ))}
                     </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Vehicle Fuel Type Filter - for Heatmap */}
+              {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
+                <div className={styles.filterGroup}>
+                  <h4 className={styles.filterGroupTitle}>Heatmap - Vehicle Type</h4>
+                  <div className={styles.filterItems}>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleFuelType"
+                        className={styles.filterCheckbox}
+                        checked={vehicleFuelTypeFilter === 'all'}
+                        onChange={() => setVehicleFuelTypeFilter('all')}
+                      />
+                      <span>All Vehicle Types</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleFuelType"
+                        className={styles.filterCheckbox}
+                        checked={vehicleFuelTypeFilter === 'cng'}
+                        onChange={() => setVehicleFuelTypeFilter('cng')}
+                      />
+                      <span>CNG</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleFuelType"
+                        className={styles.filterCheckbox}
+                        checked={vehicleFuelTypeFilter === 'hybrid'}
+                        onChange={() => setVehicleFuelTypeFilter('hybrid')}
+                      />
+                      <span>Hybrid</span>
+                    </label>
                   </div>
                 </div>
               )}
@@ -492,6 +523,16 @@ export default function MapLegendPanel({
                       onChange={() => selectFuelType('elec')}
                     />
                     <span>Electric (ELEC)</span>
+                  </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="fuelType"
+                      className={styles.filterCheckbox}
+                      checked={selectedFuelType === 'diesel'}
+                      onChange={() => selectFuelType('diesel')}
+                    />
+                    <span>Diesel (RD + BD)</span>
                   </label>
                 </div>
               </div>

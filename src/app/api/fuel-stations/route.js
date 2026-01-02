@@ -2,12 +2,27 @@ import { NextResponse } from 'next/server';
 import { getFuelStations } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Cache for 1 hour
+export const revalidate = 86400; // Cache for 24 hours (fuel station data changes infrequently)
 
 export async function GET() {
   try {
-    // Fetch data from BigQuery
-    const data = await getFuelStations();
+    console.log('Starting parallel fuel station queries...');
+    const startTime = Date.now();
+
+    // Fetch data from BigQuery in parallel by fuel type for better performance
+    // Each smaller query executes faster than one large query
+    const [cngData, elecData, rdData, bdData] = await Promise.all([
+      getFuelStations('CNG'),
+      getFuelStations('ELEC'),
+      getFuelStations('RD'),
+      getFuelStations('BD'),
+    ]);
+
+    // Combine all fuel type data
+    const data = [...cngData, ...elecData, ...rdData, ...bdData];
+    
+    const fetchTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`Parallel fetch completed in ${fetchTime}s - Total stations: ${data.length}`);
 
     // Transform data to match frontend format
     const formattedStations = data
@@ -34,10 +49,18 @@ export async function GET() {
       success: true,
       data: formattedStations,
       count: formattedStations.length,
+      metadata: {
+        fetchTimeSeconds: parseFloat(fetchTime),
+        cngCount: cngData.length,
+        elecCount: elecData.length,
+        rdCount: rdData.length,
+        bdCount: bdData.length,
+      }
     });
     
-    // Cache for 1 hour
-    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+    // Cache for 24 hours with 48 hour stale-while-revalidate
+    // Fuel station data changes infrequently, so aggressive caching is appropriate
+    response.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=172800');
     
     return response;
   } catch (error) {
@@ -52,6 +75,3 @@ export async function GET() {
     );
   }
 }
-
-// Cache for 1 hour
-// export const revalidate = 3600;

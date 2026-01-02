@@ -24,14 +24,16 @@ export async function GET(request) {
       const actualVehicles = vehicle.actual_cng_vehicles || vehicle.Actual_CNG_Vehicles || 
                             vehicle.actual_vehicles || 0;
       const dataType = vehicle.data_type || vehicle.Data_Type || vehicle.type || '';
+      const fuelType = vehicle.fuel_type || vehicle.Fuel_Type || vehicle.FUEL_TYPE || '';
       
       return {
         year: parseInt(year) || 0,
         state: state || '',
-        vehicleCount: parseInt(vehicleCount) || 0,
+        predicted_vehicles: parseInt(vehicleCount) || 0,
         cngPrice: parseFloat(cngPrice) || 0,
         actualVehicles: parseInt(actualVehicles) || 0,
         dataType: dataType,
+        fuel_type: fuelType.toLowerCase(),
       };
     });
 

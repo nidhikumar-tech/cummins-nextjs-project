@@ -7,42 +7,52 @@ const bigquery = new BigQuery({
 });
 
 // Returns the array of fuel stations from BigQuery
-export async function getFuelStations() {
+// @param {string|null} fuelType - Optional fuel type filter (e.g., 'CNG', 'ELEC', 'RD', 'BD', null for all types)
+export async function getFuelStations(fuelType = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
     return [];
   }
 
+  // Build WHERE clause with optional fuel type filter
+  let whereClause = 'WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL';
+  if (fuelType) {
+    whereClause += ` AND fuel_type_code = '${fuelType}'`;
+  }
+
   const query = `
-    SELECT 
-      fuel_type_code,
-      station_name,
-      street_address,
-      city,
-      state,
-      zip,
-      plus4,
-      country,
-      status_code,
-      station_phone,
-      expected_date,
-      access_code,
-      latitude,
-      longitude,
-      id
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_2}\`
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-  `;
+  SELECT
+    fuel_type_code AS fuel_type_code,
+    station_name AS station_name,
+    street_address AS street_address,
+    City AS city,
+    State AS state,
+    ZIP AS zip,
+    Plus4 AS plus4,
+    Country AS country,
+    Status_Code AS status_code,
+    Station_Phone AS station_phone,
+    Expected_Date AS expected_date,
+    Access_Code AS access_code,
+    Latitude AS latitude,
+    Longitude AS longitude,
+    ID AS id
+  FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_2}\`
+  ${whereClause}
+`;
 
   const options = {
     query: query,
-    location: 'US',
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
     const [rows] = await bigquery.query(options);
+    const fuelTypeLabel = fuelType || 'All';
+    console.log(`BigQuery Fuel Stations Fetch (${fuelTypeLabel}) - Rows Retrieved:`, rows.length);
     return rows;
   } catch (error) {
+    console.error(`Error fetching fuel stations for type ${fuelType}:`, error);
     throw error;
   }
 }

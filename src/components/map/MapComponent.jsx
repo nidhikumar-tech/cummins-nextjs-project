@@ -38,9 +38,11 @@ export default function MapComponent() {
   // Heatmap State
   const [vehicles, setVehicles] = useState([]);
   const [selectedYear, setSelectedYear] = useState('all'); // Year filter: 'all', '2020', '2021', etc.
+  const [vehicleFuelTypeFilter, setVehicleFuelTypeFilter] = useState('all'); // 'all', 'cng', 'hybrid'
   const [showHeatmap, setShowHeatmap] = useState('both'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(4);
+  const [mapBounds, setMapBounds] = useState(null);
 
   // Production Plant State
   const [productionPlants, setProductionPlants] = useState([]);
@@ -98,10 +100,26 @@ export default function MapComponent() {
 
   const onLoad = useCallback((mapInst) => {
     setMap(mapInst);
-    mapInst.addListener('zoom_changed', () => {
+    
+    const updateMapState = () => {
       const newZoom = mapInst.getZoom();
+      const bounds = mapInst.getBounds();
       setCurrentZoom(newZoom);
-    });
+      if (bounds) {
+        setMapBounds({
+          north: bounds.getNorthEast().lat(),
+          south: bounds.getSouthWest().lat(),
+          east: bounds.getNorthEast().lng(),
+          west: bounds.getSouthWest().lng(),
+        });
+      }
+    };
+    
+    mapInst.addListener('zoom_changed', updateMapState);
+    mapInst.addListener('bounds_changed', updateMapState);
+    
+    // Initial bounds
+    updateMapState();
   }, []);
 
   // --- 3. FILTER LOGIC (useMemos) ---
@@ -177,7 +195,7 @@ export default function MapComponent() {
       .catch(err => {});
   }, [isLoaded]); // Only run once when map loads
 
-  // Separate effect for vehicle data - only refetch when year changes
+  // Separate effect for vehicle data - only refetch when year or fuel type changes
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -199,7 +217,10 @@ export default function MapComponent() {
     const filtered = stations.filter((s) => {
       // Fuel type filter
       const fuelKey = getFuelTypeKey(s.fuel_type);
-      const fuelMatch = selectedFuelType === 'all' || fuelKey === selectedFuelType;
+      // Diesel includes both RD (Renewable Diesel) and BD (Biodiesel)
+      const fuelMatch = selectedFuelType === 'all' || 
+        fuelKey === selectedFuelType ||
+        (selectedFuelType === 'diesel' && (fuelKey === 'rd' || fuelKey === 'bd'));
       
       // Station status filter
       const statusMatch = stationStatusFilter === 'all' || 
@@ -216,19 +237,38 @@ export default function MapComponent() {
       return fuelMatch && statusMatch && stateMatch && ownershipMatch;
     });
 
-    // Limit markers based on zoom level to prevent crowding
-    const maxMarkersMap = {
-      1: 100, 2: 100, 3: 150, 4: 250, 5: 350, 6: 500, 7: 750, 8: Infinity,
-    };
-
     const zoomLevel = Math.floor(currentZoom);
-    const maxMarkers = maxMarkersMap[zoomLevel] || maxMarkersMap[8];
+    const isLargeDataset = filtered.length > 10000;
+    
+    // At high zoom (10+), filter by viewport bounds and show ALL markers within bounds
+    if (zoomLevel >= 10 && mapBounds) {
+      const inBounds = filtered.filter(station => 
+        station.lat >= mapBounds.south &&
+        station.lat <= mapBounds.north &&
+        station.lng >= mapBounds.west &&
+        station.lng <= mapBounds.east
+      );
+      // At max zoom, show all markers within viewport (no limit)
+      return inBounds;
+    }
+    
+    // Don't render markers when zoomed out too far with large datasets
+    if (isLargeDataset && zoomLevel < 4) {
+      return [];
+    }
+
+    // For lower zoom levels, use sampling to prevent performance issues
+    const maxMarkersMap = isLargeDataset
+      ? { 1: 200, 2: 200, 3: 200, 4: 200, 5: 200, 6: 400, 7: 800, 8: 1500, 9: 2500 }
+      : { 1: 100, 2: 100, 3: 150, 4: 250, 5: 350, 6: 500, 7: 750, 8: 1000, 9: 2000 };
+
+    const maxMarkers = maxMarkersMap[zoomLevel] || 2500;
 
     if (filtered.length <= maxMarkers) {
       return filtered;
     }
 
-    // Evenly sample stations
+    // Evenly sample stations for lower zoom levels
     const step = filtered.length / maxMarkers;
     const sampled = [];
     for (let i = 0; i < maxMarkers; i++) {
@@ -238,7 +278,24 @@ export default function MapComponent() {
       }
     }
     return sampled;
-  }, [stations, selectedFuelType, stationStatusFilter, stateFilter, ownershipFilter, currentZoom]);
+  }, [stations, selectedFuelType, stationStatusFilter, stateFilter, ownershipFilter, currentZoom, mapBounds]);
+
+  // Calculate total filtered count (before sampling) for display
+  const totalFilteredCount = useMemo(() => {
+    return stations.filter((s) => {
+      const fuelKey = getFuelTypeKey(s.fuel_type);
+      const fuelMatch = selectedFuelType === 'all' || 
+        fuelKey === selectedFuelType ||
+        (selectedFuelType === 'diesel' && (fuelKey === 'rd' || fuelKey === 'bd'));
+      const statusMatch = stationStatusFilter === 'all' || 
+        (stationStatusFilter === 'available' && s.status_code === 'E') ||
+        (stationStatusFilter === 'planned' && s.status_code === 'P');
+      const stateMatch = getStateMatch(s, stateFilter);
+      const ownershipMatch = ownershipFilter === 'all' || 
+        s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
+      return fuelMatch && statusMatch && stateMatch && ownershipMatch;
+    }).length;
+  }, [stations, selectedFuelType, stationStatusFilter, stateFilter, ownershipFilter]);
 
   // Removed auto-zoom functionality - map stays at default US center view
   // Stations are filtered but map doesn't zoom to specific regions
@@ -250,13 +307,17 @@ export default function MapComponent() {
       return [];
     }
 
-    // Filter vehicles by state only (data already filtered by year from API)
+    // Filter vehicles by state and fuel type (data already filtered by year from API)
     const filteredVehicles = vehicles.filter(vehicle => {
       // State filter
       const stateMatch = !stateFilter || stateFilter === 'all' || 
         vehicle.state === stateFilter || vehicle.state?.toUpperCase() === stateFilter.toUpperCase();
       
-      return stateMatch;
+      // Fuel type filter
+      const fuelTypeMatch = vehicleFuelTypeFilter === 'all' || 
+        vehicle.fuel_type?.toLowerCase() === vehicleFuelTypeFilter.toLowerCase();
+      
+      return stateMatch && fuelTypeMatch;
     });
 
     // Aggregate by state (no cities, no classes)
@@ -285,7 +346,7 @@ export default function MapComponent() {
     });
 
     return data;
-  }, [vehicles, stateFilter, isLoaded, showHeatmap, selectedYear]);
+  }, [vehicles, stateFilter, isLoaded, showHeatmap, selectedYear, vehicleFuelTypeFilter]);
 
   // --- 5. EARLY RETURNS (AFTER ALL HOOKS) ---
 
@@ -295,11 +356,12 @@ export default function MapComponent() {
     </div>
   );
   
-  if (loading) return (
-    <div className={styles.container}>
-      <div className={styles.loading}>Loading data from BigQuery…</div>
-    </div>
-  );
+  // Remove blocking loading screen - show map immediately with loading indicator
+  // if (loading) return (
+  //   <div className={styles.container}>
+  //     <div className={styles.loading}>Loading data from BigQuery…</div>
+  //   </div>
+  // );
   
   if (error) return (
     <div className={styles.container}>
@@ -312,6 +374,28 @@ export default function MapComponent() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
+        {loading && (
+          <div style={{
+            fontSize: '14px',
+            color: '#666',
+            fontWeight: 'normal',
+            marginTop: '5px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{
+              display: 'inline-block',
+              width: '16px',
+              height: '16px',
+              border: '2px solid #f3f3f3',
+              borderTop: '2px solid #3498db',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></span>
+            Loading fuel stations...
+          </div>
+        )}
       </div>
 
       <div className={styles.content}>
@@ -340,13 +424,15 @@ export default function MapComponent() {
             setStateFilter={setStateFilter}
             ownershipFilter={ownershipFilter}
             setOwnershipFilter={setOwnershipFilter}
-            stationCount={filteredStations.length}
+            stationCount={totalFilteredCount}
             isFilterOpen={isFilterOpen}
             setIsFilterOpen={setIsFilterOpen}
             showHeatmap={showHeatmap}
             setShowHeatmap={setShowHeatmap}
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
+            vehicleFuelTypeFilter={vehicleFuelTypeFilter}
+            setVehicleFuelTypeFilter={setVehicleFuelTypeFilter}
             heatmapPointCount={vehicleHeatmapData.length}
             vehiclesLoading={vehiclesLoading}
             // NEW PROPS

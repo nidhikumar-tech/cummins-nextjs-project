@@ -289,7 +289,9 @@ export function aggregateByState(vehicles) {
     }
     
     const stateData = stateMap.get(stateCode);
-    stateData.totalVehicles += vehicle.vehicleCount || 1;
+    // Sum predicted_vehicles
+    const count = vehicle.predicted_vehicles || vehicle.vehicleCount || 1;
+    stateData.totalVehicles += count;
   });
   
   const result = Array.from(stateMap.values());
