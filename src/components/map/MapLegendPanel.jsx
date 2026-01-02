@@ -36,7 +36,9 @@ export default function MapLegendPanel({
   };
 
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const [exportType, setExportType] = useState('all');
+  const [exportType, setExportType] = useState('vehicles');
+  const [vehicleDataType, setVehicleDataType] = useState('cng'); // 'cng', 'hybrid', or 'both'
+  const [isExporting, setIsExporting] = useState(false);
   
   // Generate years array from 2020 to 2040
   const years = ['all', ...Array.from({ length: 21 }, (_, i) => (2020 + i).toString())];
@@ -110,39 +112,83 @@ export default function MapLegendPanel({
 
   const isStateSelected = stateFilter && stateFilter !== 'all';
   const handleExport = async () => {
+    if (isExporting) return;
+    
+    setIsExporting(true);
     try {
-      const response = await fetch(`/api/export-data?type=${exportType}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to export data');
+      // Handle "both" vehicle types - download 2 files sequentially
+      if (exportType === 'vehicles' && vehicleDataType === 'both') {
+        console.log('📥 Downloading both CNG and Hybrid data...');
+        
+        // Download CNG first
+        await downloadSingleFile('cng');
+        
+        // Wait a bit before second download
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Download Hybrid second
+        await downloadSingleFile('hybrid');
+        
+        console.log('✅ Both files downloaded successfully');
+        setIsExportOpen(false);
+      } else {
+        // Single download
+        await downloadSingleFile(vehicleDataType);
+        setIsExportOpen(false);
       }
-      
-      // Create blob and download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      
-      // Set filename based on export type
-      let filename = `cummins_data_${new Date().toISOString().slice(0, 10)}.csv`;
-      if (exportType === 'stations') {
-        filename = `fuel_stations_${new Date().toISOString().slice(0, 10)}.csv`;
-      } else if (exportType === 'vehicles') {
-        filename = `vehicle_data_${new Date().toISOString().slice(0, 10)}.csv`;
-      }
-      
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      // Close the export panel after successful download
-      setIsExportOpen(false);
     } catch (error) {
-      console.error('Export error:', error);
-      alert('Failed to export data. Please try again.');
+      console.error('❌ Export error:', error);
+      alert(`Failed to export data: ${error.message}\n\nPlease check the console for more details.`);
+    } finally {
+      setIsExporting(false);
     }
+  };
+
+  // Helper function to download a single file
+  const downloadSingleFile = async (vType) => {
+    console.log('📥 Starting export...', { type: exportType, vehicleType: vType });
+    
+    let url = `/api/export-data?type=${exportType}`;
+    if (exportType === 'vehicles' || exportType === 'all') {
+      url += `&vehicleType=${vType}`;
+    }
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Export failed with status: ${response.status}`);
+    }
+    
+    const stationsSource = response.headers.get('X-Data-Source-Stations');
+    const vehiclesSource = response.headers.get('X-Data-Source-Vehicles');
+    console.log('📊 Data sources:', { stations: stationsSource, vehicles: vehiclesSource });
+    
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    
+    const dateStr = new Date().toISOString().slice(0, 10);
+    let filename = `cummins_data_${dateStr}.csv`;
+    if (exportType === 'stations') {
+      filename = `fuel_stations_${dateStr}.csv`;
+    } else if (exportType === 'vehicles') {
+      if (vType === 'cng') {
+        filename = `cng_xgboost_forecast_${dateStr}.csv`;
+      } else if (vType === 'hybrid') {
+        filename = `hybrid_xgboost_forecast_${dateStr}.csv`;
+      }
+    } else if (exportType === 'plants') {
+      filename = `production_plants_${dateStr}.csv`;
+    }
+    
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(a);
+    
+    console.log('✅ Export completed:', filename);
   };
 
   return (
@@ -290,16 +336,6 @@ export default function MapLegendPanel({
                       type="radio"
                       name="exportType"
                       className={styles.filterCheckbox}
-                      checked={exportType === 'all'}
-                      onChange={() => setExportType('all')}
-                    />
-                    <span>All Data (Stations + Vehicles)</span>
-                  </label>
-                  <label className={styles.filterLabel}>
-                    <input
-                      type="radio"
-                      name="exportType"
-                      className={styles.filterCheckbox}
                       checked={exportType === 'stations'}
                       onChange={() => setExportType('stations')}
                     />
@@ -315,8 +351,57 @@ export default function MapLegendPanel({
                     />
                     <span>Vehicle Data Only</span>
                   </label>
+                  <label className={styles.filterLabel}>
+                    <input
+                      type="radio"
+                      name="exportType"
+                      className={styles.filterCheckbox}
+                      checked={exportType === 'plants'}
+                      onChange={() => setExportType('plants')}
+                    />
+                    <span>Production Plants Only</span>
+                  </label>
                 </div>
               </div>
+
+              {/* Vehicle Dataset Type Selection - Only show when Vehicle Data is selected */}
+              {exportType === 'vehicles' && (
+                <div className={styles.filterGroup}>
+                  <h4 className={styles.filterGroupTitle}>Vehicle Dataset Type</h4>
+                  <div className={styles.filterItems}>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleDataType"
+                        className={styles.filterCheckbox}
+                        checked={vehicleDataType === 'cng'}
+                        onChange={() => setVehicleDataType('cng')}
+                      />
+                      <span>CNG XGBoost Forecast</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleDataType"
+                        className={styles.filterCheckbox}
+                        checked={vehicleDataType === 'hybrid'}
+                        onChange={() => setVehicleDataType('hybrid')}
+                      />
+                      <span>Hybrid XGBoost Forecast</span>
+                    </label>
+                    <label className={styles.filterLabel}>
+                      <input
+                        type="radio"
+                        name="vehicleDataType"
+                        className={styles.filterCheckbox}
+                        checked={vehicleDataType === 'both'}
+                        onChange={() => setVehicleDataType('both')}
+                      />
+                      <span>Both (2 separate files)</span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* Export Info */}
               <div className={styles.filterGroup}>
@@ -325,9 +410,18 @@ export default function MapLegendPanel({
                     📊 Export Information
                   </p>
                   <p style={{ margin: '0', color: '#075985', lineHeight: '1.5' }}>
-                    {exportType === 'all' && 'Downloads both fuel stations and vehicle data in a single CSV file.'}
-                    {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and status.'}
-                    {exportType === 'vehicles' && 'Downloads vehicle data including counts by class and fuel type.'}
+                    {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and availability status from BigQuery.'}
+                    {exportType === 'vehicles' && (
+                      <>
+                        {vehicleDataType === 'cng' && 'Downloads CNG vehicle forecast data (2020-2040) including predicted/actual vehicles, CNG prices, and state-level data from BigQuery.'}
+                        {vehicleDataType === 'hybrid' && 'Downloads Hybrid vehicle forecast data (2020-2040) including predicted/actual vehicles, Hybrid prices, and state-level data from BigQuery.'}
+                        {vehicleDataType === 'both' && 'Downloads BOTH CNG and Hybrid vehicle forecast datasets as 2 separate CSV files from BigQuery.'}
+                      </>
+                    )}
+                    {exportType === 'plants' && 'Downloads production plant data including vendor, operator, location (latitude/longitude), state, and fuel type from BigQuery.'}
+                  </p>
+                  <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>
+                    {isExporting ? 'Fetching data from BigQuery...' : 'Data source: BigQuery (with CSV fallback)'}
                   </p>
                 </div>
               </div>
@@ -337,10 +431,25 @@ export default function MapLegendPanel({
                 <button 
                   className={styles.filterTriggerButton}
                   onClick={handleExport}
-                  style={{ width: '100%', justifyContent: 'center' }}
+                  disabled={isExporting}
+                  style={{ 
+                    width: '100%', 
+                    justifyContent: 'center',
+                    opacity: isExporting ? 0.6 : 1,
+                    cursor: isExporting ? 'not-allowed' : 'pointer'
+                  }}
                 >
-                  {/* <span>⬇️</span> */}
-                  <span style={{ textDecoration: 'underline'}}>Download CSV</span>
+                  {isExporting ? (
+                    <>
+                      <span>⏳</span>
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⬇️</span>
+                      <span style={{ textDecoration: 'underline'}}>Download CSV</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

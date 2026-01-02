@@ -84,13 +84,78 @@ export async function getVehicleData(year = null) {
 
   try {
     const [rows] = await bigquery.query(options);
-    console.log('BigQuery Vehicle Data Fetch - Rows Retrieved:', rows.length);
-    // Log the first row to see what columns we actually have
-    if (rows.length > 0) {
-      // Column info available for debugging if needed
-    }
     
     // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Returns CNG XGBoost vehicle data only from BigQuery
+// @param {string|null} year - Optional year filter
+export async function getCNGVehicleData(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    LIMIT 10000
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Returns Hybrid XGBoost vehicle data only from BigQuery
+// @param {string|null} year - Optional year filter
+export async function getHybridVehicleData(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    LIMIT 10000
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    
     let filteredRows = rows;
     if (year && year !== 'all') {
       filteredRows = rows.filter(row => {

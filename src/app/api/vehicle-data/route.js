@@ -1,8 +1,28 @@
 import { NextResponse } from 'next/server';
 import { getVehicleData } from '@/lib/bigquery';
+import fs from 'fs';
+import path from 'path';
+import Papa from 'papaparse';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Cache for 1 hour
+
+// Fallback function to read local CSV file
+async function getVehicleDataFromCSV() {
+  try {
+    const csvPath = path.join(process.cwd(), 'public', 'vehicle_demo_data.csv');
+    const fileContent = fs.readFileSync(csvPath, 'utf-8');
+    const parsed = Papa.parse(fileContent, {
+      header: true,
+      skipEmptyLines: true,
+    });
+    console.log('✅ Loaded data from CSV fallback:', parsed.data.length, 'records');
+    return parsed.data;
+  } catch (csvError) {
+    console.error('CSV Fallback Error:', csvError.message);
+    return [];
+  }
+}
 
 export async function GET(request) {
   try {
@@ -10,8 +30,17 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year') || 'all';
     
-    // Fetch data from BigQuery with year filter
-    const data = await getVehicleData(year === 'all' ? null : year);
+    let data;
+    let dataSource = 'bigquery';
+    
+    // Try BigQuery first, fallback to CSV on error
+    try {
+      data = await getVehicleData(year === 'all' ? null : year);
+    } catch (bigqueryError) {
+      console.warn('⚠️ BigQuery failed, using CSV fallback:', bigqueryError.message);
+      data = await getVehicleDataFromCSV();
+      dataSource = 'csv_fallback';
+    }
 
     // Transform data to match frontend format - handle flexible column names
     const formattedVehicles = data.map((vehicle) => {
@@ -41,6 +70,8 @@ export async function GET(request) {
       success: true,
       data: formattedVehicles,
       count: formattedVehicles.length,
+      source: dataSource,
+      timestamp: new Date().toISOString(),
     });
     
     // Cache for 1 hour
@@ -48,19 +79,42 @@ export async function GET(request) {
     
     return response;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('❌ API Error:', error);
     console.error('Full error details:', {
       name: error.name,
       message: error.message,
       stack: error.stack,
       code: error.code
     });
+    
+    // Provide helpful error message based on error type
+    let errorMessage = 'Failed to fetch vehicle data';
+    let troubleshooting = [];
+    
+    if (error.code === 404) {
+      errorMessage = 'BigQuery dataset or table not found';
+      troubleshooting = [
+        'Verify BIGQUERY_DATASET_2 and BIGQUERY_TABLE_1 in .env.local',
+        'Check if dataset exists in GCP Console',
+        'Ensure proper access permissions'
+      ];
+    } else if (error.code === 403) {
+      errorMessage = 'Access denied to BigQuery';
+      troubleshooting = [
+        'Check BigQuery API is enabled',
+        'Verify service account permissions',
+        'Ensure GOOGLE_APPLICATION_CREDENTIALS is set'
+      ];
+    }
+    
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch vehicle data',
+        error: errorMessage,
         message: error.message,
-        details: error.code || 'Unknown error'
+        code: error.code || 'Unknown error',
+        troubleshooting,
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     );
