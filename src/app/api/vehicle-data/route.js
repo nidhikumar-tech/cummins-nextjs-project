@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCNGVehicleData } from '@/lib/bigquery';
+import fs from 'fs';
+import path from 'path';
+import Papa from 'papaparse';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Cache for 1 hour
