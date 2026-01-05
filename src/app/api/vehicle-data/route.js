@@ -8,21 +8,21 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Cache for 1 hour
 
 // Fallback function to read local CSV file
-async function getVehicleDataFromCSV() {
-  try {
-    const csvPath = path.join(process.cwd(), 'public', 'vehicle_demo_data.csv');
-    const fileContent = fs.readFileSync(csvPath, 'utf-8');
-    const parsed = Papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true,
-    });
-    console.log('✅ Loaded data from CSV fallback:', parsed.data.length, 'records');
-    return parsed.data;
-  } catch (csvError) {
-    console.error('CSV Fallback Error:', csvError.message);
-    return [];
-  }
-}
+// async function getVehicleDataFromCSV() {
+//   try {
+//     const csvPath = path.join(process.cwd(), 'public', 'vehicle_demo_data.csv');
+//     const fileContent = fs.readFileSync(csvPath, 'utf-8');
+//     const parsed = Papa.parse(fileContent, {
+//       header: true,
+//       skipEmptyLines: true,
+//     });
+//     console.log('✅ Loaded data from CSV fallback:', parsed.data.length, 'records');
+//     return parsed.data;
+//   } catch (csvError) {
+//     console.error('CSV Fallback Error:', csvError.message);
+//     return [];
+//   }
+// }
 
 export async function GET(request) {
   try {
@@ -38,8 +38,8 @@ export async function GET(request) {
       data = await getVehicleData(year === 'all' ? null : year);
     } catch (bigqueryError) {
       console.warn('⚠️ BigQuery failed, using CSV fallback:', bigqueryError.message);
-      data = await getVehicleDataFromCSV();
-      dataSource = 'csv_fallback';
+      // data = await getVehicleDataFromCSV();
+      // dataSource = 'csv_fallback';
     }
 
     // Transform data to match frontend format - handle flexible column names
