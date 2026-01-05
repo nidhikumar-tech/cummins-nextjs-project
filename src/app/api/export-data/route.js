@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getFuelStations, getVehicleData } from '@/lib/bigquery';
+import { getFuelStations, getVehicleData} from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
 // export const revalidate = 3600; // Cache for 1 hour

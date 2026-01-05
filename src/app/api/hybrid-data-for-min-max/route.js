@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getHybridVehicleData } from '@/lib/bigquery';
+import { getHybridVehicleDataForMinMax } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
@@ -9,7 +9,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year') || 'all';
     
-    const data = await getHybridVehicleData(year === 'all' ? null : year);
+    const data = await getHybridVehicleDataForMinMax(year === 'all' ? null : year);
 
     // Transform data to match frontend chart format
     const formattedVehicles = data.map((vehicle) => {

@@ -46,7 +46,7 @@ export default function MinMaxChartHybrid() {
     const fetchData = async () => {
       try {
         // CHANGE 1: Point to the new Hybrid API
-        const response = await fetch('/api/hybrid-data?year=all');
+        const response = await fetch('/api/hybrid-data-for-min-max?year=all');
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {

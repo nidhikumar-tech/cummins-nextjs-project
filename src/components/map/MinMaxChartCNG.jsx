@@ -47,7 +47,7 @@ export default function MinMaxChartCNG() {
     const fetchData = async () => {
       try {
         // Reuse existing API that queries the correct BigQuery table
-        const response = await fetch('/api/vehicle-data?year=all');
+        const response = await fetch('/api/vehicle-data-for-min-max?year=all');
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {
