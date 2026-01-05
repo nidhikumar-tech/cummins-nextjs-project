@@ -203,9 +203,11 @@ export async function getHybridVehicleData(year = null) {
     return [];
   }
 
+
   const query = `
     SELECT *
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    LIMIT 10000
   `;
 
   const options = {
