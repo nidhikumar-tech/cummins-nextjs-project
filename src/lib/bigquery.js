@@ -92,7 +92,7 @@ export async function getVehicleDataForMinMax(year = null) {
 
 // Returns the array of vehicle data from BigQuery
 // @param {string|null} year - Optional year filter (e.g., '2020', '2025', null for all years)
-export async function getVehicleData(year = null) {
+export async function getCNGVehicleData(year = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
     return [];
@@ -168,7 +168,7 @@ export async function getHybridVehicleDataForMinMax(year = null) {
 
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_HYBRID}\`
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
   `;
 
   const options = {
@@ -202,7 +202,7 @@ export async function getHybridVehicleData(year = null) {
 
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_HYBRID}\`
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
   `;
 
   const options = {
