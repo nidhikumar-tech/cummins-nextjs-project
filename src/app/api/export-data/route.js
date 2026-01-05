@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getFuelStations, getCNGVehicleData, getHybridVehicleData, getProductionPlants } from '@/lib/bigquery';
 import fs from 'fs';

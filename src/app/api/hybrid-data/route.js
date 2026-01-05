@@ -1,0 +1,42 @@
+import { NextResponse } from 'next/server';
+import { getHybridVehicleData } from '@/lib/bigquery';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const year = searchParams.get('year') || 'all';
+    
+    const data = await getHybridVehicleData(year === 'all' ? null : year);
+
+    // Transform data to match frontend chart format
+    const formattedVehicles = data.map((vehicle) => {
+      const yearVal = vehicle.year || vehicle.Year || vehicle.YEAR;
+      const state = vehicle.state || vehicle.State;
+      
+      // HYBRID SPECIFIC MAPPING
+      // We map the specific hybrid columns to the generic names expected by the chart
+      const vehicleCount = vehicle.predicted_hybrid_vehicles || 0;
+      const actualVehicles = vehicle.actual_hybrid_vehicles || 0;
+      
+      return {
+        year: parseInt(yearVal) || 0,
+        state: state || '',
+        vehicleCount: parseInt(vehicleCount) || 0, // Maps to 'Forecasted Data'
+        actualVehicles: parseInt(actualVehicles) || 0, // Maps to 'Actual Data'
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: formattedVehicles,
+      count: formattedVehicles.length,
+    });
+    
+  } catch (error) {
+    console.error('Hybrid API Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
