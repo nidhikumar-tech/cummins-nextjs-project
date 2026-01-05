@@ -100,9 +100,12 @@ export async function getCNGVehicleData(year = null) {
   
   // Simple query to fetch all data - let BigQuery return whatever columns exist
   // We'll filter in JavaScript if needed
-  const query = `
+
+
+    const query = `
     SELECT *
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    LIMIT 10000
   `;
 
   const options = {
