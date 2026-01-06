@@ -29,6 +29,8 @@ export default function MapComponent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  //New state to track which specific fuel types are currently fetching
+  const [loadingTypes, setLoadingTypes] = useState([]);
   // Filters
   const [selectedFuelType, setSelectedFuelType] = useState('all');
   const [stationStatusFilter, setStationStatusFilter] = useState('all');
@@ -123,6 +125,22 @@ export default function MapComponent() {
     updateMapState();
   }, []);
 
+  const isLoadingActiveFilter = useMemo(() => {
+    if (loadingTypes.length === 0) return false;
+    if (selectedFuelType === 'all') return false; 
+
+    // Check specific types
+    if (selectedFuelType === 'elec') return loadingTypes.includes('ELEC');
+    if (selectedFuelType === 'cng') return loadingTypes.includes('CNG');
+    
+    // Diesel includes RD and BD
+    if (selectedFuelType === 'diesel') {
+      return loadingTypes.includes('RD') || loadingTypes.includes('BD');
+    }
+
+    return false;
+  }, [selectedFuelType, loadingTypes]);
+
   // --- 3. FILTER LOGIC (useMemos) ---
 
   // --- 3. FILTER LOGIC (useMemos) ---
@@ -162,28 +180,37 @@ export default function MapComponent() {
     setLoading(true);
     setError(null);
 
-    fetch("/api/fuel-stations", {
-      next: { revalidate: 3600 } // Cache for 1 hour
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+    // Define chunks to fetch
+    const fuelTypesToFetch = ['CNG', 'RD', 'BD', 'ELEC'];
+    setLoadingTypes(fuelTypesToFetch);
+
+    // Fetch function that appends data progressively
+    const fetchFuelType = async (type) => {
+      try {
+        const res = await fetch(`/api/fuel-stations?type=${type}`, {
+          next: { revalidate: 3600 }
+        });
+        
+        if (!res.ok) throw new Error(`Failed to load ${type}`);
+        
+        const json = await res.json();
+        
+        if (json.success) {
+          // KEY CHANGE: Functional update to append new data without overwriting
+          setStations(prevStations => [...prevStations, ...json.data]);
         }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          setStations(data.data);
-        } else {
-          throw new Error(data.message || "Failed to fetch stations");
-        }
-      })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      } catch (err) {
+        console.error(`Error loading ${type}:`, err);
+      } finally {
+        // Remove from loading list
+        setLoadingTypes(prev => prev.filter(t => t !== type));
+      }
+    };
+
+    //Fire all requests in parallel
+    fuelTypesToFetch.forEach(type => {
+      fetchFuelType(type);
+    });
 
       // 2. New fetch for Production Plants
     fetch("/api/production-plants")
@@ -194,6 +221,7 @@ export default function MapComponent() {
         }
       })
       .catch(err => {});
+      setLoading(false);
   }, [isLoaded]); // Only run once when map loads
 
   // Separate effect for vehicle data - only refetch when year or fuel type changes
@@ -375,32 +403,70 @@ export default function MapComponent() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
-        {loading && (
-          <div style={{
-            fontSize: '14px',
-            color: '#666',
-            fontWeight: 'normal',
-            marginTop: '5px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{
-              display: 'inline-block',
-              width: '16px',
-              height: '16px',
-              border: '2px solid #f3f3f3',
-              borderTop: '2px solid #3498db',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></span>
-            Loading fuel stations...
-          </div>
-        )}
-      </div>
+        {loadingTypes.length > 0 && (
+            <div style={{
+              fontSize: '12px',
+              color: '#666',
+              display: 'flex', 
+              gap: '10px',
+              marginTop: '5px',
+              alignItems: 'center'
+            }}>
+               <span style={{
+                  display: 'inline-block',
+                  width: '12px',
+                  height: '12px',
+                  border: '2px solid #ccc',
+                  borderTop: '2px solid #3498db',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></span>
+              <span>Loading data...</span>
+              {loadingTypes.map(t => (
+                <span key={t} style={{ 
+                  background: '#f0f0f0', 
+                  padding: '2px 6px', 
+                  borderRadius: '4px',
+                  fontSize: '10px' 
+                }}>{t}</span>
+              ))}
+            </div>
+          )}
+        </div>
 
       <div className={styles.content}>
-        <div className={styles.mapSection}>
+        <div className={styles.mapSection} style={{ position: 'relative' }}>
+          {/* [UPDATE] Smart Alert: Only shows if user is filtering for something not yet loaded */}
+             {isLoadingActiveFilter && (
+                <div style={{
+                  position: 'absolute',
+                  top: '20px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 10,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  padding: '10px 20px',
+                  borderRadius: '30px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333',
+                  border: '1px solid #eee'
+                }}>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #f3f3f3',
+                    borderTop: '2px solid #3498db',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                  <span>Fetching {selectedFuelType.toUpperCase()} stations...</span>
+                </div>
+              )}
           <MapView 
             onLoad={onLoad}
             filteredStations={filteredStations}

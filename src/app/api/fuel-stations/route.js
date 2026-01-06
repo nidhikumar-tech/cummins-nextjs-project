@@ -4,25 +4,34 @@ import { getFuelStations } from '@/lib/bigquery';
 export const dynamic = 'force-dynamic';
 export const revalidate = 86400; // Cache for 24 hours (fuel station data changes infrequently)
 
-export async function GET() {
+export async function GET(request) {
   try {
-    console.log('Starting parallel fuel station queries...');
+    // Parse query params to allow fetching specific fuel types
+    const { searchParams } = new URL(request.url);
+    const typeParam = searchParams.get('type'); // e.g., 'CNG', 'ELEC'
+
+    console.log(`Starting fetch for: ${typeParam || 'All fuel types'}`); //if there is no specific fuel station type being requested, all will be fetched. This supports the legacy system
     const startTime = Date.now();
 
-    // Fetch data from BigQuery in parallel by fuel type for better performance
-    // Each smaller query executes faster than one large query
+    let data = [];
+    if (typeParam) {
+      // Fast path: Fetch just one fuel type
+      data = await getFuelStations(typeParam);
+    } else {
+      // Slow path (Legacy): Fetch everything in parallel
     const [cngData, elecData, rdData, bdData] = await Promise.all([
       getFuelStations('CNG'),
       getFuelStations('ELEC'),
       getFuelStations('RD'),
       getFuelStations('BD'),
     ]);
+    data = [...cngData, ...elecData, ...rdData, ...bdData];
+    }
 
-    // Combine all fuel type data
-    const data = [...cngData, ...elecData, ...rdData, ...bdData];
+    
     
     const fetchTime = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`Parallel fetch completed in ${fetchTime}s - Total stations: ${data.length}`);
+    console.log(`Fetch completed for ${typeParam || 'ALL'} in ${fetchTime}s - Total stations: ${data.length}`);
 
     // Transform data to match frontend format
     const formattedStations = data
@@ -51,10 +60,7 @@ export async function GET() {
       count: formattedStations.length,
       metadata: {
         fetchTimeSeconds: parseFloat(fetchTime),
-        cngCount: cngData.length,
-        elecCount: elecData.length,
-        rdCount: rdData.length,
-        bdCount: bdData.length,
+        type: typeParam || 'mixed'
       }
     });
     
