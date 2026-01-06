@@ -212,7 +212,8 @@ export async function GET(request) {
             vehicle.cng_price || vehicle.CNG_Price || vehicle.cngPrice || '',
             vehicle.predicted_cng_vehicles || vehicle.Predicted_CNG_Vehicles || vehicle.vehicleCount || '',
             vehicle.actual_cng_vehicles || vehicle.Actual_CNG_Vehicles || vehicle.actualVehicles || '',
-            vehicle.data_type || vehicle.Data_Type || vehicle.dataType || ''
+            vehicle.data_type || vehicle.Data_Type || vehicle.dataType || '',
+            vehicle.fuel_type || vehicle.Fuel_Type || vehicle.fuelType || ''
           ];
           vehiclesCsv += row.join(',') + '\n';
         });
