@@ -245,7 +245,7 @@ export default function MapLegendPanel({
            
            {/*Helper Text to explain why it's disabled */}
            {!isStateSelected && (
-             <span style={{ fontSize: '11px', color: '#dc2626', marginLeft: '28px', fontStyle: 'italic' }}>
+             <span style={{ fontSize: '15px', color: '#dc2626', marginLeft: '28px', fontStyle: 'italic' }}>
                * Select a state filter to enable
              </span>
            )}
