@@ -139,8 +139,25 @@ export default function MapView({
   const shouldShowMarkers = showHeatmap === 'markers' || showHeatmap === 'both';
   const shouldShowHeatmap = showHeatmap === 'heatmap' || showHeatmap === 'both';
 
+  const usBounds = {
+  north: 85,       // near the North Pole
+  south: -60,      // well below South America and Australia
+  west: -175,      // covers Pacific, Alaska, Hawaii with margin
+  east: 20,        // extends into Europe/Africa for exploration
+};
+
+const mapOptions = {
+  restriction: {
+    latLngBounds: usBounds,
+    strictBounds: true,
+  },
+  minZoom: 2,
+  noWrap: true,
+};
+
   return (
     <GoogleMap
+      options={mapOptions}
       onLoad={onLoad}
       mapContainerStyle={mapContainerStyle}
       center={US_CENTER}
