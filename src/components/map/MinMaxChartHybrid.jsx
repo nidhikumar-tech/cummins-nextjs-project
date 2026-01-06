@@ -82,9 +82,16 @@ export default function MinMaxChartHybrid() {
       .sort((a, b) => a.year - b.year);
 
     const labels = stateData.map(d => d.year);
-    const currentYear = new Date().getFullYear();
-    const actuals = stateData.map(d => d.year > currentYear ? null : d.actualVehicles);
-    const forecasts = stateData.map(d => d.vehicleCount);
+    //Hardcode year as we only have data till 2025
+    const currentYear = 2025;
+    const actuals = stateData.map(d => 
+        d.year > currentYear ? null : (d.actualVehicles !== undefined && d.actualVehicles !== null ? d.actualVehicles : null)
+    );
+    const forecasts = stateData.map(d => 
+        (d.vehicleCount !== undefined && d.vehicleCount !== null && d.vehicleCount !== 0) 
+        ? d.vehicleCount 
+        : null
+    );
 
     let minVal = Infinity;
     let maxVal = -Infinity;
@@ -94,6 +101,7 @@ export default function MinMaxChartHybrid() {
     stateData.forEach((d, index) => {
         if (d.year >= currentYear) {
             const val = d.vehicleCount;
+            if (val && val !== 0) {
             if (val < minVal) {
                 minVal = val;
                 minIndex = index;
@@ -102,6 +110,7 @@ export default function MinMaxChartHybrid() {
                 maxVal = val;
                 maxIndex = index;
             }
+          }
         }
     });
 
@@ -137,6 +146,7 @@ export default function MinMaxChartHybrid() {
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
+          spanGaps: false,
           order: 1
         },
         {

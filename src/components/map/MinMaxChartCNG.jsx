@@ -87,11 +87,17 @@ export default function MinMaxChartCNG() {
 
 
     const labels = stateData.map(d => d.year);
-    // Calculate current year dynamically
-    const currentYear = new Date().getFullYear();
+    // Hardcoding the year as we only have data till 2025
+    const currentYear = 2025;
     // If the data year is greater than current year, return null to stop drawing the line
-    const actuals = stateData.map(d => d.year > currentYear ? null : d.actualVehicles);
-    const forecasts = stateData.map(d => d.vehicleCount);
+    const actuals = stateData.map(d => 
+        d.year > currentYear ? null : (d.actualVehicles !== undefined && d.actualVehicles !== null ? d.actualVehicles : null)
+    );
+    const forecasts = stateData.map(d => 
+        (d.vehicleCount !== undefined && d.vehicleCount !== null && d.vehicleCount !== 0) 
+        ? d.vehicleCount 
+        : null
+    );
 
     let minVal = Infinity;
     let maxVal = -Infinity;
@@ -102,20 +108,21 @@ export default function MinMaxChartCNG() {
         // Only consider current year onwards for forecast highlights
         if (d.year >= currentYear) {
             const val = d.vehicleCount;
-            
+            if (val && val !== 0) {
             // STRICT INEQUALITY (<) ensures we only update if we find a SMALLER value.
             // If we find an EQUAL value later, we ignore it, preserving the FIRST one.
             if (val < minVal) {
                 minVal = val;
                 minIndex = index;
             }
-
+          
             // STRICT INEQUALITY (>) ensures we only update if we find a LARGER value.
             // If we find an EQUAL value later, we ignore it, preserving the FIRST one.
             if (val > maxVal) {
                 maxVal = val;
                 maxIndex = index;
             }
+          }
         }
     });
 
@@ -153,6 +160,7 @@ export default function MinMaxChartCNG() {
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
+          spanGaps: false,
           order: 1
         },
         {
