@@ -152,6 +152,7 @@ export default function MapView({
           key={`${s.station_id || s.ID || 'unknown'}-${index}`}
           position={{ lat: s.lat, lng: s.lng }}
           icon={getIcon(s)}
+          // onClick={() => setSelectedStation(s)}
           onMouseOver={() => setSelectedStation(s)}
           onMouseOut={() => setSelectedStation(null)}
         />
@@ -163,6 +164,7 @@ export default function MapView({
           key={`plant-${index}`}
           position={{ lat: plant.lat, lng: plant.lng }}
           icon={plantIcon}
+          // onClick={() => setSelectedPlant(plant)}
           onMouseOver={() => setSelectedPlant(plant)}
           onMouseOut={() => setSelectedPlant(null)}
           zIndex={1000} // Keeps plants on top of fuel stations

@@ -132,8 +132,7 @@
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   animation: fadeIn 0.3s ease;
-  pointer-events: none;
-} */
+}
 
 @keyframes fadeIn {
   from { opacity: 0; }
