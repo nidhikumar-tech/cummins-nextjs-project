@@ -15,18 +15,22 @@ export async function GET(request) {
 
     // Transform data to match frontend format - handle flexible column names
     const formattedVehicles = data.map((vehicle) => {
+      const normalized = Object.fromEntries(
+        Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
+      );
       // Try different possible column name variations
-      const year = vehicle.year || vehicle.Year || vehicle.YEAR;
-      const state = vehicle.state || vehicle.State || vehicle.STATE;
-      const vehicleCount = vehicle.predicted_cng_vehicles || vehicle.Predicted_CNG_Vehicles || 
-                          vehicle.predicted_vehicles || vehicle.vehicles || 0;
-      const cngPrice = vehicle.cng_price || vehicle.CNG_Price || vehicle.price || 0;
-      const actualVehicles = vehicle.actual_cng_vehicles || vehicle.Actual_CNG_Vehicles || 
-                            vehicle.actual_vehicles || 0;
-      const dataType = vehicle.data_type || vehicle.Data_Type || vehicle.type || '';
+      const yearVal = normalized.year;
+      const state = normalized.state;
+      const vehicleCount = normalized.predicted_cng_vehicles || 
+                           normalized.predicted_vehicles || 
+                           normalized.vehicles || 0;
+      const cngPrice = normalized.cng_price || normalized.price || 0;
+      const actualVehicles = normalized.actual_cng_vehicles || 
+                             normalized.actual_vehicles || 0;
+      const dataType = normalized.data_type || normalized.type || '';
       
       return {
-        year: parseInt(year) || 0,
+        year: parseInt(yearVal) || 0,
         state: state || '',
         vehicleCount: parseInt(vehicleCount) || 0,
         cngPrice: parseFloat(cngPrice) || 0,

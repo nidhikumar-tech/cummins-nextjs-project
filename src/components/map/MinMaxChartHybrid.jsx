@@ -59,7 +59,7 @@ export default function MinMaxChartHybrid() {
           setStates(uniqueStates);
           
           if (uniqueStates.length > 0) {
-            setSelectedState(uniqueStates.includes('TX') ? 'TX' : uniqueStates[0]);
+            setSelectedState(uniqueStates.includes('CA') ? 'CA' : uniqueStates[0]);
           }
         }
       } catch (err) {

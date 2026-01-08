@@ -60,9 +60,9 @@ export default function MinMaxChartCNG() {
           
           setStates(uniqueStates);
           
-          // Default to first state if available, prioritize 'TX' if it exists
+          // Default to first state if available, prioritize 'CA' if it exists
           if (uniqueStates.length > 0) {
-            setSelectedState(uniqueStates.includes('TX') ? 'TX' : uniqueStates[0]);
+            setSelectedState(uniqueStates.includes('CA') ? 'CA' : uniqueStates[0]);
           }
         }
       } catch (err) {

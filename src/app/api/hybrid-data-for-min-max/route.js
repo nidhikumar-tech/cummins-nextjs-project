@@ -12,14 +12,17 @@ export async function GET(request) {
     const data = await getHybridVehicleDataForMinMax(year === 'all' ? null : year);
 
     // Transform data to match frontend chart format
-    const formattedVehicles = data.map((vehicle) => {
-      const yearVal = vehicle.year || vehicle.Year || vehicle.YEAR;
-      const state = vehicle.state || vehicle.State;
+      const formattedVehicles = data.map((vehicle) => {
+       const normalized = Object.fromEntries(
+        Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
+      ); 
+        const yearVal = normalized.year;
+        const state = normalized.state;
       
       // HYBRID SPECIFIC MAPPING
       // We map the specific hybrid columns to the generic names expected by the chart
-      const vehicleCount = vehicle.predicted_hybrid_vehicles || 0;
-      const actualVehicles = vehicle.actual_hybrid_vehicles || 0;
+      const vehicleCount = normalized.predicted_hybrid_vehicles || 0;
+      const actualVehicles = normalized.actual_hybrid_vehicles || 0;
       
       return {
         year: parseInt(yearVal) || 0,
