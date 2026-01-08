@@ -27,7 +27,7 @@ export async function GET(request) {
       const cngPrice = normalized.cng_price || normalized.price || 0;
       const actualVehicles = normalized.actual_cng_vehicles || 
                              normalized.actual_vehicles || 0;
-      const dataType = normalized.data_type || normalized.type || '';
+      //const dataType = normalized.data_type || normalized.type || '';
       
       return {
         year: parseInt(yearVal) || 0,
@@ -35,7 +35,7 @@ export async function GET(request) {
         vehicleCount: parseInt(vehicleCount) || 0,
         cngPrice: parseFloat(cngPrice) || 0,
         actualVehicles: parseInt(actualVehicles) || 0,
-        dataType: dataType,
+        //dataType: dataType,
       };
     });
 
