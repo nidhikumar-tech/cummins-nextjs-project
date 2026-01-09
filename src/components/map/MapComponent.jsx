@@ -16,12 +16,14 @@ import styles from './MapComponent.module.css';
 const libraries = ['places', 'visualization'];
 
 export default function MapComponent() {
-  // --- 1. HOOKS & STATE (MUST BE AT THE VERY TOP) ---
-  
+
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
+
+
+  // Important States: useState declarations
 
   const [map, setMap] = useState(null);
   const [stations, setStations] = useState([]);
@@ -56,7 +58,7 @@ export default function MapComponent() {
     electric: true
   });
 
-  // --- 2. HELPERS & HANDLERS ---
+  // Logical helper functions
 
   const getFuelTypeKey = (fuelType) => {
     if (!fuelType) return 'unknown';
@@ -66,7 +68,7 @@ export default function MapComponent() {
   const getStateMatch = (item, selectedState) => {
     if (!item.state) return false;
     if (!selectedState || selectedState === 'all') return true;
-    
+
     const itemState = item.state.toUpperCase();
     const filterState = selectedState.toUpperCase();
 
@@ -103,7 +105,7 @@ export default function MapComponent() {
 
   const onLoad = useCallback((mapInst) => {
     setMap(mapInst);
-    
+
     const updateMapState = () => {
       const newZoom = mapInst.getZoom();
       const bounds = mapInst.getBounds();
@@ -117,22 +119,22 @@ export default function MapComponent() {
         });
       }
     };
-    
+
     mapInst.addListener('zoom_changed', updateMapState);
     mapInst.addListener('bounds_changed', updateMapState);
-    
+
     // Initial bounds
     updateMapState();
   }, []);
 
   const isLoadingActiveFilter = useMemo(() => {
     if (loadingTypes.length === 0) return false;
-    if (selectedFuelType === 'all') return false; 
+    if (selectedFuelType === 'all') return false;
 
     // Check specific types
     if (selectedFuelType === 'elec') return loadingTypes.includes('ELEC');
     if (selectedFuelType === 'cng') return loadingTypes.includes('CNG');
-    
+
     // Diesel includes RD and BD
     if (selectedFuelType === 'diesel') {
       return loadingTypes.includes('RD') || loadingTypes.includes('BD');
@@ -154,10 +156,10 @@ export default function MapComponent() {
   }, [stateFilter]);
 
   // Filter Production Plants
-    const filteredProductionPlants = useMemo(() => {
+  const filteredProductionPlants = useMemo(() => {
     // 1. Basic check: is checkbox checked?
     if (!showProductionPlants) return [];
-    
+
     // 2. SECURITY CHECK: If no specific state is selected, return nothing.
     // This enforces the "State has to be selected" rule.
     if (stateFilter === 'all') return [];
@@ -190,11 +192,11 @@ export default function MapComponent() {
         const res = await fetch(`/api/fuel-stations?type=${type}`, {
           next: { revalidate: 3600 }
         });
-        
+
         if (!res.ok) throw new Error(`Failed to load ${type}`);
-        
+
         const json = await res.json();
-        
+
         if (json.success) {
           // KEY CHANGE: Functional update to append new data without overwriting
           setStations(prevStations => [...prevStations, ...json.data]);
@@ -212,7 +214,7 @@ export default function MapComponent() {
       fetchFuelType(type);
     });
 
-      // 2. New fetch for Production Plants
+    // 2. New fetch for Production Plants
     fetch("/api/production-plants")
       .then(res => res.json())
       .then(data => {
@@ -220,8 +222,8 @@ export default function MapComponent() {
           setProductionPlants(data.data);
         }
       })
-      .catch(err => {});
-      setLoading(false);
+      .catch(err => { });
+    setLoading(false);
   }, [isLoaded]); // Only run once when map loads
 
   // Separate effect for vehicle data - only refetch when year or fuel type changes
@@ -247,31 +249,31 @@ export default function MapComponent() {
       // Fuel type filter
       const fuelKey = getFuelTypeKey(s.fuel_type);
       // Diesel includes both RD (Renewable Diesel) and BD (Biodiesel)
-      const fuelMatch = selectedFuelType === 'all' || 
+      const fuelMatch = selectedFuelType === 'all' ||
         fuelKey === selectedFuelType ||
         (selectedFuelType === 'diesel' && (fuelKey === 'rd' || fuelKey === 'bd'));
-      
+
       // Station status filter
-      const statusMatch = stationStatusFilter === 'all' || 
+      const statusMatch = stationStatusFilter === 'all' ||
         (stationStatusFilter === 'available' && s.status_code === 'E') ||
         (stationStatusFilter === 'planned' && s.status_code === 'P');
-      
+
       // State filter
       const stateMatch = getStateMatch(s, stateFilter);
-      
+
       // Ownership filter
-      const ownershipMatch = ownershipFilter === 'all' || 
+      const ownershipMatch = ownershipFilter === 'all' ||
         s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
-      
+
       return fuelMatch && statusMatch && stateMatch && ownershipMatch;
     });
 
     const zoomLevel = Math.floor(currentZoom);
     const isLargeDataset = filtered.length > 10000;
-    
+
     // At high zoom (10+), filter by viewport bounds and show ALL markers within bounds
     if (zoomLevel >= 10 && mapBounds) {
-      const inBounds = filtered.filter(station => 
+      const inBounds = filtered.filter(station =>
         station.lat >= mapBounds.south &&
         station.lat <= mapBounds.north &&
         station.lng >= mapBounds.west &&
@@ -280,7 +282,7 @@ export default function MapComponent() {
       // At max zoom, show all markers within viewport (no limit)
       return inBounds;
     }
-    
+
     // Don't render markers when zoomed out too far with large datasets
     if (isLargeDataset && zoomLevel < 4) {
       return [];
@@ -313,14 +315,14 @@ export default function MapComponent() {
   const totalFilteredCount = useMemo(() => {
     return stations.filter((s) => {
       const fuelKey = getFuelTypeKey(s.fuel_type);
-      const fuelMatch = selectedFuelType === 'all' || 
+      const fuelMatch = selectedFuelType === 'all' ||
         fuelKey === selectedFuelType ||
         (selectedFuelType === 'diesel' && (fuelKey === 'rd' || fuelKey === 'bd'));
-      const statusMatch = stationStatusFilter === 'all' || 
+      const statusMatch = stationStatusFilter === 'all' ||
         (stationStatusFilter === 'available' && s.status_code === 'E') ||
         (stationStatusFilter === 'planned' && s.status_code === 'P');
       const stateMatch = getStateMatch(s, stateFilter);
-      const ownershipMatch = ownershipFilter === 'all' || 
+      const ownershipMatch = ownershipFilter === 'all' ||
         s.access_code?.toLowerCase() === ownershipFilter.toLowerCase();
       return fuelMatch && statusMatch && stateMatch && ownershipMatch;
     }).length;
@@ -339,19 +341,19 @@ export default function MapComponent() {
     // Filter vehicles by state and fuel type (data already filtered by year from API)
     const filteredVehicles = vehicles.filter(vehicle => {
       // State filter
-      const stateMatch = !stateFilter || stateFilter === 'all' || 
+      const stateMatch = !stateFilter || stateFilter === 'all' ||
         vehicle.state === stateFilter || vehicle.state?.toUpperCase() === stateFilter.toUpperCase();
-      
+
       // Fuel type filter
-      const fuelTypeMatch = vehicleFuelTypeFilter === 'all' || 
+      const fuelTypeMatch = vehicleFuelTypeFilter === 'all' ||
         vehicle.fuel_type?.toLowerCase() === vehicleFuelTypeFilter.toLowerCase();
-      
+
       return stateMatch && fuelTypeMatch;
     });
 
     // Aggregate by state (no cities, no classes)
     const aggregated = aggregateByState(filteredVehicles);
-    
+
     const max = Math.max(...aggregated.map(state => state.totalVehicles), 1);
     const min = Math.min(...aggregated.map(state => state.totalVehicles), 1);
 
@@ -361,10 +363,10 @@ export default function MapComponent() {
       const logValue = Math.log10(stateData.totalVehicles + 1);
       const logMax = Math.log10(max + 1);
       const logMin = Math.log10(min + 1);
-      
+
       // Normalize between 0.3 and 1.0 (avoid values too close to 0)
       const normalizedWeight = 0.3 + (0.7 * (logValue - logMin) / (logMax - logMin));
-      
+
       return {
         location: {
           lat: stateData.lat,
@@ -384,14 +386,14 @@ export default function MapComponent() {
       <div className={styles.loading}>Loading map…</div>
     </div>
   );
-  
+
   // Remove blocking loading screen - show map immediately with loading indicator
   // if (loading) return (
   //   <div className={styles.container}>
   //     <div className={styles.loading}>Loading data from BigQuery…</div>
   //   </div>
   // );
-  
+
   if (error) return (
     <div className={styles.container}>
       <div className={styles.error}>Error: {error}</div>
@@ -400,135 +402,135 @@ export default function MapComponent() {
 
   return (
     <div>
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
-        {loadingTypes.length > 0 && (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
+          {loadingTypes.length > 0 && (
             <div style={{
               fontSize: '12px',
               color: '#666',
-              display: 'flex', 
+              display: 'flex',
               gap: '10px',
               marginTop: '5px',
               alignItems: 'center'
             }}>
-               <span style={{
-                  display: 'inline-block',
-                  width: '12px',
-                  height: '12px',
-                  border: '2px solid #ccc',
-                  borderTop: '2px solid #3498db',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }}></span>
+              <span style={{
+                display: 'inline-block',
+                width: '12px',
+                height: '12px',
+                border: '2px solid #ccc',
+                borderTop: '2px solid #3498db',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></span>
               <span>Loading data...</span>
               {loadingTypes.map(t => (
-                <span key={t} style={{ 
-                  background: '#f0f0f0', 
-                  padding: '2px 6px', 
+                <span key={t} style={{
+                  background: '#f0f0f0',
+                  padding: '2px 6px',
                   borderRadius: '4px',
-                  fontSize: '10px' 
+                  fontSize: '10px'
                 }}>{t}</span>
               ))}
             </div>
           )}
         </div>
 
-      <div className={styles.content}>
-        <div className={styles.mapSection} style={{ position: 'relative' }}>
-          {/* [UPDATE] Smart Alert: Only shows if user is filtering for something not yet loaded */}
-             {isLoadingActiveFilter && (
+        <div className={styles.content}>
+          <div className={styles.mapSection} style={{ position: 'relative' }}>
+            {/* [UPDATE] Smart Alert: Only shows if user is filtering for something not yet loaded */}
+            {isLoadingActiveFilter && (
+              <div style={{
+                position: 'absolute',
+                top: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 10,
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: '10px 20px',
+                borderRadius: '30px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#333',
+                border: '1px solid #eee'
+              }}>
                 <div style={{
-                  position: 'absolute',
-                  top: '20px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 10,
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  padding: '10px 20px',
-                  borderRadius: '30px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#333',
-                  border: '1px solid #eee'
-                }}>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid #f3f3f3',
-                    borderTop: '2px solid #3498db',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }} />
-                  <span>Fetching {selectedFuelType.toUpperCase()} stations...</span>
-                </div>
-              )}
-          <MapView 
-            onLoad={onLoad}
-            filteredStations={filteredStations}
-            selectedStation={selectedStation}
-            setSelectedStation={setSelectedStation}
-            showHeatmap={showHeatmap}
-            vehicleHeatmapData={vehicleHeatmapData}
-            mapInstance={map}
-            // NEW PROPS
-            productionPlants={filteredProductionPlants}
-            showProductionPlants={showProductionPlants}
-          />
-        </div>
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #f3f3f3',
+                  borderTop: '2px solid #3498db',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                <span>Fetching {selectedFuelType.toUpperCase()} stations...</span>
+              </div>
+            )}
+            <MapView
+              onLoad={onLoad}
+              filteredStations={filteredStations}
+              selectedStation={selectedStation}
+              setSelectedStation={setSelectedStation}
+              showHeatmap={showHeatmap}
+              vehicleHeatmapData={vehicleHeatmapData}
+              mapInstance={map}
+              // NEW PROPS
+              productionPlants={filteredProductionPlants}
+              showProductionPlants={showProductionPlants}
+            />
+          </div>
 
-        <div className={styles.sidebar}>
-          <MapLegendPanel 
-            selectedFuelType={selectedFuelType}
-            selectFuelType={selectFuelType}
-            stationStatusFilter={stationStatusFilter}
-            setStationStatusFilter={setStationStatusFilter}
-            stateFilter={stateFilter}
-            setStateFilter={setStateFilter}
-            ownershipFilter={ownershipFilter}
-            setOwnershipFilter={setOwnershipFilter}
-            stationCount={totalFilteredCount}
-            isFilterOpen={isFilterOpen}
-            setIsFilterOpen={setIsFilterOpen}
-            showHeatmap={showHeatmap}
-            setShowHeatmap={setShowHeatmap}
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-            vehicleFuelTypeFilter={vehicleFuelTypeFilter}
-            setVehicleFuelTypeFilter={setVehicleFuelTypeFilter}
-            heatmapPointCount={vehicleHeatmapData.length}
-            vehiclesLoading={vehiclesLoading}
-            // NEW PROPS
-            showProductionPlants={showProductionPlants}
-            setShowProductionPlants={setShowProductionPlants}
-            ppFilters={ppFilters}
-            setPpFilters={setPpFilters}
-          />
+          <div className={styles.sidebar}>
+            <MapLegendPanel
+              selectedFuelType={selectedFuelType}
+              selectFuelType={selectFuelType}
+              stationStatusFilter={stationStatusFilter}
+              setStationStatusFilter={setStationStatusFilter}
+              stateFilter={stateFilter}
+              setStateFilter={setStateFilter}
+              ownershipFilter={ownershipFilter}
+              setOwnershipFilter={setOwnershipFilter}
+              stationCount={totalFilteredCount}
+              isFilterOpen={isFilterOpen}
+              setIsFilterOpen={setIsFilterOpen}
+              showHeatmap={showHeatmap}
+              setShowHeatmap={setShowHeatmap}
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+              vehicleFuelTypeFilter={vehicleFuelTypeFilter}
+              setVehicleFuelTypeFilter={setVehicleFuelTypeFilter}
+              heatmapPointCount={vehicleHeatmapData.length}
+              vehiclesLoading={vehiclesLoading}
+              // NEW PROPS
+              showProductionPlants={showProductionPlants}
+              setShowProductionPlants={setShowProductionPlants}
+              ppFilters={ppFilters}
+              setPpFilters={setPpFilters}
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Min-Max Chart - CNG</h1>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Min-Max Chart - CNG</h1>
+        </div>
+        <div className={`${styles.chartContent} ${styles.chartBase}`}>
+          <MinMaxChartCNG />
+        </div>
       </div>
-      <div className={`${styles.chartContent} ${styles.chartBase}`}>
-        <MinMaxChartCNG />
-      </div>
-    </div>
 
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Min-Max Chart - Hybrid</h1>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Min-Max Chart - Hybrid</h1>
+        </div>
+        <div className={`${styles.chartContent} ${styles.chartBase}`}>
+          <MinMaxChartHybrid />
+        </div>
       </div>
-      <div className={`${styles.chartContent} ${styles.chartBase}`}>
-        <MinMaxChartHybrid />
-      </div>
-    </div>
 
 
     </div>
