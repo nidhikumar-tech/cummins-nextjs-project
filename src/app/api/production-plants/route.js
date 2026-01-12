@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getProductionPlants } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Cache for 1 hour
+export const revalidate = 86400; // Cache for 24 hours
 
 export async function GET() {
   try {
