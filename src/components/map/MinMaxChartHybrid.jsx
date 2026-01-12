@@ -235,7 +235,7 @@ export default function MinMaxChartHybrid() {
           display: true,
           text: 'Number of Vehicles'
         },
-        grid: { color: '#f3f4f6' }
+        grid: { color: '#f3f4f6' }, 
       },
       x: {
         title: {

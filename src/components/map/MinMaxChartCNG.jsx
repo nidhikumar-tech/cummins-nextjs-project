@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  LogarithmicScale
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -23,7 +24,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend, 
-  Filler
+  Filler,
+  LogarithmicScale
 );
 
 // Standard US State Codes (50 States + DC)
@@ -246,12 +248,22 @@ export default function MinMaxChartCNG() {
     },
     scales: {
       y: {
-        beginAtZero: true,
+        type: 'logarithmic', 
+        min: 1, 
+        beginAtZero: false,
         title: {
           display: true,
           text: 'Number of Vehicles'
         },
-        grid: { color: '#f3f4f6' }
+        grid: { color: '#f3f4f6' }, 
+        ticks: {
+          callback: function(value, index, values) {
+             if (value === 10 || value === 100 || value === 1000 || value === 10000 || value === 100000 || value === 1000000) {
+                return value.toLocaleString();
+             }
+             return null;
+          }
+        }
       },
       x: {
         title: {
