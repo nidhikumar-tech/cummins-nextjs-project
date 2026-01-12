@@ -3,11 +3,8 @@ import { BigQuery } from '@google-cloud/bigquery';
 // Initialize BigQuery client
 const bigquery = new BigQuery({
   projectId: process.env.GCP_PROJECT_ID,
-//   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 });
 
-// Returns the array of fuel stations from BigQuery
-// @param {string|null} fuelType - Optional fuel type filter (e.g., 'CNG', 'ELEC', 'RD', 'BD', null for all types)
 export async function getFuelStations(fuelType = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {

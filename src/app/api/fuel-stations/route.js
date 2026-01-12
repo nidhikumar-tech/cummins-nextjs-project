@@ -2,16 +2,12 @@ import { NextResponse } from 'next/server';
 import { getFuelStations } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 86400; // Cache for 24 hours (fuel station data changes infrequently)
 
 export async function GET(request) {
   try {
     // Parse query params to allow fetching specific fuel types
     const { searchParams } = new URL(request.url);
     const typeParam = searchParams.get('type'); // e.g., 'CNG', 'ELEC'
-
-    console.log(`Starting fetch for: ${typeParam || 'All fuel types'}`); //if there is no specific fuel station type being requested, all will be fetched. This supports the legacy system
-    const startTime = Date.now();
 
     let data = [];
     if (typeParam) {
@@ -27,11 +23,6 @@ export async function GET(request) {
     ]);
     data = [...cngData, ...elecData, ...rdData, ...bdData];
     }
-
-    
-    
-    const fetchTime = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`Fetch completed for ${typeParam || 'ALL'} in ${fetchTime}s - Total stations: ${data.length}`);
 
     // Transform data to match frontend format
     const formattedStations = data
@@ -59,7 +50,6 @@ export async function GET(request) {
       data: formattedStations,
       count: formattedStations.length,
       metadata: {
-        fetchTimeSeconds: parseFloat(fetchTime),
         type: typeParam || 'mixed'
       }
     });
