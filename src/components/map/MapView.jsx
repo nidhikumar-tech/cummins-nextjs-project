@@ -26,7 +26,18 @@ const PIN_IMAGES = {
   planned_public:       '/images/red.png',    
   planned_commercial:   '/images/red-dot.png',     
 };
-// --------------------------------------------------
+
+const getPlantIconUrl = (fuelType) => {
+  if (!fuelType) return '/images/blue-pin.png'; // Fallback
+  
+  const type = fuelType.toLowerCase();
+  
+  if (type.includes('cng')) return '/images/pink-pin.png';
+  if (type.includes('diesel') || type === 'rd' || type === 'bd') return '/images/yellow-pin.png';
+  if (type.includes('elec')) return '/images/blue-pin.png';
+  
+  return '/images/blue-pin.png'; // Default to electric/blue if unknown
+};
 
 // --- DECK.GL OVERLAY (Heatmap) ---
 function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
@@ -92,6 +103,8 @@ function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
   return null;
 }
 
+
+
 export default function MapView({ 
   onLoad, 
   filteredStations, 
@@ -125,13 +138,14 @@ export default function MapView({
       anchor: new window.google.maps.Point(16, 40),    
     };
   }, []);
-
+/*
   // --- 2. PRODUCTION PLANT ICON LOGIC ---
   const plantIcon = useMemo(() => ({
     url: '/images/round.png',
     scaledSize: new window.google.maps.Size(30, 30), 
     anchor: new window.google.maps.Point(15, 15)     
   }), []);
+*/
 
   // --- 3. STATE FOR PLANT POPUP ---
   const [selectedPlant, setSelectedPlant] = useState(null);
@@ -180,7 +194,11 @@ const mapOptions = {
         <Marker
           key={`plant-${index}`}
           position={{ lat: plant.lat, lng: plant.lng }}
-          icon={plantIcon}
+          icon={{
+             url: getPlantIconUrl(plant.fuel_type),
+             scaledSize: new window.google.maps.Size(30, 30), 
+             anchor: new window.google.maps.Point(15, 15)
+          }}
           // onClick={() => setSelectedPlant(plant)}
           onMouseOver={() => setSelectedPlant(plant)}
           onMouseOut={() => setSelectedPlant(null)}

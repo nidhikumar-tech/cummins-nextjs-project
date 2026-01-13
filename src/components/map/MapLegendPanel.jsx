@@ -102,7 +102,9 @@ export default function MapLegendPanel({
     { key: 'available_commercial', label: 'Available / Commercial', icon: '/images/green-dot.png' },
     { key: 'planned_public', label: 'Planned / Non-Commercial', icon: '/images/red.png' },
     { key: 'planned_commercial', label: 'Planned / Commercial', icon: '/images/red-dot.png' },
-    { key: 'production_plant', label: 'Production Plant', icon: '/images/round.png' }
+    { key: 'production_plant_electric', label: 'Electric Production Plant', icon: '/images/blue-pin.png' },
+    { key: 'production_plant_cng', label: 'CNG Production Plant', icon: '/images/pink-pin.png' },
+    { key: 'production_plant_diesel', label: 'Diesel Production Plant', icon: '/images/yellow-pin.png' }
   ];
 
   const fuelLegends = [
