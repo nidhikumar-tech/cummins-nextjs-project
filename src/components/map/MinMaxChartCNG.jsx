@@ -128,6 +128,38 @@ export default function MinMaxChartCNG() {
         }
     });
 
+    // ============= START OF NEW CODE: CALCULATE DYNAMIC Y-AXIS MAX =============
+    // Calculate the absolute maximum value across ALL data points (actual + forecast)
+    const allValues = [
+      ...actuals.filter(v => v !== null && v > 0),
+      ...forecasts.filter(v => v !== null && v > 0)
+    ];
+    
+    const absoluteMax = allValues.length > 0 ? Math.max(...allValues) : 100;
+
+    // Round up to next logarithmic milestone with buffer
+    // For log scale: 10, 100, 1000, 10000, 100000, 1000000
+    let suggestedMax;
+    if (absoluteMax <= 10) {
+      suggestedMax = 10;
+    } else if (absoluteMax <= 100) {
+      suggestedMax = 100;
+    } else if (absoluteMax <= 1000) {
+      suggestedMax = 1000;
+    } else if (absoluteMax <= 10000) {
+      suggestedMax = 10000;
+    } else if (absoluteMax <= 100000) {
+      suggestedMax = 100000;
+    } else {
+      suggestedMax = 1000000;
+    }
+
+    // Apply buffer: if data is close to the milestone (>80% of it), jump to next log level
+    if (absoluteMax > suggestedMax * 0.8) {
+      suggestedMax = suggestedMax * 10; // Jump to next logarithmic level
+    }
+    // ============= END OF NEW CODE =============
+
     // Create sparse arrays containing only the min and max points at the correct positions
     const minPointData = Array(labels.length).fill(null);
     if (minIndex !== -1) minPointData[minIndex] = minVal;
@@ -208,10 +240,12 @@ export default function MinMaxChartCNG() {
             order: 2 // Draw behind lines
         }
       ],
+      suggestedMax // ← NEW: Return the calculated max value for Y-axis
     };
   }, [selectedState, rawData]);
 
-  const options = {
+  // ============= MODIFIED: Convert options to useMemo and use dynamic max =============
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -249,7 +283,8 @@ export default function MinMaxChartCNG() {
     scales: {
       y: {
         type: 'logarithmic', 
-        min: 1, 
+        min: 1,
+        max: chartData?.suggestedMax || undefined, // ← NEW: Use calculated max from chartData
         beginAtZero: false,
         title: {
           display: true,
@@ -273,7 +308,8 @@ export default function MinMaxChartCNG() {
         grid: { display: false }
       }
     },
-  };
+  }), [chartData]); // ← NEW: Add chartData as dependency
+  // ============= END OF MODIFIED CODE =============
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
