@@ -132,7 +132,9 @@ export default function MapComponent() {
     if (selectedFuelType === 'all') return false;
 
     // Check specific types
-    if (selectedFuelType === 'elec') return loadingTypes.includes('ELEC');
+    if (selectedFuelType === 'elec') {
+      return loadingTypes.some(t => t.includes('ELEC'));
+    }
     if (selectedFuelType === 'cng') return loadingTypes.includes('CNG');
 
     // Diesel includes RD and BD
@@ -143,9 +145,7 @@ export default function MapComponent() {
     return false;
   }, [selectedFuelType, loadingTypes]);
 
-  // --- 3. FILTER LOGIC (useMemos) ---
-
-  // --- 3. FILTER LOGIC (useMemos) ---
+ 
 
   // Load fuel stations and production plants once on mount
   useEffect(() => {
@@ -181,37 +181,45 @@ export default function MapComponent() {
 
     setLoading(true);
     setError(null);
+    const fetchConfigs = [
+      { type: 'CNG', status: null, label: 'CNG' },
+      { type: 'RD',  status: null, label: 'RD' },
+      { type: 'BD',  status: null, label: 'BD' },
+      { type: 'ELEC', status: 'P', label: 'ELEC-Planned' },   // <-- Fast load
+      { type: 'ELEC', status: 'E', label: 'ELEC-Available' }, // <-- Slow load
+    ];
 
-    // Define chunks to fetch
-    const fuelTypesToFetch = ['CNG', 'RD', 'BD', 'ELEC'];
-    setLoadingTypes(fuelTypesToFetch);
+    setLoadingTypes(fetchConfigs.map(c => c.label));
 
     // Fetch function that appends data progressively
-    const fetchFuelType = async (type) => {
+    const fetchFuelType = async (config) => {
+      const { type, status, label } = config;
       try {
-        const res = await fetch(`/api/fuel-stations?type=${type}`, {
+        let url = `/api/fuel-stations?type=${type}`;
+        if (status) url += `&status=${status}`;
+
+        const res = await fetch(url, {
           next: { revalidate: 3600 }
         });
-
-        if (!res.ok) throw new Error(`Failed to load ${type}`);
-
+        
+        if (!res.ok) throw new Error(`Failed to load ${label}`);
+        
         const json = await res.json();
-
+        
         if (json.success) {
-          // KEY CHANGE: Functional update to append new data without overwriting
+          // Append data immediately as it arrives
           setStations(prevStations => [...prevStations, ...json.data]);
         }
       } catch (err) {
-        console.error(`Error loading ${type}:`, err);
+        console.error(`Error loading ${label}:`, err);
       } finally {
-        // Remove from loading list
-        setLoadingTypes(prev => prev.filter(t => t !== type));
+        setLoadingTypes(prev => prev.filter(t => t !== label));
       }
     };
 
     //Fire all requests in parallel
-    fuelTypesToFetch.forEach(type => {
-      fetchFuelType(type);
+    fetchConfigs.forEach(config => {
+      fetchFuelType(config);
     });
 
     // 2. New fetch for Production Plants

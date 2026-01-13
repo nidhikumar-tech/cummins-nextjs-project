@@ -8,11 +8,13 @@ export async function GET(request) {
     // Parse query params to allow fetching specific fuel types
     const { searchParams } = new URL(request.url);
     const typeParam = searchParams.get('type'); // e.g., 'CNG', 'ELEC'
+    const statusParam = searchParams.get('status'); //'E' for Available, 'P' for Planned
+    console.log(`Starting fetch for: ${typeParam || 'ALL'} ${statusParam ? `(${statusParam})` : ''}`);
+    const startTime = Date.now();
 
     let data = [];
     if (typeParam) {
-      // Fast path: Fetch just one fuel type
-      data = await getFuelStations(typeParam);
+      data = await getFuelStations(typeParam, statusParam);
     } else {
       // Slow path (Legacy): Fetch everything in parallel
     const [cngData, elecData, rdData, bdData] = await Promise.all([

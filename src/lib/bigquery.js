@@ -5,16 +5,20 @@ const bigquery = new BigQuery({
   projectId: process.env.GCP_PROJECT_ID,
 });
 
-export async function getFuelStations(fuelType = null) {
+export async function getFuelStations(fuelType = null, status = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
     return [];
   }
 
-  // Build WHERE clause with optional fuel type filter
+  //WHERE clause with optional fuel type filter and status
   let whereClause = 'WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL';
   if (fuelType) {
     whereClause += ` AND fuel_type_code = '${fuelType}'`;
+  }
+
+  if (status) {
+    whereClause += ` AND Status_Code = '${status}'`;
   }
 
   const query = `
@@ -45,11 +49,11 @@ export async function getFuelStations(fuelType = null) {
 
   try {
     const [rows] = await bigquery.query(options);
-    const fuelTypeLabel = fuelType || 'All';
-    console.log(`BigQuery Fuel Stations Fetch (${fuelTypeLabel}) - Rows Retrieved:`, rows.length);
+    const label = `${fuelType || 'All'}${status ? `-${status}` : ''}`;
+    console.log(`BigQuery Fetch (${label}) - Rows:`, rows.length);
     return rows;
   } catch (error) {
-    console.error(`Error fetching fuel stations for type ${fuelType}:`, error);
+    console.error(`Error fetching stations:`, error);
     throw error;
   }
 }
