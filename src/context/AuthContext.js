@@ -27,11 +27,35 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  // Session expiry check
+  useEffect(() => {
+    if (user) {
+      const sessionDuration = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+      
+      // Set fresh login time when user logs in
+      localStorage.setItem('lastLoginTime', Date.now().toString());
+      
+      // Check session expiry every 10 seconds
+      const intervalId = setInterval(() => {
+        const lastLogin = localStorage.getItem('lastLoginTime');
+        const now = Date.now();
+        
+        if (lastLogin && (now - parseInt(lastLogin)) > sessionDuration) {
+          logout(); // Force logout after session expires
+        }
+      }, 10000); // Check every 10 seconds
+      
+      // Cleanup interval on unmount
+      return () => clearInterval(intervalId);
+    }
+  }, [user]);
+
   const login = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
+    localStorage.removeItem('lastLoginTime'); // Clear the timestamp on logout
     setUser(null);
     await signOut(auth);
     router.push("/login");
