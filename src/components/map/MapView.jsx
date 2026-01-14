@@ -104,7 +104,6 @@ function DeckGlOverlay({ mapInstance, vehicleHeatmapData }) {
 }
 
 
-
 export default function MapView({ 
   onLoad, 
   filteredStations, 
@@ -116,6 +115,10 @@ export default function MapView({
   productionPlants,      // New Prop
   showProductionPlants   // New Prop
 }) {
+  
+  // ========== FIX: Debounce ref to prevent hover flickering ==========
+  const hoverTimeoutRef = useRef(null);
+  // ===================================================================
   
   // --- 1. STATIC IMAGE PIN LOGIC (Fuel Stations) ---
   const getIcon = useCallback((station) => {
@@ -149,6 +152,16 @@ export default function MapView({
 
   // --- 3. STATE FOR PLANT POPUP ---
   const [selectedPlant, setSelectedPlant] = useState(null);
+
+  // ========== FIX: Cleanup timeout on unmount to prevent memory leaks ==========
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+  // ============================================================================
 
   const shouldShowMarkers = showHeatmap === 'markers' || showHeatmap === 'both';
   const shouldShowHeatmap = showHeatmap === 'heatmap' || showHeatmap === 'both';
@@ -184,8 +197,15 @@ const mapOptions = {
           position={{ lat: s.lat, lng: s.lng }}
           icon={getIcon(s)}
           // onClick={() => setSelectedStation(s)}
-          onMouseOver={() => setSelectedStation(s)}
-          onMouseOut={() => setSelectedStation(null)}
+          onMouseOver={() => {
+            if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+            setSelectedStation(s);
+          }}
+          onMouseOut={() => {
+            hoverTimeoutRef.current = setTimeout(() => {
+              setSelectedStation(null);
+            }, 200);
+          }}
         />
       ))}
 
@@ -212,7 +232,17 @@ const mapOptions = {
           position={{ lat: selectedStation.lat, lng: selectedStation.lng }}
           onCloseClick={() => setSelectedStation(null)}
         >
-          <div className={styles.InfoWindow}>
+          {/* ========== FIX: Prevent closing when hovering over InfoWindow ========== */}
+          <div 
+            className={styles.InfoWindow}
+            onMouseEnter={() => {
+              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+            }}
+            onMouseLeave={() => {
+              setSelectedStation(null);
+            }}
+          >
+          {/* ======================================================================= */}
             <h4 className={styles.infoWindowTitle}>
               {selectedStation.station_name || "Station"}
             </h4>
