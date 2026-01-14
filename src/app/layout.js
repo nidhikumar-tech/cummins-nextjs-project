@@ -1,5 +1,8 @@
 import Navbar from "@/components/navbar/Navbar";
 import "./globals.css";
+// [CHANGE START] Import AuthProvider
+import { AuthProvider } from "@/context/AuthContext";
+// [CHANGE END]
 
 export const metadata = {
   title: "Cummins Analytics - Fuel Station Data Visualization",
@@ -10,8 +13,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        {children}
+        {/* [CHANGE START] Wrap children in AuthProvider */}
+        <AuthProvider>
+          <Navbar />
+          {children}
+        </AuthProvider>
+        {/* [CHANGE END] */}
       </body>
     </html>
   );
