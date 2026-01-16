@@ -164,16 +164,56 @@ export default function MapComponent() {
     // This enforces the "State has to be selected" rule.
     if (stateFilter === 'all') return [];
 
-    return productionPlants.filter(plant => {
-      // 3. Match the selected State (using the helper above)
+    // 3. Apply filters (state + fuel type checkboxes)
+    const filtered = productionPlants.filter(plant => {
       const stateMatch = getStateMatch(plant, stateFilter);
-
-      // 4. Match the sub-checkboxes (CNG/Diesel/Electric)
       const fuelMatch = ppFilters[plant.fuel_type];
-
       return stateMatch && fuelMatch;
     });
-  }, [productionPlants, showProductionPlants, ppFilters, stateFilter]);
+
+    // 4. Apply zoom-based filtering (same logic as fuel stations)
+    const zoomLevel = Math.floor(currentZoom);
+    const isLargeDataset = filtered.length > 1; // Production plants threshold
+
+    // At high zoom (10+), filter by viewport bounds and show ALL markers within bounds
+    if (zoomLevel >= 10 && mapBounds) {
+      const inBounds = filtered.filter(plant =>
+        plant.lat >= mapBounds.south &&
+        plant.lat <= mapBounds.north &&
+        plant.lng >= mapBounds.west &&
+        plant.lng <= mapBounds.east
+      );
+      return inBounds;
+    }
+
+    // Don't render markers when zoomed out too far with large datasets
+    // if (isLargeDataset && zoomLevel < 4) {
+    //   return [];
+    // }
+
+    // For lower zoom levels, use sampling to prevent performance issues
+    const maxMarkersMap = isLargeDataset
+      ? { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 20, 7: 200, 8: 300, 9: 1000 }
+      : { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 20, 7: 200, 8: 300, 9: 300 };
+
+    const maxMarkers = maxMarkersMap[zoomLevel];
+
+    if (filtered.length <= maxMarkers) {
+      return filtered;
+    }
+
+    // Evenly sample plants for lower zoom levels
+    const step = filtered.length / maxMarkers;
+    const sampled = [];
+    for (let i = 0; i < maxMarkers; i++) {
+      const index = Math.floor(i * step);
+      if (index < filtered.length) {
+        sampled.push(filtered[index]);
+      }
+    }
+    return sampled;
+  }, [productionPlants, showProductionPlants, ppFilters, stateFilter, currentZoom, mapBounds]);
+  // ========================================================================
 
   // Load stations and production plants once when map loads
   useEffect(() => {
