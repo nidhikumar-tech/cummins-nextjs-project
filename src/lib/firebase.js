@@ -11,5 +11,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase (Singleton pattern to avoid re-initialization errors)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const auth = getAuth(app);
+let app;
+if (typeof window !== "undefined") {
+app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+}
+export const auth = app ? getAuth(app) : null;
