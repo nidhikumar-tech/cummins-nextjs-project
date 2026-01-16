@@ -118,6 +118,7 @@ export default function MapView({
   
   // ========== FIX: Debounce ref to prevent hover flickering ==========
   const hoverTimeoutRef = useRef(null);
+  const plantHoverTimeoutRef = useRef(null); 
   // ===================================================================
   
   // --- 1. STATIC IMAGE PIN LOGIC (Fuel Stations) ---
@@ -158,6 +159,9 @@ export default function MapView({
     return () => {
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
+      }
+      if (plantHoverTimeoutRef.current) {
+      clearTimeout(plantHoverTimeoutRef.current);
       }
     };
   }, []);
@@ -220,8 +224,15 @@ const mapOptions = {
              anchor: new window.google.maps.Point(15, 15)
           }}
           // onClick={() => setSelectedPlant(plant)}
-          onMouseOver={() => setSelectedPlant(plant)}
-          onMouseOut={() => setSelectedPlant(null)}
+          onMouseOver={() => {
+            if (plantHoverTimeoutRef.current) clearTimeout(plantHoverTimeoutRef.current);
+            setSelectedPlant(plant);
+          }}
+          onMouseOut={() => {
+            plantHoverTimeoutRef.current = setTimeout(() => {
+              setSelectedPlant(null);
+            }, 200);
+          }}
           zIndex={1000} // Keeps plants on top of fuel stations
         />
       ))}
@@ -278,7 +289,15 @@ const mapOptions = {
           position={{ lat: selectedPlant.lat, lng: selectedPlant.lng }}
           onCloseClick={() => setSelectedPlant(null)}
         >
-          <div className={styles.InfoWindow}>
+          <div 
+            className={styles.InfoWindow}
+            onMouseEnter={() => {
+              if (plantHoverTimeoutRef.current) clearTimeout(plantHoverTimeoutRef.current);
+            }}
+            onMouseLeave={() => {
+              setSelectedPlant(null);
+            }}
+          >
             <h4 className={styles.infoWindowTitle}>
               Production Plant
             </h4>
