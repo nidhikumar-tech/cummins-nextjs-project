@@ -10,6 +10,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
+console.log('Firebase API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+
 // Initialize Firebase (Singleton pattern to avoid re-initialization errors)
 let app;
 if (typeof window !== "undefined") {
