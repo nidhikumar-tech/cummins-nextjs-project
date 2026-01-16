@@ -97,11 +97,14 @@ export default function MapLegendPanel({
     { code: 'WI', name: 'Wisconsin' },
     { code: 'WY', name: 'Wyoming' }
   ];
-  const legends = [
+  const fuel_station_legends = [
     { key: 'available_public', label: 'Available / Non-Commercial', icon: '/images/green.png' },
     { key: 'available_commercial', label: 'Available / Commercial', icon: '/images/green-dot.png' },
     { key: 'planned_public', label: 'Planned / Non-Commercial', icon: '/images/red.png' },
     { key: 'planned_commercial', label: 'Planned / Commercial', icon: '/images/red-dot.png' },
+  ];
+
+  const production_plants_legends = [
     { key: 'production_plant_electric', label: 'Electric Production Plant', icon: '/images/blue-pin.png' },
     { key: 'production_plant_cng', label: 'CNG Production Plant', icon: '/images/pink-pin.png' },
     { key: 'production_plant_diesel', label: 'Diesel Production Plant', icon: '/images/yellow-pin.png' }
@@ -220,7 +223,7 @@ export default function MapLegendPanel({
       </div>
 */}
 
-      <div className={styles.filterTriggerSection} style={{ marginBottom: '16px' }}>
+      <div className={styles.filterTriggerSection}>
          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
            <label style={{ 
               display: 'flex', 
@@ -290,8 +293,16 @@ export default function MapLegendPanel({
 
       {/* Legend  */}
       <div className={styles.legendSection}>
-        <h3 className={styles.sectionTitle}>Legend</h3>
-        {legends.map(({ key, label, icon }) => (
+        {/* <h3 className={styles.sectionTitle}>Legend</h3> */}
+        <h3 className={styles.sectionTitle}>Fuel Station Legend</h3>
+        {fuel_station_legends.map(({ key, label, icon }) => (
+          <div key={key} className={styles.legendItem}>
+            <img src={icon} className={styles.legendIcon} alt={label} />
+            <span className={styles.legendLabel}>{label}</span>
+          </div>
+        ))}
+        <h3 className={styles.sectionTitle}>Production Plant Legend</h3>
+        {production_plants_legends.map(({ key, label, icon }) => (
           <div key={key} className={styles.legendItem}>
             <img src={icon} className={styles.legendIcon} alt={label} />
             <span className={styles.legendLabel}>{label}</span>

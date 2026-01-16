@@ -29,7 +29,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f1f5f9" }}>
+    <div style={{ minHeight: "100vh", height: "100vh",display: "flex", alignItems: "center", justifyContent: "center", background: "#f1f5f9",overflow: "hidden",position: "fixed",top: 0,left: 0,right: 0,bottom: 0}}>
       <div style={{ background: "white", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", width: "100%", maxWidth: "400px" }}>
         <h1 style={{ color: "#0f172a", fontSize: "24px", fontWeight: "700", marginBottom: "8px", textAlign: "center" }}>Cummins Analytics</h1>
         <p style={{ color: "#64748b", textAlign: "center", marginBottom: "32px", fontSize: "14px" }}>Sign in to access dashboard</p>
