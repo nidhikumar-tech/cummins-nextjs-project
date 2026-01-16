@@ -13,12 +13,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        {/* [CHANGE START] Wrap children in AuthProvider */}
+        {/* Application is wrapped in an authentication layer */}
         <AuthProvider>
           <Navbar />
           {children}
         </AuthProvider>
-        {/* [CHANGE END] */}
       </body>
     </html>
   );

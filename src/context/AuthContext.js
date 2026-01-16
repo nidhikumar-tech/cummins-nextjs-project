@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => { {/* Check if there is an existing */}
       if (user) {
         setUser(user);
       } else {

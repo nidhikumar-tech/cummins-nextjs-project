@@ -11,7 +11,7 @@ export default function LoginPage() {
   const { login, user } = useAuth();
   const router = useRouter();
 
-  // If user is already logged in, kick them to dashboard
+  // If user is already logged in, redirect them to dashboard
   useEffect(() => {
     if (user) router.push("/");
   }, [user, router]);

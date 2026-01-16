@@ -9,18 +9,19 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    {/* When loading becomes false, check if user is logged in and decide to go to /dashboard/map or /login accordingly */}
     if (!loading) {
       if (user) {
-        // [CHANGE] If logged in, go to the OFFICIAL map URL
+        
         router.push("/dashboard/map");
       } else {
-        // [CHANGE] If not logged in, go to Login
+        
         router.push("/login");
       }
     }
   }, [user, loading, router]);
 
-  // Show a simple loader while deciding where to go
+  // A loader while deciding where to go
   return (
     <div style={{ 
       height: "100vh", 
