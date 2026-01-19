@@ -55,8 +55,8 @@ export default function Navbar() {
       </button>
 
       {/* Center Section - Navigation Links */}
-      <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
-        {/* <Link
+      {/* <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
+        <Link
           href="#"
           className={`${styles.navLink} ${isActive("/dashboard/heatmap")}`} 
           onClick={() => setIsMenuOpen(false)}
@@ -93,7 +93,7 @@ export default function Navbar() {
             <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" />
           </svg>
           <span>Graph</span>
-        </Link> */}
+        </Link>
 
         <Link
           href="/dashboard/map"
@@ -105,7 +105,7 @@ export default function Navbar() {
           </svg>
           <span>Map</span>
         </Link>
-      </div>
+      </div> */}
 
       {/* Right Section - User/Account */}
       <div className={styles.navRight}>
