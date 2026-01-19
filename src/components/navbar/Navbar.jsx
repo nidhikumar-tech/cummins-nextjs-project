@@ -57,7 +57,7 @@ export default function Navbar() {
       {/* Center Section - Navigation Links */}
       <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
         <Link
-          href="/dashboard/heatmap"
+          href="#"
           className={`${styles.navLink} ${isActive("/dashboard/heatmap")}`} 
           onClick={() => setIsMenuOpen(false)}
           style={{ pointerEvents: "none", opacity: 0.5 }}
@@ -70,7 +70,7 @@ export default function Navbar() {
         </Link>
 
         <Link
-          href="/dashboard/chart"
+          href="#"
           className={`${styles.navLink} ${isActive("/dashboard/chart")}`}
           onClick={() => setIsMenuOpen(false)}
           style={{ pointerEvents: "none", opacity: 0.5 }}
@@ -83,7 +83,7 @@ export default function Navbar() {
         </Link>
 
         <Link
-          href="/dashboard/graph"
+          href="#"
           className={`${styles.navLink} ${isActive("/dashboard/graph")}`}
           onClick={() => setIsMenuOpen(false)}
           style={{ pointerEvents: "none", opacity: 0.5 }}
