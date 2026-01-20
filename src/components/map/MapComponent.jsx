@@ -564,7 +564,7 @@ export default function MapComponent() {
 
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Min-Max Chart - CNG</h1>
+          <h1 className={styles.title}>Powertrain Production Forecast - CNG</h1>
         </div>
         <div className={`${styles.chartContent} ${styles.chartBase}`}>
           <MinMaxChartCNG />
@@ -573,7 +573,7 @@ export default function MapComponent() {
 
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Min-Max Chart - Hybrid</h1>
+          <h1 className={styles.title}>Powertrain Production Forecast - Hybrid</h1>
         </div>
         <div className={`${styles.chartContent} ${styles.chartBase}`}>
           <MinMaxChartHybrid />
