@@ -223,7 +223,7 @@ export default function MinMaxChartHybrid() {
       title: {
         display: true,
         // CHANGE 2: Updated Title
-        text: `Hybrid Vehicle Adoption Trend`,
+        text: `Electric Vehicle Adoption Trend`,
         align: 'start',
         font: { size: 16 }
       },
