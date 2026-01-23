@@ -21,11 +21,12 @@ export default function Navbar() {
 
   const isActive = (path) => pathname === path ? styles.activeLink : ""; 
 
+
   return (
-    <nav className={styles.navbar}> 
+    <nav className={styles.navbar}>
       {/* Left Section - Logo */}
-      <div className={styles.navLeft}> 
-        <Link href="/dashboard/map" className={styles.logo}> 
+      <div className={styles.navLeft}>
+        <Link href="/dashboard/map" className={styles.logo}>
           <svg
             className={styles.logoIcon}
             viewBox="0 0 40 40"
@@ -55,57 +56,57 @@ export default function Navbar() {
       </button>
 
       {/* Center Section - Navigation Links */}
-      {/* <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
-        <Link
-          href="#"
-          className={`${styles.navLink} ${isActive("/dashboard/heatmap")}`} 
-          onClick={() => setIsMenuOpen(false)}
-          style={{ pointerEvents: "none", opacity: 0.5 }}
-          aria-disabled="true"
-        >
-          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-          </svg>
-          <span>Heatmap</span>
-        </Link>
+      {pathname !== "/login" && (
+        <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
+          <Link
+            href="#"
+            className={`${styles.navLink} ${isActive("/dashboard/heatmap")}`}
+            onClick={() => setIsMenuOpen(false)}
+            style={{ pointerEvents: "none", opacity: 0.5 }}
+            aria-disabled="true"
+          >
+            <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+            </svg>
+            <span>Heatmap</span>
+          </Link>
 
-        <Link
-          href="#"
-          className={`${styles.navLink} ${isActive("/dashboard/chart")}`}
-          onClick={() => setIsMenuOpen(false)}
-          style={{ pointerEvents: "none", opacity: 0.5 }}
-          aria-disabled="true"
-        >
-          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5z" />
-          </svg>
-          <span>Chart</span>
-        </Link>
+          <Link
+            href="#"
+            className={`${styles.navLink} ${isActive("/dashboard/graph")}`}
+            onClick={() => setIsMenuOpen(false)}
+            style={{ pointerEvents: "none", opacity: 0.5 }}
+            aria-disabled="true"
+          >
+            <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" />
+            </svg>
+            <span>Graph</span>
+          </Link>
 
-        <Link
-          href="#"
-          className={`${styles.navLink} ${isActive("/dashboard/graph")}`}
-          onClick={() => setIsMenuOpen(false)}
-          style={{ pointerEvents: "none", opacity: 0.5 }}
-          aria-disabled="true"
-        >
-          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" />
-          </svg>
-          <span>Graph</span>
-        </Link>
+          <Link
+            href="/dashboard/charts"
+            className={`${styles.navLink} ${isActive("/dashboard/charts")}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5z" />
+            </svg>
+            <span>Chart</span>
+          </Link>
 
-        <Link
-          href="/dashboard/map"
-          className={`${styles.navLink} ${isActive("/dashboard/map")}`}
-          onClick={() => setIsMenuOpen(false)}
-        >
-          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
-          </svg>
-          <span>Map</span>
-        </Link>
-      </div> */}
+          <Link
+            href="/dashboard/map"
+            className={`${styles.navLink} ${isActive("/dashboard/map")}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
+            </svg>
+            <span>Map</span>
+          </Link>
+        </div>
+      )}
 
       {/* Right Section - User/Account */}
       <div className={styles.navRight}>
