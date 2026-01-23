@@ -1,12 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import MapComponent from "@/components/map/MapComponent";
+import ChartComponent from "@/components/charts/ChartComponent";
 
 export default function MapRoute() {
   return (
     <DashboardLayout>
-      <MapComponent />
+      <ChartComponent/>
     </DashboardLayout>
   );
 }
