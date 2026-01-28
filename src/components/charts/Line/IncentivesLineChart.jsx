@@ -25,7 +25,7 @@ ChartJS.register(
   Filler
 );
 
-export default function ProductionLineChart() {
+export default function IncentivesLineChart() {
   const [incentiveData, setIncentiveData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -464,8 +464,6 @@ export async function getVehicleConsumptionData() {
     return [];
   }
 
-  // TODO: Set the correct table name in .env.local as BIGQUERY_TABLE_VEHICLE_CONSUMPTION
-  const table = process.env.BIGQUERY_TABLE_VEHICLE_CONSUMPTION || 'vehicle_consumption';
   const query = `
     SELECT year, total_vehicle_consumption
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_7}\`
@@ -482,6 +480,32 @@ export async function getVehicleConsumptionData() {
     return rows;
   } catch (error) {
     console.error('Error fetching vehicle consumption data:', error);
+    throw error;
+  }
+}
+
+// Fetches production vs consumption data for grouped bar graph
+export async function getProductionVsConsumptionData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT year, total_consumption, total_production
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_8}\`
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching production vs consumption data:', error);
     throw error;
   }
 }

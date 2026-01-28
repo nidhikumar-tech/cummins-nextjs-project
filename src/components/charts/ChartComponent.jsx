@@ -1,6 +1,8 @@
-import LineChart from './LineChart';
-import ProductionLineChart from './ProductionLineChart';
-import VehicleConsumptionBarGraph from './VehicleConsumptionBarGraph';
+import LineChart from './Line/LineChart';
+import IncentivesLineChart from './Line/IncentivesLineChart';
+import VehicleConsumptionBarGraph from './Bar/VehicleConsumptionBarGraph';
+import ProductionAndConsumptionBarGraph from './Bar/ProductionAndConsumptionBarGraph';
+import VinCountBarGraph from './Bar/VinCountBarGraph';
 
 export default function ChartComponent() {
   return (
@@ -18,7 +20,7 @@ export default function ChartComponent() {
           <LineChart dataType="price" showFuelTypeSelector={true} borderColor='#f59e0b' backgroundColor='#f59e0b' />
         </div>
         <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
-          <ProductionLineChart />
+          <IncentivesLineChart />
         </div>
       </div>
       <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
@@ -29,6 +31,12 @@ export default function ChartComponent() {
         </div>
         <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
           <VehicleConsumptionBarGraph borderColor="#facc15" backgroundColor="#fde68a" />
+        </div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
+          <ProductionAndConsumptionBarGraph prodColor="#e47215" consColor="#fde68a" borderColor="#ebc325" />
+        </div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
+          {/* <VinCountBarGraph prodColor='#22c55e' consColor='#a7f3d0' borderColor='#16a34a' /> */}
         </div>
       </div>
     </div>
