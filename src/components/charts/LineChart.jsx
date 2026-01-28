@@ -28,7 +28,7 @@ ChartJS.register(
   LogarithmicScale
 );
 
-export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector = true }) {
+export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector = true, borderColor = '#2563eb', backgroundColor = '#2563eb' }) {
   const [electricData, setElectricData] = useState([]);
   const [cngData, setCngData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,8 +93,8 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
         {
           label: label,
           data: dataValues,
-          borderColor: '#2563eb',
-          backgroundColor: '#2563eb',
+          borderColor,
+          backgroundColor,
           tension: 0.3,
           pointRadius: 4,
           pointHoverRadius: 6,
