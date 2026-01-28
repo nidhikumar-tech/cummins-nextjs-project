@@ -195,6 +195,72 @@ export async function getCNGVehicleData(year = null) {
   }
 }
 
+// Returns electric vehicle forecast data from BigQuery
+export async function getElectricVehicleDataForLineChart() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      year,
+      actual_ev_vehicles,
+      predicted_ev_vehicles,
+      ev_price,
+      fuel_type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_4}\`
+    WHERE fuel_type = 'electric' AND year <= 2025
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery Electric Vehicle Data Fetch - Rows Retrieved:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching electric vehicle data:', error);
+    throw error;
+  }
+}
+
+// Returns CNG vehicle forecast data from BigQuery
+export async function getCNGVehicleDataForLineChart() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      year,
+      actual_cng_vehicles,
+      predicted_cng_vehicles,
+      cng_price,
+      fuel_type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_5}\`
+    WHERE fuel_type = 'cng' AND year <= 2025
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery CNG Vehicle Data Fetch - Rows Retrieved:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching CNG vehicle data:', error);
+    throw error;
+  }
+}
+
 // Returns CNG XGBoost vehicle data only from BigQuery
 // @param {string|null} year - Optional year filter
 // export async function getCNGVehicleData(year = null) {

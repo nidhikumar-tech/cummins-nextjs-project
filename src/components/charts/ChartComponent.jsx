@@ -6,31 +6,14 @@ export default function ChartComponent() {
       <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
         <div style={{marginBottom: '32px', textAlign: 'center'}}>
           <h1 style={{fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em'}}>
-            Line Chart
+            Line Charts
           </h1>
         </div>
         <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
-          <LineChart />
+          <LineChart dataType="vehicles" showFuelTypeSelector={true} />
         </div>
-      </div>
-      <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
-        <div style={{marginBottom: '32px', textAlign: 'center'}}>
-          <h1 style={{fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em'}}>
-            Line Chart
-          </h1>
-        </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
-          <LineChart />
-        </div>
-      </div>
-      <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
-        <div style={{marginBottom: '32px', textAlign: 'center'}}>
-          <h1 style={{fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em'}}>
-            Line Chart
-          </h1>
-        </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
-          <LineChart />
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
+          <LineChart dataType="price" showFuelTypeSelector={true} />
         </div>
       </div>
     </div>

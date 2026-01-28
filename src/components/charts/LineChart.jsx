@@ -28,25 +28,39 @@ ChartJS.register(
   LogarithmicScale
 );
 
-export default function LineChart() {
-  const [rawData, setRawData] = useState([]);
-  const [states, setStates] = useState([]);
-  const [selectedState, setSelectedState] = useState('');
+export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector = true }) {
+  const [electricData, setElectricData] = useState([]);
+  const [cngData, setCngData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fuelType, setFuelType] = useState('electric'); // 'electric' or 'cng'
 
+  // Fetch both datasets on mount
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        const response = await fetch('/api/vehicle-data-for-min-max?year=all');
-        const result = await response.json();
-        if (result.success && Array.isArray(result.data)) {
-          setRawData(result.data);
-          const uniqueStates = [...new Set(result.data.map(item => item.state))].sort();
-          setStates(uniqueStates);
-          if (uniqueStates.length > 0) {
-            setSelectedState(uniqueStates.includes('CA') ? 'CA' : uniqueStates[0]);
-          }
+        // Fetch both electric and CNG data in parallel
+        const [electricResponse, cngResponse] = await Promise.all([
+          fetch('/api/electric-vehicle-data-line-chart'),
+          fetch('/api/cng-vehicle-data-line-chart')
+        ]);
+
+        const [electricResult, cngResult] = await Promise.all([
+          electricResponse.json(),
+          cngResponse.json()
+        ]);
+
+        if (electricResult.success && Array.isArray(electricResult.data)) {
+          const filteredElectric = electricResult.data.filter(item => item.year <= 2025);
+          setElectricData(filteredElectric);
+        }
+
+        if (cngResult.success && Array.isArray(cngResult.data)) {
+          const filteredCng = cngResult.data.filter(item => item.year <= 2025);
+          setCngData(filteredCng);
         }
       } catch (err) {
         setError('Failed to load chart data');
@@ -57,15 +71,28 @@ export default function LineChart() {
     fetchData();
   }, []);
 
+  // Select data based on fuel type using useMemo for smooth transitions
   const chartData = useMemo(() => {
-    if (!selectedState || rawData.length === 0) return null;
-    const stateData = rawData.filter(d => d.state === selectedState).sort((a, b) => a.year - b.year);
+    const rawData = fuelType === 'electric' ? electricData : cngData;
+    if (rawData.length === 0) return null;
+    
+    // Determine what data to show based on dataType prop
+    let label, dataValues;
+    if (dataType === 'price') {
+      label = fuelType === 'electric' ? 'EV Price' : 'CNG Price';
+      dataValues = rawData.map(d => fuelType === 'electric' ? d.evPrice : d.cngPrice);
+    } else {
+      label = fuelType === 'electric' ? 'Actual EV Vehicles' : 'Actual CNG Vehicles';
+      dataValues = rawData.map(d => d.actualVehicles);
+    }
+    
+    // Data is already sorted by year from the API
     return {
-      labels: stateData.map(d => d.year),
+      labels: rawData.map(d => d.year),
       datasets: [
         {
-          label: 'Vehicle Count',
-          data: stateData.map(d => d.vehicleCount),
+          label: label,
+          data: dataValues,
           borderColor: '#2563eb',
           backgroundColor: '#2563eb',
           tension: 0.3,
@@ -75,7 +102,7 @@ export default function LineChart() {
         }
       ]
     };
-  }, [selectedState, rawData]);
+  }, [electricData, cngData, fuelType, dataType]);
 
   const options = useMemo(() => ({
     responsive: true,
@@ -87,7 +114,9 @@ export default function LineChart() {
       },
       title: {
         display: true,
-        text: `VIN Counts by Year (CNG)`,
+        text: dataType === 'price' 
+          ? `${fuelType === 'electric' ? 'Electric' : 'CNG'} Price by Year`
+          : `${fuelType === 'electric' ? 'Electric' : 'CNG'} Vehicle Count by Year`,
         align: 'start',
         font: { size: 16 }
       },
@@ -97,7 +126,7 @@ export default function LineChart() {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'VIN Count'
+          text: dataType === 'price' ? 'Price ($)' : 'Vehicle Count'
         },
         grid: { color: '#f3f4f6' }
       },
@@ -109,36 +138,37 @@ export default function LineChart() {
         grid: { display: false }
       }
     }
-  }), []);
+  }), [fuelType, dataType]);
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label htmlFor="state-select" style={{ fontWeight: '600', color: '#475569' }}>Select State:</label>
-        <select
-          id="state-select"
-          value={selectedState}
-          onChange={e => setSelectedState(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid #cbd5e1',
-            fontSize: '14px',
-            cursor: 'pointer',
-            minWidth: '150px'
-          }}
-        >
-          {states.map(state => (
-            <option key={state} value={state}>{state}</option>
-          ))}
-        </select>
-      </div>
+      {showFuelTypeSelector && (
+        <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <label htmlFor="fuel-type-select" style={{ fontWeight: '600', color: '#475569' }}>Select Fuel Type:</label>
+          <select
+            id="fuel-type-select"
+            value={fuelType}
+            onChange={e => setFuelType(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              fontSize: '14px',
+              cursor: 'pointer',
+              minWidth: '150px'
+            }}
+          >
+            <option value="electric">Electric</option>
+            <option value="cng">CNG</option>
+          </select>
+        </div>
+      )}
       <div style={{ height: '400px', width: '100%' }}>
         {chartData && <Line data={chartData} options={options} />}
-        {!chartData && <p>No data available for this state.</p>}
+        {!chartData && <p>No data available.</p>}
       </div>
     </div>
   );
