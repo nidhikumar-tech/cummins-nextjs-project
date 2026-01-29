@@ -3,6 +3,7 @@ import IncentivesLineChart from './Line/IncentivesLineChart';
 import VehicleConsumptionBarGraph from './Bar/VehicleConsumptionBarGraph';
 import ProductionAndConsumptionBarGraph from './Bar/ProductionAndConsumptionBarGraph';
 import VinCountBarGraph from './Bar/VinCountBarGraph';
+import EmissionBarGraph from './Bar/EmissionBarGraph';
 
 export default function ChartComponent() {
   return (
@@ -13,14 +14,14 @@ export default function ChartComponent() {
             Line Charts
           </h1>
         </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
           <LineChart dataType="vehicles" showFuelTypeSelector={true} borderColor='#10b981' backgroundColor='#10b981'/>
-        </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
           <LineChart dataType="price" showFuelTypeSelector={true} borderColor='#f59e0b' backgroundColor='#f59e0b' />
         </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px'}}>
           <IncentivesLineChart />
+          <IncentivesLineChart />
+          {/* Add another LineChart or leave empty for now */}
         </div>
       </div>
       <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
@@ -29,14 +30,15 @@ export default function ChartComponent() {
             Bar Graphs
           </h1>
         </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
           <VehicleConsumptionBarGraph borderColor="#facc15" backgroundColor="#fde68a" />
+          <VinCountBarGraph prodColor='#22c55e' consColor='#a7f3d0' borderColor='#16a34a' />
         </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px'}}>
+          <EmissionBarGraph />
+        </div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
           <ProductionAndConsumptionBarGraph prodColor="#e47215" consColor="#fde68a" borderColor="#ebc325" />
-        </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '24px'}}>
-          {/* <VinCountBarGraph prodColor='#22c55e' consColor='#a7f3d0' borderColor='#16a34a' /> */}
         </div>
       </div>
     </div>

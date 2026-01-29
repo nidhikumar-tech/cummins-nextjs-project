@@ -69,8 +69,8 @@ export default function VinCountBarGraph({ prodColor = '#22c55e', consColor = '#
           backgroundColor: prodColor,
           borderColor: borderColor,
           borderWidth: 1,
-          barPercentage: 0.9,
-          categoryPercentage: 0.8,
+          barPercentage: 1.0,
+          categoryPercentage: 0.85,
         },
         {
           label: 'total Count of CMI VIN',
@@ -78,8 +78,8 @@ export default function VinCountBarGraph({ prodColor = '#22c55e', consColor = '#
           backgroundColor: consColor,
           borderColor: borderColor,
           borderWidth: 1,
-          barPercentage: 0.9,
-          categoryPercentage: 0.8,
+          barPercentage: 1.0,
+          categoryPercentage: 0.85,
         }
       ]
     };

@@ -132,8 +132,8 @@ export default function IncentivesLineChart() {
             minWidth: '150px'
           }}
         >
-          <option value="electric">Electric Vehicles</option>
-          <option value="naturalGas">Natural Gas</option>
+          <option value="electric">Electric</option>
+          <option value="naturalGas">CNG</option>
         </select>
       </div>
       <div style={{ height: '400px', width: '100%' }}>

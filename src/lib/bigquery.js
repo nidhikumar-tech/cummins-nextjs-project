@@ -510,4 +510,54 @@ export async function getProductionVsConsumptionData() {
   }
 }
 
+// Fetches cumulative emission data for EmissionBarGraph
+export async function getCumulativeEmissionData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  const query = `
+    SELECT Manufacturer, Model_Year, Engine_Test_Model, Pollutant_Name, TR_Cert_Result, Actual_Cng_Vehicles, Emission_Cert_Status
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_9}\`
+    WHERE Manufacturer IS NOT NULL AND Model_Year IS NOT NULL AND Engine_Test_Model IS NOT NULL AND Pollutant_Name IS NOT NULL
+    ORDER BY Model_Year ASC
+  `;
+  const options = {
+    query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Fetches statewise emission data for EmissionBarGraph
+export async function getStatewiseEmissionData(state = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  let query = `
+    SELECT Manufacturer, Model_Year, State, Engine_Test_Model, Pollutant_Name, TR_Cert_Result, Actual_Cng_Vehicles, Emission_Cert_Status
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_10}\`
+    WHERE Manufacturer IS NOT NULL AND Model_Year IS NOT NULL AND Engine_Test_Model IS NOT NULL AND Pollutant_Name IS NOT NULL
+  `;
+  if (state) {
+    query += ` AND State = @state`;
+  }
+  query += ' ORDER BY Model_Year ASC';
+  const options = {
+    query,
+    params: state ? { state } : undefined,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export default bigquery;
