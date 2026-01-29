@@ -209,7 +209,8 @@ export async function getElectricVehicleDataForLineChart() {
       ev_price,
       fuel_type,
       annual_mileage,
-      incentive
+      incentive,
+      CMI_VIN
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_4}\`
     WHERE fuel_type = 'electric' AND year <= 2025
     ORDER BY year ASC
@@ -244,7 +245,8 @@ export async function getCNGVehicleDataForLineChart() {
       cng_price,
       fuel_type,
       annual_mileage,
-      incentive
+      incentive,
+      CMI_VIN
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_5}\`
     WHERE fuel_type = 'cng' AND year <= 2025
     ORDER BY year ASC

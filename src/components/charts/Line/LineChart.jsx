@@ -77,37 +77,93 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
     if (rawData.length === 0) return null;
     
     // Determine what data to show based on dataType prop
-    let label, dataValues;
     if (dataType === 'price') {
-      label = fuelType === 'electric' ? 'EV Price' : 'CNG Price';
-      dataValues = rawData.map(d => fuelType === 'electric' ? d.evPrice : d.cngPrice);
+      const label = fuelType === 'electric' ? 'EV Price' : 'CNG Price';
+      const dataValues = rawData.map(d => fuelType === 'electric' ? d.evPrice : d.cngPrice);
+      return {
+        labels: rawData.map(d => d.year),
+        datasets: [
+          {
+            label: label,
+            data: dataValues,
+            borderColor,
+            backgroundColor,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: false
+          }
+        ]
+      };
     } else if (dataType === 'annual_mileage') {
-      label = fuelType === 'electric' ? 'EV Annual Mileage' : 'CNG Annual Mileage';
-      dataValues = rawData.map(d => d.annualMileage || d.annual_mileage);
+      const label = fuelType === 'electric' ? 'EV Annual Mileage' : 'CNG Annual Mileage';
+      const dataValues = rawData.map(d => d.annualMileage || d.annual_mileage);
+      return {
+        labels: rawData.map(d => d.year),
+        datasets: [
+          {
+            label: label,
+            data: dataValues,
+            borderColor,
+            backgroundColor,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: false
+          }
+        ]
+      };
     } else if (dataType === 'incentive') {
-      label = fuelType === 'electric' ? 'EV Incentives' : 'CNG Incentives';
-      dataValues = rawData.map(d => d.incentive);
+      const label = fuelType === 'electric' ? 'EV Incentives' : 'CNG Incentives';
+      const dataValues = rawData.map(d => d.incentive);
+      return {
+        labels: rawData.map(d => d.year),
+        datasets: [
+          {
+            label: label,
+            data: dataValues,
+            borderColor,
+            backgroundColor,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: false
+          }
+        ]
+      };
     } else {
-      label = fuelType === 'electric' ? 'Actual EV Vehicles' : 'Actual CNG Vehicles';
-      dataValues = rawData.map(d => d.actualVehicles);
+      // dataType === 'vehicles' - show both Actual Vehicles and CMI_VIN
+      const actualVehiclesLabel = fuelType === 'electric' ? 'Actual EV Vehicles' : 'Actual CNG Vehicles';
+      const cmiVinLabel = fuelType === 'electric' ? 'EV CMI VIN' : 'CNG CMI VIN';
+      const actualVehiclesData = rawData.map(d => d.actualVehicles);
+      const cmiVinData = rawData.map(d => d.cmiVin);
+      
+      return {
+        labels: rawData.map(d => d.year),
+        datasets: [
+          {
+            label: actualVehiclesLabel,
+            data: actualVehiclesData,
+            borderColor,
+            backgroundColor,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: false
+          },
+          {
+            label: cmiVinLabel,
+            data: cmiVinData,
+            borderColor: '#8b5cf6', // Purple color for CMI_VIN
+            backgroundColor: '#8b5cf6',
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: false
+          }
+        ]
+      };
     }
-    
-    // Data is already sorted by year from the API
-    return {
-      labels: rawData.map(d => d.year),
-      datasets: [
-        {
-          label: label,
-          data: dataValues,
-          borderColor,
-          backgroundColor,
-          tension: 0.3,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          fill: false
-        }
-      ]
-    };
   }, [electricData, cngData, fuelType, dataType, borderColor, backgroundColor]);
 
   const options = useMemo(() => {

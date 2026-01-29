@@ -94,7 +94,7 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
       },
       title: {
         display: true,
-        text: 'Total Production vs Total Consumption (MMcf)',
+        text: ['Total Production vs Total Consumption (MMcf)', ''],
         align: 'start',
         font: { size: 16 }
       },
@@ -166,6 +166,14 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
       <div style={{ height: '400px', width: '100%' }}>
         {chartData && <Bar data={chartData} options={options} plugins={[percentagePlugin]} />}
         {!chartData && <p>No data available.</p>}
+      </div>
+      <div style={{ marginTop: '16px', padding: '10px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+        <div>
+          *The percentage above each bar shows the ratio of total consumption to total production for that year.
+        </div>
+        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '2px' }}>
+          *MMcf = Million Cubic Feet
+        </div>
       </div>
     </div>
   );

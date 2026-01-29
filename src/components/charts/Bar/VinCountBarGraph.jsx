@@ -74,7 +74,7 @@ export default function VinCountBarGraph({ prodColor = '#22c55e', consColor = '#
         },
         {
           label: 'total Count of CMI VIN',
-          data: rawData.map(d => d.predictedVehicles),
+          data: rawData.map(d => d.cmiVin),
           backgroundColor: consColor,
           borderColor: borderColor,
           borderWidth: 1,
