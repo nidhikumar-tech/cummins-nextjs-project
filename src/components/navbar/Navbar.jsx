@@ -72,11 +72,9 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="#"
+            href="/dashboard/graph"
             className={`${styles.navLink} ${isActive("/dashboard/graph")}`}
             onClick={() => setIsMenuOpen(false)}
-            style={{ pointerEvents: "none", opacity: 0.5 }}
-            aria-disabled="true"
           >
             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
               <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" />

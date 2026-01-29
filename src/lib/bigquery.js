@@ -560,4 +560,59 @@ export async function getStatewiseEmissionData(state = null) {
   }
 }
 
+//For Vishnu
+// ... existing imports and code ...
+
+// Vishnu Bar Chart Data
+export async function getVishnuBarChartData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT year, total_vehicle_consumption
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.VISHNU_BIGQUERY_TABLE_1}\`
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Vishnu Bar Chart data:', error);
+    throw error;
+  }
+}
+
+// Vishnu Line Chart Data
+export async function getVishnuLineChartData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT year, electric_vehicles
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.VISHNU_BIGQUERY_TABLE_2}\`
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Vishnu Line Chart data:', error);
+    throw error;
+  }
+}
+
 export default bigquery;
