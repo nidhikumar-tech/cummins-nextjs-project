@@ -33,7 +33,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
   const [cngData, setCngData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [fuelType, setFuelType] = useState('electric'); // 'electric' or 'cng'
+  const [fuelType, setFuelType] = useState('cng'); // 'electric' or 'cng'
 
   // Fetch both datasets on mount
   useEffect(() => {
@@ -81,6 +81,12 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
     if (dataType === 'price') {
       label = fuelType === 'electric' ? 'EV Price' : 'CNG Price';
       dataValues = rawData.map(d => fuelType === 'electric' ? d.evPrice : d.cngPrice);
+    } else if (dataType === 'annual_mileage') {
+      label = fuelType === 'electric' ? 'EV Annual Mileage' : 'CNG Annual Mileage';
+      dataValues = rawData.map(d => d.annualMileage || d.annual_mileage);
+    } else if (dataType === 'incentive') {
+      label = fuelType === 'electric' ? 'EV Incentives' : 'CNG Incentives';
+      dataValues = rawData.map(d => d.incentive);
     } else {
       label = fuelType === 'electric' ? 'Actual EV Vehicles' : 'Actual CNG Vehicles';
       dataValues = rawData.map(d => d.actualVehicles);
@@ -102,43 +108,59 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
         }
       ]
     };
-  }, [electricData, cngData, fuelType, dataType]);
+  }, [electricData, cngData, fuelType, dataType, borderColor, backgroundColor]);
 
-  const options = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top',
-        align: 'end'
-      },
-      title: {
-        display: true,
-        text: dataType === 'price' 
-          ? `${fuelType === 'electric' ? 'Electric' : 'CNG'} Price by Year`
-          : `${fuelType === 'electric' ? 'Electric' : 'CNG'} Vehicle Count by Year`,
-        align: 'start',
-        font: { size: 16 }
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: dataType === 'price' ? 'Price ($)' : 'Vehicle Count'
-        },
-        grid: { color: '#f3f4f6' }
-      },
-      x: {
-        title: {
-          display: true,
-          text: 'Year'
-        },
-        grid: { display: false }
-      }
+  const options = useMemo(() => {
+    // Determine chart title based on dataType
+    let chartTitle, yAxisLabel;
+    if (dataType === 'price') {
+      chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Price by Year`;
+      yAxisLabel = 'Price ($)';
+    } else if (dataType === 'annual_mileage') {
+      chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Annual Mileage by Year`;
+      yAxisLabel = 'Annual Mileage (miles)';
+    } else if (dataType === 'incentive') {
+      chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Incentives by Year`;
+      yAxisLabel = 'Incentive Count';
+    } else {
+      chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Vehicle Count by Year`;
+      yAxisLabel = 'Vehicle Count';
     }
-  }), [fuelType, dataType]);
+
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end'
+        },
+        title: {
+          display: true,
+          text: chartTitle,
+          align: 'start',
+          font: { size: 16 }
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: yAxisLabel
+          },
+          grid: { color: '#f3f4f6' }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Year'
+          },
+          grid: { display: false }
+        }
+      }
+    };
+  }, [fuelType, dataType]);
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;

@@ -14,6 +14,8 @@ export async function GET(request) {
       predictedVehicles: parseInt(row.predicted_ev_vehicles) || null,
       evPrice: parseFloat(row.ev_price) || null,
       fuelType: row.fuel_type || 'electric',
+      annualMileage: parseFloat(row.annual_mileage) || null,
+      incentive: parseInt(row.incentive) || null,
     }));
 
     const response = NextResponse.json({

@@ -207,7 +207,9 @@ export async function getElectricVehicleDataForLineChart() {
       actual_ev_vehicles,
       predicted_ev_vehicles,
       ev_price,
-      fuel_type
+      fuel_type,
+      annual_mileage,
+      incentive
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_4}\`
     WHERE fuel_type = 'electric' AND year <= 2025
     ORDER BY year ASC
@@ -240,7 +242,9 @@ export async function getCNGVehicleDataForLineChart() {
       actual_cng_vehicles,
       predicted_cng_vehicles,
       cng_price,
-      fuel_type
+      fuel_type,
+      annual_mileage,
+      incentive
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_5}\`
     WHERE fuel_type = 'cng' AND year <= 2025
     ORDER BY year ASC
@@ -262,34 +266,34 @@ export async function getCNGVehicleDataForLineChart() {
 }
 
 // Returns incentive vehicle data from BigQuery (Electric and Natural Gas)
-export async function getIncentiveVehicleData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    return [];
-  }
+// export async function getIncentiveVehicleData() {
+//   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+//     return [];
+//   }
 
-  const query = `
-    SELECT 
-      year,
-      electric_vehicles ,
-      natural_gas
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_6}\`
-    ORDER BY year ASC
-  `;
+//   const query = `
+//     SELECT 
+//       year,
+//       electric_vehicles ,
+//       natural_gas
+//     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_6}\`
+//     ORDER BY year ASC
+//   `;
 
-  const options = {
-    query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
-  };
+//   const options = {
+//     query: query,
+//     location: process.env.BIGQUERY_LOCATION_2 || 'US',
+//   };
 
-  try {
-    const [rows] = await bigquery.query(options);
-    console.log('BigQuery Incentive Vehicle Data Fetch - First Row:', rows[0]);
-    return rows;
-  } catch (error) {
-    console.error('Error fetching incentive vehicle data:', error);
-    throw error;
-  }
-}
+//   try {
+//     const [rows] = await bigquery.query(options);
+//     console.log('BigQuery Incentive Vehicle Data Fetch - First Row:', rows[0]);
+//     return rows;
+//   } catch (error) {
+//     console.error('Error fetching incentive vehicle data:', error);
+//     throw error;
+//   }
+// }
 
 // Returns CNG XGBoost vehicle data only from BigQuery
 // @param {string|null} year - Optional year filter
