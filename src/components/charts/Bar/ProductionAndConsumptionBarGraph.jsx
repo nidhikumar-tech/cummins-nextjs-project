@@ -169,7 +169,7 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
       </div>
       <div style={{ marginTop: '16px', padding: '10px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
         <div>
-          *The percentage above each bar shows the ratio of total consumption to total production for that year.
+          *The percentage above each bar shows the percentage of production that is consumed for that year.
         </div>
         <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '2px' }}>
           *MMcf = Million Cubic Feet
