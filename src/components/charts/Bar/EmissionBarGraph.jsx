@@ -40,6 +40,7 @@ export default function EmissionBarGraph() {
   const [mode, setMode] = useState('cumulative');
   const [state, setState] = useState('');
   const [states, setStates] = useState([]);
+  const [selectedPollutant, setSelectedPollutant] = useState('All');
   const [cumulativeData, setCumulativeData] = useState([]);
   const [statewiseData, setStatewiseData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,23 +107,30 @@ export default function EmissionBarGraph() {
       else if (pollutant.includes('particulate')) yearMap[year]['Particulate Matter'] = Number(row.Emission_Cert_Status || row.emission_cert_status || 0);
     });
     const years = Object.keys(yearMap).sort();
+    
+    // Filter pollutants based on selection
+    const pollutantsToShow = selectedPollutant === 'All' ? POLLUTANTS : [selectedPollutant];
+    
     return {
       labels: years,
-      datasets: POLLUTANTS.map((pollutant, idx) => ({
-        label: pollutant,
-        data: years.map(y => yearMap[y][pollutant] ?? 0),
-        backgroundColor: [
-          '#fb7185',
-          '#22c55e',
-          '#6366f1'
-        ][idx],
-        borderColor: '#facc15',
-        borderWidth: 1,
-        barPercentage: 1.0,
-        categoryPercentage: 0.85,
-      }))
+      datasets: pollutantsToShow.map((pollutant) => {
+        const idx = POLLUTANTS.indexOf(pollutant);
+        return {
+          label: pollutant,
+          data: years.map(y => yearMap[y][pollutant] ?? 0),
+          backgroundColor: [
+            '#fb7185',
+            '#22c55e',
+            '#6366f1'
+          ][idx],
+          borderColor: '#facc15',
+          borderWidth: 1,
+          barPercentage: 1.0,
+          categoryPercentage: 0.85,
+        };
+      })
     };
-  }, [cumulativeData, statewiseData, mode, state]);
+  }, [cumulativeData, statewiseData, mode, state, selectedPollutant]);
 
   const options = useMemo(() => ({
     responsive: true,
@@ -169,7 +177,7 @@ export default function EmissionBarGraph() {
 
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <label style={{ fontWeight: '600', color: '#475569' }}>Mode:</label>
         <select
           value={mode}
@@ -205,6 +213,24 @@ export default function EmissionBarGraph() {
             </select>
           </>
         )}
+        <label style={{ fontWeight: '600', color: '#475569' }}>Pollutant:</label>
+        <select
+          value={selectedPollutant}
+          onChange={e => setSelectedPollutant(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            fontSize: '14px',
+            cursor: 'pointer',
+            minWidth: '150px'
+          }}
+        >
+          <option value="All">All Pollutants</option>
+          <option value="Carbon Dioxide">Carbon Dioxide</option>
+          <option value="Nitrogen Oxides">Nitrogen Oxides</option>
+          <option value="Particulate Matter">Particulate Matter</option>
+        </select>
       </div>
       <div style={{ height: '400px', width: '100%' }}>
         {loading && <div style={{ padding: '20px', textAlign: 'center' }}>Loading Emission Data...</div>}

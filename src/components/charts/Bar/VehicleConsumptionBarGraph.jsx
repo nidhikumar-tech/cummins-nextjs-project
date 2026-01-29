@@ -105,6 +105,7 @@ export default function VehicleConsumptionBarGraph({ borderColor = '#facc15', ba
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
       <div style={{ height: '400px', width: '100%' }}>
+
         {chartData && <Bar data={chartData} options={options} />}
         {!chartData && <p>No data available.</p>}
       </div>
