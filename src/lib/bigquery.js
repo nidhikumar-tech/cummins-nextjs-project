@@ -566,4 +566,72 @@ export async function getStatewiseEmissionData(state = null) {
   }
 }
 
+
+
+// Fetches and combines Electric Generation and Consumption for bar charts 
+export async function getElectricityGenConsData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return { generation: [], consumption: [] };
+  }
+
+  // Fetch Generation
+  // Schema: year, total, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
+  const genQuery = `
+    SELECT year, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_13}\`
+    ORDER BY year ASC
+  `;
+
+  // Fetch Consumption
+  // Schema: year, total, residential, commercial, industrial, transportation
+  const consQuery = `
+    SELECT year, residential, commercial, industrial, transportation
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_12}\`
+    ORDER BY year ASC
+  `;
+
+  const options = { location: process.env.BIGQUERY_LOCATION_2 || 'US' };
+
+  try {
+    // Run queries in parallel for speed
+    const [genResult, consResult] = await Promise.all([
+      bigquery.query({ ...options, query: genQuery }),
+      bigquery.query({ ...options, query: consQuery })
+    ]);
+    
+    // The query method returns [rows, metadata], we want rows (index 0)
+    return { generation: genResult[0], consumption: consResult[0] };
+  } catch (error) {
+    console.error('Error fetching Electricity Gen/Cons data:', error);
+    throw error;
+  }
+}
+
+//Fetches Capacity Data
+// Schema: year, total, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
+export async function getElectricityCapacityData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT year, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_11}\`
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Electricity Capacity data:', error);
+    throw error;
+  }
+}
+
 export default bigquery;

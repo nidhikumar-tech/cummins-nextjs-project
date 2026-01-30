@@ -4,6 +4,8 @@ import VehicleConsumptionBarGraph from './Bar/VehicleConsumptionBarGraph';
 import ProductionAndConsumptionBarGraph from './Bar/ProductionAndConsumptionBarGraph';
 import VinCountBarGraph from './Bar/VinCountBarGraph';
 import EmissionBarGraph from './Bar/EmissionBarGraph';
+import GenerationConsumptionBarChart from './Bar/GenerationConsumptionBarChart';
+import CapacityBarChart from './Bar/CapacityBarChart';
 
 export default function ChartComponent() {
   return (
@@ -36,8 +38,12 @@ export default function ChartComponent() {
         <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px'}}>
           <EmissionBarGraph />
         </div>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px'}}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px'}}>
           <ProductionAndConsumptionBarGraph prodColor="#e47215" consColor="#fde68a" borderColor="#ebc325" />
+        </div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
+          <GenerationConsumptionBarChart />
+          <CapacityBarChart />
         </div>
       </div>
     </div>
