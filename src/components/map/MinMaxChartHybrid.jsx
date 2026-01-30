@@ -10,7 +10,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  LogarithmicScale
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -22,7 +23,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  LogarithmicScale
 );
 
 // Standard US State Codes (50 States + DC)
@@ -35,30 +37,50 @@ const US_STATES = new Set([
 ]);
 
 export default function MinMaxChartHybrid() {
-  const [rawData, setRawData] = useState([]);
+  const [yearwiseData, setYearwiseData] = useState([]);
+  const [statewiseData, setStatewiseData] = useState([]);
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Mode filter - 'cumulative' (US aggregate) or 'statewise'
+  const [mode, setMode] = useState('cumulative');
 
-  // 1. Fetch all data on mount
+  // 1. Fetch both datasets on mount for smooth transitions
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        // CHANGE 1: Point to the new Hybrid API
-        const response = await fetch('/api/hybrid-data-for-min-max?year=all');
-        const result = await response.json();
+        // Fetch both yearwise (cumulative) and statewise data in parallel
+        const [yearwiseResponse, statewiseResponse] = await Promise.all([
+          fetch('/api/hybrid-data-for-min-max?year=all&dataType=yearwise'),
+          fetch('/api/hybrid-data-for-min-max?year=all&dataType=statewise')
+        ]);
 
-        if (result.success && Array.isArray(result.data)) {
-          setRawData(result.data);
+        const [yearwiseResult, statewiseResult] = await Promise.all([
+          yearwiseResponse.json(),
+          statewiseResponse.json()
+        ]);
 
-          const uniqueStates = [...new Set(result.data.map(item => item.state))]
+        if (yearwiseResult.success && Array.isArray(yearwiseResult.data)) {
+          setYearwiseData(yearwiseResult.data);
+        }
+
+        if (statewiseResult.success && Array.isArray(statewiseResult.data)) {
+          setStatewiseData(statewiseResult.data);
+          
+          // Extract unique states, FILTER for only US states, and sort them
+          const uniqueStates = [...new Set(statewiseResult.data.map(item => item.state))]
             .filter(state => US_STATES.has(state))
             .sort();
           
           setStates(uniqueStates);
           
-          if (uniqueStates.length > 0) {
+          // Default to first state if available, prioritize 'CA' if it exists
+          if (!selectedState && uniqueStates.length > 0) {
             setSelectedState(uniqueStates.includes('CA') ? 'CA' : uniqueStates[0]);
           }
         }
@@ -71,14 +93,55 @@ export default function MinMaxChartHybrid() {
     };
 
     fetchData();
-  }, []);
+  }, []); // Fetch once on mount
 
-  // 2. Prepare Chart Data based on selected State
+  // 1.5. Calculate GLOBAL min/max across ALL statewise data for consistent Y-axis scaling
+  const globalYAxisLimits = useMemo(() => {
+    if (mode === 'cumulative' || statewiseData.length === 0) {
+      return null; // Let cumulative mode auto-scale
+    }
+
+    let globalMaxY = 0;
+
+    // Find max across all states (both actual and predicted)
+    statewiseData.forEach(d => {
+      const actualVal = d.actualVehicles || 0;
+      const predictedVal = d.vehicleCount || 0;
+      
+      if (actualVal > 0) {
+        globalMaxY = Math.max(globalMaxY, actualVal);
+      }
+      if (predictedVal > 0) {
+        globalMaxY = Math.max(globalMaxY, predictedVal);
+      }
+    });
+
+    // Round up to next 200 interval and add extra headroom
+    // E.g., if max is 1400, round to 1600
+    const roundedMax = Math.ceil(globalMaxY / 200) * 200;
+    const yMaxLimit = roundedMax + 200; // Add one extra interval (200)
+
+    return { min: 0, max: yMaxLimit }; // Always start from 0
+  }, [statewiseData, mode]);
+
+  // 2. Prepare Chart Data based on mode and selected State using useMemo for smooth transitions
   const chartData = useMemo(() => {
-    if (!selectedState || rawData.length === 0) return null;
+    // Select data based on mode
+    let rawData;
+    let currentState;
+    
+    if (mode === 'cumulative') {
+      rawData = yearwiseData;
+      currentState = 'US';
+    } else {
+      rawData = statewiseData;
+      currentState = selectedState;
+    }
+    
+    if (!currentState || rawData.length === 0) return null;
 
     const stateData = rawData
-      .filter(d => d.state === selectedState)
+      .filter(d => d.state === currentState)
       .sort((a, b) => a.year - b.year);
 
     const labels = stateData.map(d => d.year);
@@ -193,9 +256,9 @@ export default function MinMaxChartHybrid() {
         }
       ],
     };
-  }, [selectedState, rawData]);
+  }, [yearwiseData, statewiseData, mode, selectedState]); // Updated dependencies for smooth transitions
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -222,20 +285,31 @@ export default function MinMaxChartHybrid() {
       },
       title: {
         display: true,
-        // CHANGE 2: Updated Title
-        text: `Electric Vehicle Adoption Trend`,
+        text: mode === 'cumulative' 
+          ? `Electric Vehicle Adoption Trend - United States (Cumulative)` 
+          : `Electric Vehicle Adoption Trend - ${selectedState}`,
         align: 'start',
         font: { size: 16 }
       },
     },
     scales: {
       y: {
-        beginAtZero: true,
+        type: 'linear',
+        // Use global limits for statewise to match matplotlib behavior
+        min: mode === 'statewise' && globalYAxisLimits ? globalYAxisLimits.min : undefined,
+        max: mode === 'statewise' && globalYAxisLimits ? globalYAxisLimits.max : undefined,
+        beginAtZero: mode === 'cumulative', // Only for cumulative mode
         title: {
           display: true,
           text: 'Number of Vehicles'
         },
-        grid: { color: '#f3f4f6' }, 
+        grid: { color: '#f3f4f6' },
+        ticks: {
+          stepSize: mode === 'statewise' ? undefined : 200, // Auto-step for statewise with global scale
+          callback: function(value) {
+            return value.toLocaleString();
+          }
+        }
       },
       x: {
         title: {
@@ -245,19 +319,22 @@ export default function MinMaxChartHybrid() {
         grid: { display: false }
       }
     },
-  };
+  }), [mode, selectedState, globalYAxisLimits]); // Added globalYAxisLimits dependency
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label htmlFor="state-select-hybrid" style={{ fontWeight: '600', color: '#475569' }}>Select State:</label>
+      
+      {/* Filter Controls */}
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        
+        {/* Mode Selection Dropdown */}
+        <label style={{ fontWeight: '600', color: '#475569' }}>Mode:</label>
         <select
-          id="state-select-hybrid"
-          value={selectedState}
-          onChange={(e) => setSelectedState(e.target.value)}
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
           style={{
             padding: '8px 12px',
             borderRadius: '6px',
@@ -267,15 +344,39 @@ export default function MinMaxChartHybrid() {
             minWidth: '150px'
           }}
         >
-          {states.map(state => (
-            <option key={state} value={state}>{state}</option>
-          ))}
+          <option value="cumulative">Cumulative</option>
+          <option value="statewise">Statewise</option>
         </select>
+
+        {/* State Filter Dropdown - Only show for statewise mode */}
+        {mode === 'statewise' && states.length > 0 && (
+          <>
+            <label htmlFor="state-select-hybrid" style={{ fontWeight: '600', color: '#475569' }}>State:</label>
+            <select
+              id="state-select-hybrid"
+              value={selectedState}
+              onChange={(e) => setSelectedState(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                fontSize: '14px',
+                cursor: 'pointer',
+                minWidth: '100px'
+              }}
+            >
+              {states.map(state => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+          </>
+        )}
       </div>
 
+      {/* Chart Container */}
       <div style={{ height: '400px', width: '100%' }}>
-        {chartData && <Line data={chartData} options={options} />}
-        {!chartData && <p>No data available for this state.</p>}
+        {chartData && !loading && !error && <Line data={chartData} options={options} />}
+        {!chartData && !loading && !error && <p>No data available for this selection.</p>}
       </div>
     </div>
   );

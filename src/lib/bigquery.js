@@ -113,6 +113,112 @@ export async function getVehicleData(year = null) {
 
 // Returns the array of vehicle data from BigQuery
 // @param {string|null} year - Optional year filter (e.g., '2020', '2025', null for all years)
+// NEW: Fetch CNG data for YEARWISE (US Aggregate) from cng_forecast_final_prophet
+export async function getCNGDataYearwise(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  // Debug: Log environment variables
+  console.log('ENV DEBUG - Yearwise:', {
+    project: process.env.GCP_PROJECT_ID,
+    dataset: process.env.BIGQUERY_DATASET_2,
+    table: process.env.BIGQUERY_TABLE_5,
+    location: process.env.BIGQUERY_LOCATION_2
+  });
+  
+  const query = `
+    SELECT 
+      year,
+      cng_price,
+      predicted_cng_vehicles,
+      actual_cng_vehicles,
+      fuel_type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_5}\`
+    ORDER BY year
+  `;
+
+  console.log('Generated Query:', query);
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery CNG Yearwise Data Fetch - Rows Retrieved:', rows.length);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    console.error('Error fetching CNG yearwise data:', error);
+    throw error;
+  }
+}
+
+// NEW: Fetch CNG data for STATEWISE from cng_prophet_forecast_2010_2040_final
+export async function getCNGDataStatewise(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  // Debug: Log environment variables
+  console.log('ENV DEBUG - Statewise:', {
+    project: process.env.GCP_PROJECT_ID,
+    dataset: process.env.BIGQUERY_DATASET_2,
+    table: process.env.BIGQUERY_TABLE_9,
+    location: process.env.BIGQUERY_LOCATION_2
+  });
+  
+  const query = `
+    SELECT 
+      year,
+      state,
+      fuel_type,
+      cng_fuel_price,
+      actual_cng_vehicles,
+      predicted_cng_vehicles
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    ORDER BY year, state
+  `;
+
+  console.log('Generated Query:', query);
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery CNG Statewise Data Fetch - Rows Retrieved:', rows.length);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    console.error('Error fetching CNG statewise data:', error);
+    throw error;
+  }
+}
+
+// LEGACY: Keep for backward compatibility (currently used by old implementation)
 export async function getVehicleDataForMinMax(year = null) {
 
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
@@ -424,6 +530,91 @@ export async function getHybridVehicleDataForMinMax(year = null) {
     
     return filteredRows;
   } catch (error) {
+    throw error;
+  }
+}
+
+// NEW: Fetch Electric/Hybrid data for YEARWISE (US Aggregate) from electric_forecast_final_prophet
+export async function getElectricDataYearwise(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  
+  const query = `
+    SELECT 
+      year,
+      ev_price,
+      predicted_ev_vehicles,
+      actual_ev_vehicles,
+      fuel_type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_14}\`
+    ORDER BY year
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery Electric Yearwise Data Fetch - Rows Retrieved:', rows.length);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    console.error('Error fetching Electric yearwise data:', error);
+    throw error;
+  }
+}
+
+// NEW: Fetch Electric/Hybrid data for STATEWISE from electric_forecast_schema
+export async function getElectricDataStatewise(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+  //removed electric_price from select (electric_price,)
+  const query = `
+    SELECT 
+      year,
+      state,
+      fuel_type,
+      electric_price,
+      actual_ev_vehicles,
+      predicted_ev_vehicles
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    ORDER BY year, state
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery Electric Statewise Data Fetch - Rows Retrieved:', rows.length);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    console.error('Error fetching Electric statewise data:', error);
     throw error;
   }
 }

@@ -1,45 +1,67 @@
 import { NextResponse } from 'next/server';
-import { getHybridVehicleDataForMinMax } from '@/lib/bigquery';
+import { getElectricDataYearwise, getElectricDataStatewise } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 86400;
 
 export async function GET(request) {
   try {
+    // Get parameters from query string
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year') || 'all';
+    const dataType = searchParams.get('dataType') || 'statewise'; // 'yearwise' or 'statewise'
     
-    const data = await getHybridVehicleDataForMinMax(year === 'all' ? null : year);
-
-    // Transform data to match frontend chart format
-      const formattedVehicles = data.map((vehicle) => {
-       const normalized = Object.fromEntries(
-        Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
-      ); 
-        const yearVal = normalized.year;
-        const state = normalized.state;
+    let data;
+    let formattedVehicles;
+    
+    if (dataType === 'yearwise') {
+      // Fetch US aggregate data from electric_forecast_final_prophet
+      data = await getElectricDataYearwise(year === 'all' ? null : year);
       
-      // HYBRID SPECIFIC MAPPING
-      // We map the specific hybrid columns to the generic names expected by the chart
-      const vehicleCount = normalized.predicted_hybrid_vehicles || 0;
-      const actualVehicles = normalized.actual_hybrid_vehicles || 0;
+      // Transform yearwise data to match frontend format
+      formattedVehicles = data.map((vehicle) => {
+        const normalized = Object.fromEntries(
+          Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
+        );
+        
+        return {
+          year: parseInt(normalized.year) || 0,
+          state: 'US', // Yearwise data represents entire US
+          vehicleCount: parseInt(normalized.predicted_ev_vehicles) || 0,
+          actualVehicles: parseInt(normalized.actual_ev_vehicles) || 0,
+          dataType: 'yearwise'
+        };
+      });
       
-      return {
-        year: parseInt(yearVal) || 0,
-        state: state || '',
-        vehicleCount: parseInt(vehicleCount) || 0, // Maps to 'Forecasted Data'
-        actualVehicles: parseInt(actualVehicles) || 0, // Maps to 'Actual Data'
-      };
-    });
+    } else {
+      // Fetch state-wise data from electric_forecast_schema
+      data = await getElectricDataStatewise(year === 'all' ? null : year);
+      
+      // Transform statewise data to match frontend format
+      formattedVehicles = data.map((vehicle) => {
+        const normalized = Object.fromEntries(
+          Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
+        );
+        
+        return {
+          year: parseInt(normalized.year) || 0,
+          state: normalized.state || '',
+          vehicleCount: parseInt(normalized.predicted_ev_vehicles) || 0,
+          actualVehicles: parseInt(normalized.actual_ev_vehicles) || 0,
+          dataType: 'statewise'
+        };
+      });
+    }
 
     return NextResponse.json({
       success: true,
       data: formattedVehicles,
       count: formattedVehicles.length,
+      dataType: dataType
     });
     
   } catch (error) {
-    console.error('Hybrid API Error:', error);
+    console.error('Electric Hybrid API Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

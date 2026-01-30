@@ -38,32 +38,50 @@ const US_STATES = new Set([
 ]);
 
 export default function MinMaxChartCNG() {
-  const [rawData, setRawData] = useState([]);
+  const [yearwiseData, setYearwiseData] = useState([]);
+  const [statewiseData, setStatewiseData] = useState([]);
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Mode filter - 'cumulative' (US aggregate) or 'statewise'
+  const [mode, setMode] = useState('cumulative');
 
-  // 1. Fetch all data on mount
+  // 1. Fetch both datasets on mount for smooth transitions
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        // Reuse existing API that queries the correct BigQuery table
-        const response = await fetch('/api/vehicle-data-for-min-max?year=all');
-        const result = await response.json();
+        // Fetch both yearwise (cumulative) and statewise data in parallel
+        const [yearwiseResponse, statewiseResponse] = await Promise.all([
+          fetch('/api/vehicle-data-for-min-max?year=all&dataType=yearwise'),
+          fetch('/api/vehicle-data-for-min-max?year=all&dataType=statewise')
+        ]);
 
-        if (result.success && Array.isArray(result.data)) {
-          setRawData(result.data);
+        const [yearwiseResult, statewiseResult] = await Promise.all([
+          yearwiseResponse.json(),
+          statewiseResponse.json()
+        ]);
 
+        if (yearwiseResult.success && Array.isArray(yearwiseResult.data)) {
+          setYearwiseData(yearwiseResult.data);
+        }
+
+        if (statewiseResult.success && Array.isArray(statewiseResult.data)) {
+          setStatewiseData(statewiseResult.data);
+          
           // Extract unique states, FILTER for only US states, and sort them
-          const uniqueStates = [...new Set(result.data.map(item => item.state))]
-            .filter(state => US_STATES.has(state)) // <--- Only allow valid US states
+          const uniqueStates = [...new Set(statewiseResult.data.map(item => item.state))]
+            .filter(state => US_STATES.has(state))
             .sort();
           
           setStates(uniqueStates);
           
           // Default to first state if available, prioritize 'CA' if it exists
-          if (uniqueStates.length > 0) {
+          if (!selectedState && uniqueStates.length > 0) {
             setSelectedState(uniqueStates.includes('CA') ? 'CA' : uniqueStates[0]);
           }
         }
@@ -76,17 +94,28 @@ export default function MinMaxChartCNG() {
     };
 
     fetchData();
-  }, []);
+  }, []); // Fetch once on mount
 
-  // 2. Prepare Chart Data based on selected State
+  // 2. Prepare Chart Data based on mode and selected State using useMemo for smooth transitions
   const chartData = useMemo(() => {
-    if (!selectedState || rawData.length === 0) return null;
+    // Select data based on mode
+    let rawData;
+    let currentState;
+    
+    if (mode === 'cumulative') {
+      rawData = yearwiseData;
+      currentState = 'US';
+    } else {
+      rawData = statewiseData;
+      currentState = selectedState;
+    }
+    
+    if (!currentState || rawData.length === 0) return null;
 
     // Filter by selected state and Sort by Year
     const stateData = rawData
-      .filter(d => d.state === selectedState)
+      .filter(d => d.state === currentState)
       .sort((a, b) => a.year - b.year);
-
 
     const labels = stateData.map(d => d.year);
     // Hardcoding the year as we only have data till 2025
@@ -242,7 +271,7 @@ export default function MinMaxChartCNG() {
       ],
       suggestedMax // ← NEW: Return the calculated max value for Y-axis
     };
-  }, [selectedState, rawData]);
+  }, [yearwiseData, statewiseData, mode, selectedState]); // Updated dependencies for smooth transitions
 
   // ============= MODIFIED: Convert options to useMemo and use dynamic max =============
   const options = useMemo(() => ({
@@ -275,7 +304,9 @@ export default function MinMaxChartCNG() {
       },
       title: {
         display: true,
-        text: `CNG Vehicle Adoption Trend`,
+        text: mode === 'cumulative' 
+          ? `CNG Vehicle Adoption Trend - United States (Cumulative)` 
+          : `CNG Vehicle Adoption Trend - ${selectedState}`,
         align: 'start',
         font: { size: 16 }
       },
@@ -308,7 +339,7 @@ export default function MinMaxChartCNG() {
         grid: { display: false }
       }
     },
-  }), [chartData]); // ← NEW: Add chartData as dependency
+  }), [chartData, mode, selectedState]); // Updated dependencies
   // ============= END OF MODIFIED CODE =============
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
@@ -318,13 +349,14 @@ export default function MinMaxChartCNG() {
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
       
-      {/* State Filter Dropdown */}
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label htmlFor="state-select" style={{ fontWeight: '600', color: '#475569' }}>Select State:</label>
+      {/* Filter Controls */}
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        
+        {/* Mode Selection Dropdown */}
+        <label style={{ fontWeight: '600', color: '#475569' }}>Mode:</label>
         <select
-          id="state-select"
-          value={selectedState}
-          onChange={(e) => setSelectedState(e.target.value)}
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
           style={{
             padding: '8px 12px',
             borderRadius: '6px',
@@ -334,16 +366,41 @@ export default function MinMaxChartCNG() {
             minWidth: '150px'
           }}
         >
-          {states.map(state => (
-            <option key={state} value={state}>{state}</option>
-          ))}
+          <option value="cumulative">Cumulative</option>
+          <option value="statewise">Statewise</option>
         </select>
+
+        {/* State Filter Dropdown - Only show for statewise mode */}
+        {mode === 'statewise' && states.length > 0 && (
+          <>
+            <label htmlFor="state-select" style={{ fontWeight: '600', color: '#475569' }}>State:</label>
+            <select
+              id="state-select"
+              value={selectedState}
+              onChange={(e) => setSelectedState(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                fontSize: '14px',
+                cursor: 'pointer',
+                minWidth: '100px'
+              }}
+            >
+              {states.map(state => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+          </>
+        )}
       </div>
 
       {/* Chart Container */}
       <div style={{ height: '400px', width: '100%' }}>
-        {chartData && <Line data={chartData} options={options} />}
-        {!chartData && <p>No data available for this state.</p>}
+        {loading && <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>}
+        {error && <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>}
+        {chartData && !loading && !error && <Line data={chartData} options={options} />}
+        {!chartData && !loading && !error && <p>No data available for this selection.</p>}
       </div>
     </div>
   );
