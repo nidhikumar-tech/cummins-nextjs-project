@@ -238,6 +238,20 @@ export default function EmissionBarGraph() {
         {chartData && !loading && !error && <Bar data={chartData} options={options} />}
         {!chartData && !loading && !error && <p>No data available.</p>}
       </div>
+      <div style={{ marginTop: '16px', padding: '10px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+        {/* <div>
+          *The percentage above each bar shows the percentage of production that is consumed for that year.
+        </div>
+        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '2px' }}>
+          *MMcf = Million Cubic Feet
+        </div> */}
+        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>
+          <b>Emission Cert Status</b>: In this chart, Emission Cert Status is calculated as <b>VIN × TR Cert Result</b>.<br />
+          <b>VIN</b> = Number of certified vehicles (Vehicle Identification Numbers).<br />
+          <b>TR Cert Result</b>: The certified emission result for the test group, representing the measured pollutant emissions per unit work.<br />
+          <b>g/bhp-hr</b>: Grams per brake horsepower-hour, a standard unit for measuring pollutant emissions from engines (mass of pollutant emitted per unit of engine work).
+        </div>
+      </div>
     </div>
   );
 }

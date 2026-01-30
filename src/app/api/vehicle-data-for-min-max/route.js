@@ -1,48 +1,65 @@
 import { NextResponse } from 'next/server';
-import { getVehicleDataForMinMax } from '@/lib/bigquery';
+import { getCNGDataYearwise, getCNGDataStatewise } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Cache for 1 hour
 
 export async function GET(request) {
   try {
-    // Get year parameter from query string
+    // Get parameters from query string
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year') || 'all';
+    const dataType = searchParams.get('dataType') || 'statewise'; // 'yearwise' or 'statewise'
     
-    // Fetch data from BigQuery with year filter
-    const data = await getVehicleDataForMinMax(year === 'all' ? null : year);
-
-    // Transform data to match frontend format - handle flexible column names
-    const formattedVehicles = data.map((vehicle) => {
-      const normalized = Object.fromEntries(
-        Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
-      );
-      // Try different possible column name variations
-      const yearVal = normalized.year;
-      const state = normalized.state;
-      const vehicleCount = normalized.predicted_cng_vehicles || 
-                           normalized.predicted_vehicles || 
-                           normalized.vehicles || 0;
-      const cngPrice = normalized.cng_price || normalized.price || 0;
-      const actualVehicles = normalized.actual_cng_vehicles || 
-                             normalized.actual_vehicles || 0;
-      //const dataType = normalized.data_type || normalized.type || '';
+    let data;
+    let formattedVehicles;
+    
+    if (dataType === 'yearwise') {
+      // Fetch US aggregate data from cng_forecast_final_prophet
+      data = await getCNGDataYearwise(year === 'all' ? null : year);
       
-      return {
-        year: parseInt(yearVal) || 0,
-        state: state || '',
-        vehicleCount: parseInt(vehicleCount) || 0,
-        cngPrice: parseFloat(cngPrice) || 0,
-        actualVehicles: parseInt(actualVehicles) || 0,
-        //dataType: dataType,
-      };
-    });
+      // Transform yearwise data to match frontend format
+      formattedVehicles = data.map((vehicle) => {
+        const normalized = Object.fromEntries(
+          Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
+        );
+        
+        return {
+          year: parseInt(normalized.year) || 0,
+          state: 'US', // Yearwise data represents entire US
+          vehicleCount: parseInt(normalized.predicted_cng_vehicles) || 0,
+          cngPrice: parseFloat(normalized.cng_price) || 0,
+          actualVehicles: parseInt(normalized.actual_cng_vehicles) || 0,
+          dataType: 'yearwise'
+        };
+      });
+      
+    } else {
+      // Fetch state-wise data from cng_prophet_forecast_2010_2040_final
+      data = await getCNGDataStatewise(year === 'all' ? null : year);
+      
+      // Transform statewise data to match frontend format
+      formattedVehicles = data.map((vehicle) => {
+        const normalized = Object.fromEntries(
+          Object.entries(vehicle).map(([key, value]) => [key.toLowerCase(), value])
+        );
+        
+        return {
+          year: parseInt(normalized.year) || 0,
+          state: normalized.state || '',
+          vehicleCount: parseInt(normalized.predicted_cng_vehicles) || 0,
+          cngPrice: parseFloat(normalized.cng_fuel_price) || 0,
+          actualVehicles: parseInt(normalized.actual_cng_vehicles) || 0,
+          dataType: 'statewise'
+        };
+      });
+    }
 
     const response = NextResponse.json({
       success: true,
       data: formattedVehicles,
       count: formattedVehicles.length,
+      dataType: dataType
     });
     
     // Cache for 1 hour
@@ -68,6 +85,3 @@ export async function GET(request) {
     );
   }
 }
-
-// Cache for 1 hour
-// export const revalidate = 3600;

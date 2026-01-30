@@ -63,7 +63,7 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
       labels: barData.map(d => d.year),
       datasets: [
         {
-          label: 'Total Production',
+          label: 'Total CNG Production',
           data: barData.map(d => d.total_production),
           backgroundColor: prodColor,
           borderColor: borderColor,
@@ -72,7 +72,7 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
           categoryPercentage: 0.85,
         },
         {
-          label: 'Total Consumption',
+          label: 'Total CNG Consumption',
           data: barData.map(d => d.total_consumption),
           backgroundColor: consColor,
           borderColor: borderColor,
@@ -94,7 +94,7 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
       },
       title: {
         display: true,
-        text: ['Total Production vs Total Consumption (MMcf)', ''],
+        text: ['Total CNG Production vs Total CNG Consumption (MMcf)', ''],
         align: 'start',
         font: { size: 16 }
       },
