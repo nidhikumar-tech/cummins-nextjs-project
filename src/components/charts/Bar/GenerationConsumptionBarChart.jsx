@@ -42,8 +42,8 @@ export default function GenerationConsumptionBarChart() {
         { label: 'Source: Natural Gas', data: gen.map(d => d.natural_gas), backgroundColor: '#3b82f6', stack: STACK_GEN },
         { label: 'Source: Other Fossil', data: gen.map(d => d.other_fossil_gas), backgroundColor: '#60a5fa', stack: STACK_GEN },
         { label: 'Source: Nuclear', data: gen.map(d => d.nuclear), backgroundColor: '#93c5fd', stack: STACK_GEN },
-        { label: 'Source:Hydro', data: gen.map(d => d.hydroelectric), backgroundColor: '#0f766e', stack: STACK_GEN },
-        { label: 'Source:Other', data: gen.map(d => d.other), backgroundColor: '#14b8a6', stack: STACK_GEN },
+        { label: 'Source: Hydro', data: gen.map(d => d.hydroelectric), backgroundColor: '#0f766e', stack: STACK_GEN },
+        { label: 'Source: Other', data: gen.map(d => d.other), backgroundColor: '#14b8a6', stack: STACK_GEN },
 
         // --- CONSUMPTION (Red/Warm Tones) ---
         { label: 'Sector: Residential', data: cons.map(d => d.residential), backgroundColor: '#7f1d1d', stack: STACK_CONS },
