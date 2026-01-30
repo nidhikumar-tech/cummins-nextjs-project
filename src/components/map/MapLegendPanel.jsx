@@ -594,10 +594,10 @@ export default function MapLegendPanel({
                         type="radio"
                         name="vehicleFuelType"
                         className={styles.filterCheckbox}
-                        checked={vehicleFuelTypeFilter === 'hybrid'}
-                        onChange={() => setVehicleFuelTypeFilter('hybrid')}
+                        checked={vehicleFuelTypeFilter === 'electric'}
+                        onChange={() => setVehicleFuelTypeFilter('electric')}
                       />
-                      <span>Electric</span> {/*Changed for demo */}
+                      <span>Electric</span>
                     </label>
                   </div>
                 </div>

@@ -70,7 +70,7 @@ export async function getVehicleData(year = null) {
   SELECT 
       year, 
       state, 
-      cng_price AS price, 
+      cng_fuel_price AS price, 
       actual_cng_vehicles AS actual_vehicles, 
       predicted_cng_vehicles AS predicted_vehicles, 
       fuel_type
@@ -81,9 +81,9 @@ export async function getVehicleData(year = null) {
     SELECT 
       year, 
       state, 
-      hybrid_price AS price, 
-      actual_hybrid_vehicles AS actual_vehicles, 
-      predicted_hybrid_vehicles AS predicted_vehicles, 
+      electric_price AS price, 
+      actual_ev_vehicles AS actual_vehicles, 
+      predicted_ev_vehicles AS predicted_vehicles, 
       fuel_type
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
   `;
