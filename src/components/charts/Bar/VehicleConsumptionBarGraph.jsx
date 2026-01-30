@@ -53,7 +53,7 @@ export default function VehicleConsumptionBarGraph({ borderColor = '#facc15', ba
       labels: barData.map(d => d.year),
       datasets: [
         {
-          label: 'Vehicle fuel consumption',
+          label: 'Vehicle CNG Fuel Consumption',
           data: barData.map(d => d.total_vehicle_consumption),
           backgroundColor: backgroundColor,
           borderColor: borderColor,
@@ -75,7 +75,7 @@ export default function VehicleConsumptionBarGraph({ borderColor = '#facc15', ba
       },
       title: {
         display: true,
-        text: 'Vehicle Fuel Consumption (MMcf)',
+        text: 'Vehicle CNG Fuel Consumption (MMcf)',
         align: 'start',
         font: { size: 16 }
       },

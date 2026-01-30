@@ -64,7 +64,7 @@ export default function VinCountBarGraph({ prodColor = '#22c55e', consColor = '#
       labels: rawData.map(d => d.year),
       datasets: [
         {
-          label: 'total Count of VIN',
+          label: 'Total Count of VIN',
           data: rawData.map(d => d.actualVehicles),
           backgroundColor: prodColor,
           borderColor: borderColor,
@@ -73,7 +73,7 @@ export default function VinCountBarGraph({ prodColor = '#22c55e', consColor = '#
           categoryPercentage: 0.85,
         },
         {
-          label: 'total Count of CMI VIN',
+          label: 'Total Count of CMI VIN',
           data: rawData.map(d => d.cmiVin),
           backgroundColor: consColor,
           borderColor: borderColor,

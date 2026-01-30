@@ -133,7 +133,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
       };
     } else {
       // dataType === 'vehicles' - show both Actual Vehicles and CMI_VIN
-      const actualVehiclesLabel = fuelType === 'electric' ? 'Actual EV Vehicles' : 'Actual CNG Vehicles';
+      const actualVehiclesLabel = fuelType === 'electric' ? 'Actual EV VIN' : 'Actual CNG VIN';
       const cmiVinLabel = fuelType === 'electric' ? 'EV CMI VIN' : 'CNG CMI VIN';
       const actualVehiclesData = rawData.map(d => d.actualVehicles);
       const cmiVinData = rawData.map(d => d.cmiVin);
@@ -173,7 +173,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
       chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Price by Year`;
       yAxisLabel = 'Price ($)';
     } else if (dataType === 'annual_mileage') {
-      chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Annual Mileage by Year`;
+      chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Annual Mileage Per Truck by Year`;
       yAxisLabel = 'Annual Mileage (miles)';
     } else if (dataType === 'incentive') {
       chartTitle = `${fuelType === 'electric' ? 'Electric' : 'CNG'} Incentives by Year`;
