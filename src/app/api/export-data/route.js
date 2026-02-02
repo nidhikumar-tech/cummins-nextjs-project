@@ -1,59 +1,8 @@
 
 import { NextResponse } from 'next/server';
-import { getFuelStations, getCNGVehicleData, getHybridVehicleData, getProductionPlants } from '@/lib/bigquery';
-import fs from 'fs';
-import path from 'path';
-import Papa from 'papaparse';
+import { getFuelStations, getCNGVehicleData, getElectricVehicleData, getProductionPlants } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
-
-// Fallback function to read vehicle CSV
-async function getVehicleDataFromCSV() {
-  try {
-    const csvPath = path.join(process.cwd(), 'public', 'vehicle_demo_data.csv');
-    const fileContent = fs.readFileSync(csvPath, 'utf-8');
-    const parsed = Papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true,
-    });
-    return parsed.data;
-  } catch (error) {
-    console.error('CSV Fallback Error:', error.message);
-    return [];
-  }
-}
-
-// Fallback function to read fuel stations CSV
-async function getFuelStationsFromCSV() {
-  try {
-    const csvPath = path.join(process.cwd(), 'public', 'custom_fuel_dataset_5000.csv');
-    const fileContent = fs.readFileSync(csvPath, 'utf-8');
-    const parsed = Papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true,
-    });
-    return parsed.data;
-  } catch (error) {
-    console.error('Fuel Stations CSV Fallback Error:', error.message);
-    return [];
-  }
-}
-
-// Fallback function to read production plants CSV
-async function getProductionPlantsFromCSV() {
-  try {
-    const csvPath = path.join(process.cwd(), 'public', 'all_pp_cleaned.csv');
-    const fileContent = fs.readFileSync(csvPath, 'utf-8');
-    const parsed = Papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true,
-    });
-    return parsed.data;
-  } catch (error) {
-    console.error('Production Plants CSV Fallback Error:', error.message);
-    return [];
-  }
-}
 
 export async function GET(request) {
   try {
@@ -62,18 +11,14 @@ export async function GET(request) {
     const vehicleType = searchParams.get('vehicleType') || 'cng';
 
     let csvContent = '';
-    let dataSource = { stations: 'unknown', vehicles: 'unknown' };
-
+    
     if (type === 'stations' || type === 'all') {
       let stations;
       try {
         stations = await getFuelStations();
-        dataSource.stations = 'bigquery';
-        console.log('✅ Exported fuel stations from BigQuery:', stations.length);
+        console.log('Exported fuel stations from BigQuery:', stations.length);
       } catch (error) {
-        console.warn('⚠️ BigQuery failed for stations, using CSV fallback');
-        stations = await getFuelStationsFromCSV();
-        dataSource.stations = 'csv_fallback';
+        console.warn('BigQuery export failed for stations');
       }
       
       const stationHeaders = [
@@ -189,12 +134,9 @@ export async function GET(request) {
       if (vehicleType === 'cng') {
         try {
           vehicles = await getCNGVehicleData();
-          dataSource.vehicles = 'bigquery_cng';
-          console.log('✅ Exported CNG vehicle data from BigQuery:', vehicles.length);
+          console.log('Exported CNG vehicle data from BigQuery:', vehicles.length);
         } catch (error) {
-          console.warn('⚠️ BigQuery failed for CNG vehicles, using CSV fallback');
-          vehicles = await getVehicleDataFromCSV();
-          dataSource.vehicles = 'csv_fallback';
+          console.warn('BigQuery failed for CNG vehicles, using CSV fallback');
         }
         
         if (type === 'all' && csvContent) {
@@ -202,7 +144,7 @@ export async function GET(request) {
         }
         
         const vehicleHeaders = [
-          'Year', 'State', 'CNG_Price', 'Predicted_CNG_Vehicles', 'Actual_CNG_Vehicles', 'Data_Type'
+          'Year', 'State','Predicted_CNG_Vehicles', 'Actual_CNG_Vehicles', 'Fuel_Type'
         ];
         
         let vehiclesCsv = vehicleHeaders.join(',') + '\n';
@@ -210,10 +152,10 @@ export async function GET(request) {
           const row = [
             vehicle.year || vehicle.Year || '',
             vehicle.state || vehicle.State || '',
-            vehicle.cng_price || vehicle.CNG_Price || vehicle.cngPrice || '',
+            // vehicle.cng_price || vehicle.CNG_Price || vehicle.cngPrice || '',
             vehicle.predicted_cng_vehicles || vehicle.Predicted_CNG_Vehicles || vehicle.vehicleCount || '',
             vehicle.actual_cng_vehicles || vehicle.Actual_CNG_Vehicles || vehicle.actualVehicles || '',
-            vehicle.data_type || vehicle.Data_Type || vehicle.dataType || '',
+            // vehicle.data_type || vehicle.Data_Type || vehicle.dataType || '',
             vehicle.fuel_type || vehicle.Fuel_Type || vehicle.fuelType || ''
           ];
           vehiclesCsv += row.join(',') + '\n';
@@ -221,15 +163,12 @@ export async function GET(request) {
         
         csvContent += vehiclesCsv;
         
-      } else if (vehicleType === 'hybrid') {
+      } else if (vehicleType === 'electric') {
         try {
-          vehicles = await getHybridVehicleData();
-          dataSource.vehicles = 'bigquery_hybrid';
-          console.log('✅ Exported Hybrid vehicle data from BigQuery:', vehicles.length);
+          vehicles = await getElectricVehicleData();
+          console.log('Exported Electric vehicle data from BigQuery:', vehicles.length);
         } catch (error) {
-          console.warn('⚠️ BigQuery failed for Hybrid vehicles');
-          dataSource.vehicles = 'error';
-          vehicles = [];
+          console.warn('BigQuery failed for Electric vehicles');
         }
         
         if (type === 'all' && csvContent) {
@@ -237,7 +176,7 @@ export async function GET(request) {
         }
         
         const vehicleHeaders = [
-          'Year', 'State', 'Hybrid_Price', 'Predicted_Hybrid_Vehicles', 'Actual_Hybrid_Vehicles', 'Data_Type'
+          'Year', 'State', 'Predicted_EV_Vehicles', 'Actual_EV_Vehicles', 'Fuel_Type'
         ];
         
         let vehiclesCsv = vehicleHeaders.join(',') + '\n';
@@ -245,10 +184,11 @@ export async function GET(request) {
           const row = [
             vehicle.year || vehicle.Year || '',
             vehicle.state || vehicle.State || '',
-            vehicle.hybrid_price || vehicle.Hybrid_Price || '',
-            vehicle.predicted_hybrid_vehicles || vehicle.Predicted_Hybrid_Vehicles || '',
-            vehicle.actual_hybrid_vehicles || vehicle.Actual_Hybrid_Vehicles || '',
-            vehicle.data_type || vehicle.Data_Type || vehicle.dataType || ''
+            // vehicle.hybrid_price || vehicle.Hybrid_Price || '',
+            vehicle.predicted_ev_vehicles || vehicle.Predicted_EV_Vehicles || '',
+            vehicle.actual_ev_vehicles || vehicle.Actual_EV_Vehicles || '',
+            // vehicle.data_type || vehicle.Data_Type || vehicle.dataType || '',
+            vehicle.fuel_type || vehicle.Fuel_Type || vehicle.fuelType || ''
           ];
           vehiclesCsv += row.join(',') + '\n';
         });
@@ -261,12 +201,12 @@ export async function GET(request) {
       let plants;
       try {
         plants = await getProductionPlants();
-        dataSource.plants = 'bigquery';
-        console.log('✅ Exported production plants from BigQuery:', plants.length);
+        // dataSource.plants = 'bigquery';
+        console.log('Exported production plants from BigQuery:', plants.length);
       } catch (error) {
-        console.warn('⚠️ BigQuery failed for plants, using CSV fallback');
-        plants = await getProductionPlantsFromCSV();
-        dataSource.plants = 'csv_fallback';
+        console.warn('BigQuery failed for plants, using CSV fallback');
+        // plants = await getProductionPlantsFromCSV();
+        // dataSource.plants = 'csv_fallback';
       }
       
       const plantHeaders = ['Vendor', 'Operator', 'Latitude', 'Longitude', 'State', 'Fuel_Type'];
@@ -293,19 +233,19 @@ export async function GET(request) {
       filename = `fuel_stations_${dateStr}.csv`;
     } else if (type === 'vehicles') {
       if (vehicleType === 'cng') {
-        filename = `cng_xgboost_forecast_${dateStr}.csv`;
+        filename = `cng_forecast_${dateStr}.csv`;
       } else if (vehicleType === 'hybrid') {
-        filename = `hybrid_xgboost_forecast_${dateStr}.csv`;
+        filename = `electric_forecast_${dateStr}.csv`;
       }
     } else if (type === 'plants') {
       filename = `production_plants_${dateStr}.csv`;
     }
 
-    console.log('📥 Export completed:', {
+    console.log('Export completed:', {
       type,
       vehicleType,
       filename,
-      dataSource,
+      // dataSource,
       contentLength: csvContent.length
     });
 
@@ -314,13 +254,13 @@ export async function GET(request) {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="${filename}"`,
-        'X-Data-Source-Stations': dataSource.stations || 'n/a',
-        'X-Data-Source-Vehicles': dataSource.vehicles || 'n/a',
-        'X-Data-Source-Plants': dataSource.plants || 'n/a',
+        // 'X-Data-Source-Stations': dataSource.stations || 'n/a',
+        // 'X-Data-Source-Vehicles': dataSource.vehicles || 'n/a',
+        // 'X-Data-Source-Plants': dataSource.plants || 'n/a',
       },
     });
   } catch (error) {
-    console.error('❌ Export Error:', error);
+    console.error('Export Error:', error);
     return NextResponse.json(
       {
         success: false,

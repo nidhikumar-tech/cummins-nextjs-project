@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FileDown, Loader2, Info } from 'lucide-react';
 import { iconMap } from '@/constants/mapConfig';
 import styles from './MapComponent.module.css';
 
@@ -115,6 +116,9 @@ export default function MapLegendPanel({
   ];
 
   const isStateSelected = stateFilter && stateFilter !== 'all';
+
+  // -----------------------------------------------------------------------------------------------------------------------------
+
   const handleExport = async () => {
     if (isExporting) return;
     
@@ -122,7 +126,7 @@ export default function MapLegendPanel({
     try {
       // Handle "both" vehicle types - download 2 files sequentially
       if (exportType === 'vehicles' && vehicleDataType === 'both') {
-        console.log('📥 Downloading both CNG and Hybrid data...');
+        console.log('Downloading both CNG and Electric data...');
         
         // Download CNG first
         await downloadSingleFile('cng');
@@ -130,10 +134,10 @@ export default function MapLegendPanel({
         // Wait a bit before second download
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Download Hybrid second
-        await downloadSingleFile('hybrid');
+        // Download Electric second
+        await downloadSingleFile('electric');
         
-        console.log('✅ Both files downloaded successfully');
+        console.log('Both files downloaded successfully');
         setIsExportOpen(false);
       } else {
         // Single download
@@ -141,7 +145,7 @@ export default function MapLegendPanel({
         setIsExportOpen(false);
       }
     } catch (error) {
-      console.error('❌ Export error:', error);
+      console.error('Export error:', error);
       alert(`Failed to export data: ${error.message}\n\nPlease check the console for more details.`);
     } finally {
       setIsExporting(false);
@@ -150,7 +154,7 @@ export default function MapLegendPanel({
 
   // Helper function to download a single file
   const downloadSingleFile = async (vType) => {
-    console.log('📥 Starting export...', { type: exportType, vehicleType: vType });
+    console.log('Starting export...', { type: exportType, vehicleType: vType });
     
     let url = `/api/export-data?type=${exportType}`;
     if (exportType === 'vehicles' || exportType === 'all') {
@@ -163,10 +167,6 @@ export default function MapLegendPanel({
       throw new Error(`Export failed with status: ${response.status}`);
     }
     
-    const stationsSource = response.headers.get('X-Data-Source-Stations');
-    const vehiclesSource = response.headers.get('X-Data-Source-Vehicles');
-    console.log('📊 Data sources:', { stations: stationsSource, vehicles: vehiclesSource });
-    
     const blob = await response.blob();
     const blobUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -178,9 +178,9 @@ export default function MapLegendPanel({
       filename = `fuel_stations_${dateStr}.csv`;
     } else if (exportType === 'vehicles') {
       if (vType === 'cng') {
-        filename = `cng_xgboost_forecast_${dateStr}.csv`;
-      } else if (vType === 'hybrid') {
-        filename = `hybrid_xgboost_forecast_${dateStr}.csv`;
+        filename = `cng_forecast_${dateStr}.csv`;
+      } else if (vType === 'electric') {
+        filename = `electric_forecast_${dateStr}.csv`;
       }
     } else if (exportType === 'plants') {
       filename = `production_plants_${dateStr}.csv`;
@@ -192,8 +192,10 @@ export default function MapLegendPanel({
     window.URL.revokeObjectURL(blobUrl);
     document.body.removeChild(a);
     
-    console.log('✅ Export completed:', filename);
+    console.log('Export completed:', filename);
   };
+
+  // -------------------------------------------------------------------------
 
   return (
     <>
@@ -384,17 +386,17 @@ export default function MapLegendPanel({
                         checked={vehicleDataType === 'cng'}
                         onChange={() => setVehicleDataType('cng')}
                       />
-                      <span>CNG XGBoost Forecast</span>
+                      <span>CNG Forecast</span>
                     </label>
                     <label className={styles.filterLabel}>
                       <input
                         type="radio"
                         name="vehicleDataType"
                         className={styles.filterCheckbox}
-                        checked={vehicleDataType === 'hybrid'}
-                        onChange={() => setVehicleDataType('hybrid')}
+                        checked={vehicleDataType === 'electric'}
+                        onChange={() => setVehicleDataType('electric')}
                       />
-                      <span>Hybrid XGBoost Forecast</span>
+                      <span>Electric Forecast</span>
                     </label>
                     <label className={styles.filterLabel}>
                       <input
@@ -413,23 +415,24 @@ export default function MapLegendPanel({
               {/* Export Info */}
               <div className={styles.filterGroup}>
                 <div style={{ padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '8px', fontSize: '13px' }}>
-                  <p style={{ margin: '0 0 8px', fontWeight: '500', color: '#0369a1' }}>
-                    📊 Export Information
+                  <p style={{ margin: '0 0 8px', fontWeight: '500', color: '#0369a1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Info size={18} style={{ verticalAlign: 'middle' }} />
+                    Export Information
                   </p>
                   <p style={{ margin: '0', color: '#075985', lineHeight: '1.5' }}>
                     {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and availability status from BigQuery.'}
                     {exportType === 'vehicles' && (
                       <>
                         {vehicleDataType === 'cng' && 'Downloads CNG vehicle forecast data (2020-2040) including predicted/actual vehicles, CNG prices, and state-level data from BigQuery.'}
-                        {vehicleDataType === 'hybrid' && 'Downloads Hybrid vehicle forecast data (2020-2040) including predicted/actual vehicles, Hybrid prices, and state-level data from BigQuery.'}
-                        {vehicleDataType === 'both' && 'Downloads BOTH CNG and Hybrid vehicle forecast datasets as 2 separate CSV files from BigQuery.'}
+                        {vehicleDataType === 'electric' && 'Downloads Electric vehicle forecast data (2020-2040) including predicted/actual vehicles, Electric prices, and state-level data from BigQuery.'}
+                        {vehicleDataType === 'both' && 'Downloads BOTH CNG and Electric vehicle forecast datasets as 2 separate CSV files from BigQuery.'}
                       </>
                     )}
                     {exportType === 'plants' && 'Downloads production plant data including vendor, operator, location (latitude/longitude), state, and fuel type from BigQuery.'}
                   </p>
-                  <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>
-                    {isExporting ? 'Fetching data from BigQuery...' : 'Data source: BigQuery (with CSV fallback)'}
-                  </p>
+                  {/* <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>
+                    {isExporting ? 'Fetching data from BigQuery...' : 'Data source: BigQuery'}
+                  </p> */}
                 </div>
               </div>
 
@@ -448,13 +451,13 @@ export default function MapLegendPanel({
                 >
                   {isExporting ? (
                     <>
-                      <span>⏳</span>
-                      <span>Exporting...</span>
+                      <Loader2 size={18} className={styles.iconSpin} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                      <span style={{color: '#000000', opacity: 0.65}}>Exporting...</span>
                     </>
                   ) : (
                     <>
-                      <span>⬇️</span>
-                      <span style={{ textDecoration: 'underline'}}>Download CSV</span>
+                      <FileDown size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                      <span style={{color: '#000000', opacity: 0.65}}>Download CSV</span>
                     </>
                   )}
                 </button>
