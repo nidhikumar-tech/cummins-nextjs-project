@@ -245,7 +245,7 @@ export default function ProductionMap() {
           Production Infrastructure
         </h1>
         <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '800px' }}>
-          Visualizing energy production capacity and distribution networks across the United States.
+          Visualizing energy production and distribution networks across the United States.
         </p>
       </div>
 
