@@ -1,291 +1,279 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polyline } from "@react-google-maps/api";
 import { STATE_COORDINATES } from '@/constants/stateCoords';
 
-const mapContainerStyle = {
+// --- CONFIGURATION ---
+const LIBRARIES = ['places', 'visualization'];
+const US_CENTER = { lat: 39.8283, lng: -98.5795 };
+const MIN_PIN_SIZE = 5;
+const MAX_PIN_SIZE = 25;
+
+const MAP_CONTAINER_STYLE = {
   width: '100%',
-  height: '75vh',
-  borderRadius: '12px', // Slightly rounded corners for the map
+  height: '600px', 
+  borderRadius: '12px',
 };
 
-const US_CENTER = {
-  lat: 39.8283,
-  lng: -98.5795,
-};
-
-const options = {
+const MAP_OPTIONS = {
   disableDefaultUI: false,
   zoomControl: true,
   streetViewControl: false,
   mapTypeControl: false,
 };
 
-const MIN_PIN_SIZE = 5;
-const MAX_PIN_SIZE = 25;
-const libraries = ['places', 'visualization']; 
+// --- STYLES ---
+// [CHANGE] Updated color to RED
+const PIPELINE_OPTIONS = {
+  strokeColor: "#dc2626", // Vivid Red
+  strokeOpacity: 0.8,
+  strokeWeight: 4,
+  clickable: true,
+  zIndex: 1
+};
 
-export default function ProductionMap() {
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    libraries: libraries,
-  });
+const PIPELINE_HOVER_OPTIONS = {
+  strokeColor: "#991b1b", // Darker Red on Hover
+  strokeOpacity: 1.0,
+  strokeWeight: 6,
+  zIndex: 10
+};
 
-  const [productionType, setProductionType] = useState('cng'); // 'cng' or 'electric'
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+// --- INTERNAL COMPONENT: SINGLE MAP INSTANCE ---
+const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
   const [hoveredMarker, setHoveredMarker] = useState(null);
+  const [hoveredPipeline, setHoveredPipeline] = useState(null);
+  const [pipelineMousePos, setPipelineMousePos] = useState(null);
 
-  // Fetch data when type changes
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/production-map?type=${productionType}`);
-        const result = await response.json();
-        if (result.success) {
-          setData(result.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch production data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [productionType]);
-
-  // Merge API Data with Coordinate Data
-  // Process Data Points
-  // [REPLACE THIS ENTIRE BLOCK]
-  // Process Data Points and Extract Min/Max for Scaling
+  // 1. Process Pins
   const { plotData, minVal, maxVal } = useMemo(() => {
     if (!data || data.length === 0) return { plotData: [], minVal: 0, maxVal: 0 };
-
+    
     const mapped = data.map(item => {
-      // 1. Safety Check: Ensure state exists (handles both 'State' and 'state')
       if (!item.state) return null;
-
-      // 2. Normalize
       const stateCode = item.state.toString().trim().toUpperCase();
       const coords = STATE_COORDINATES[stateCode];
-
       if (!coords) return null;
-
       return {
         id: stateCode, 
         state: stateCode,
-        // Ensure we have a valid number, default to 0
         production: item.production || 0,
         lat: coords.lat,
         lng: coords.lng
       };
-    }).filter(Boolean); // Remove nulls
+    }).filter(Boolean);
 
-    // Calculate Min and Max for the scaling logic
     const productions = mapped.map(d => d.production);
-    const min = Math.min(...productions);
-    const max = Math.max(...productions);
-
-    return { plotData: mapped, minVal: min, maxVal: max };
+    return { 
+      plotData: mapped, 
+      minVal: Math.min(...productions), 
+      maxVal: Math.max(...productions) 
+    };
   }, [data]);
 
-  // Marker Icon
-  const markerIcon = {
-    url: '/images/round.png',
-    scaledSize: isLoaded ? new window.google.maps.Size(24, 24) : null,
-    anchor: isLoaded ? new window.google.maps.Point(12, 12) : null,
-  };
+  // 2. Process Pipelines
+  const processedPipelines = useMemo(() => {
+    if (!pipelines || pipelines.length === 0) return [];
+    return pipelines.map(pipe => {
+      try {
+        const rawCoords = typeof pipe.coordinates === 'string' ? JSON.parse(pipe.coordinates) : pipe.coordinates;
+        // Coordinates are [Longitude, Latitude]
+        const path = rawCoords.map(c => ({ lat: c[1], lng: c[0] }));
+        return { ...pipe, path };
+      } catch (e) { return null; }
+    }).filter(Boolean);
+  }, [pipelines]);
 
-  // [ADD THIS FUNCTION]
-  // Dynamic Size Calculator using Logarithmic Scale
+  // 3. Dynamic Icon Sizing
   const getIconForValue = (value) => {
     if (!isLoaded || !window.google) return null;
-
     let size = MIN_PIN_SIZE;
-
-    // Avoid division by zero if all values are the same
     if (maxVal > minVal && value > 0) {
-      // Logarithmic normalization
-      // formula: (log(val) - log(min)) / (log(max) - log(min))
-      const logMin = Math.log(Math.max(minVal, 1)); // Ensure min is at least 1
+      const logMin = Math.log(Math.max(minVal, 1)); 
       const logMax = Math.log(maxVal);
       const logVal = Math.log(Math.max(value, 1));
-
       const scale = (logVal - logMin) / (logMax - logMin);
-      
-      // Map scale (0.0 to 1.0) to pixel range (25px to 60px)
       size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     }
-
     return {
       url: '/images/round.png',
-      // Dynamic scaling
       scaledSize: new window.google.maps.Size(size, size),
-      // Anchor to the center so it grows outwards
       anchor: new window.google.maps.Point(size / 2, size / 2),
     };
   };
 
-  if (!isLoaded) return <div style={{ padding: '20px' }}>Loading Map...</div>;
+  if (!isLoaded) return <div style={{ height: '600px', background: '#f1f5f9', borderRadius: '12px' }} />;
+
+  return (
+    <div style={{ background: 'white', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+      <div style={{ marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>{title}</h2>
+        <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.875rem' }}>
+          {type === 'cng' ? 'Includes Production Plants & Pipelines' : 'Includes Production Plants Only'}
+        </p>
+      </div>
+
+      <GoogleMap mapContainerStyle={MAP_CONTAINER_STYLE} center={US_CENTER} zoom={4} options={MAP_OPTIONS}>
+        
+        {processedPipelines.map((pipe, idx) => (
+          <Polyline
+            key={`pipe-${idx}`}
+            path={pipe.path}
+            options={hoveredPipeline?.feature_id === pipe.feature_id ? PIPELINE_HOVER_OPTIONS : PIPELINE_OPTIONS}
+            onMouseOver={(e) => { setHoveredPipeline(pipe); setPipelineMousePos(e.latLng); }}
+            onMouseOut={() => { setHoveredPipeline(null); setPipelineMousePos(null); }}
+          />
+        ))}
+
+        {plotData.map((point) => (
+          <Marker
+            key={point.id}
+            position={{ lat: point.lat, lng: point.lng }}
+            icon={getIconForValue(point.production)}
+            onMouseOver={() => setHoveredMarker(point)}
+            onMouseOut={() => setHoveredMarker(null)}
+            zIndex={Math.floor(point.production) + 100}
+          />
+        ))}
+
+        {hoveredMarker && (
+          <InfoWindow
+            position={{ lat: hoveredMarker.lat, lng: hoveredMarker.lng }}
+            options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -20) }}
+            onCloseClick={() => setHoveredMarker(null)}
+          >
+            <div style={{ padding: '8px 4px', minWidth: '160px' }}>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
+                {hoveredMarker.state}
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748b' }}>
+                <div style={{ fontWeight: '600', color: '#475569', fontSize: '11px', textTransform: 'uppercase' }}>2024 Production</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>
+                  {hoveredMarker.production?.toLocaleString()}
+                  <span style={{ fontSize: '13px', marginLeft: '4px', fontWeight: '500', color: '#64748b' }}>
+                    {type === 'cng' ? 'MMcf' : 'MWh'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+
+        {hoveredPipeline && pipelineMousePos && (
+          <InfoWindow position={pipelineMousePos} options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -10) }} onCloseClick={() => setHoveredPipeline(null)}>
+            <div style={{ padding: '8px 4px', maxWidth: '250px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626', marginBottom: '6px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>CNG Pipeline</div>
+              <div style={{ display: 'grid', gap: '4px', fontSize: '12px' }}>
+                <div><span style={{ fontWeight: '600', color: '#475569' }}>Operator: </span>{hoveredPipeline.company_operator || 'Unknown'}</div>
+                <div><span style={{ fontWeight: '600', color: '#475569' }}>Status: </span>
+                  <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: '4px', background: '#dcfce7', color: '#166534', fontWeight: '600', fontSize: '11px' }}>
+                    {hoveredPipeline.operational_status || 'Active'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+
+      {/* --- CONDITIONAL LEGEND --- */}
+      <div style={{ 
+        marginTop: '16px', padding: '12px', background: '#f8fafc', 
+        borderRadius: '8px', fontSize: '13px', color: '#64748b',
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '20px'
+      }}>
+        {/* Item 1: Production Plant (Shown on both) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/images/round.png" alt="Point" style={{ width: '20px', height: '20px' }} />
+          <span>Production Plant</span>
+        </div>
+
+        {/* Item 2: Pipeline (Shown ONLY on CNG) */}
+        {type === 'cng' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '30px', height: '4px', background: '#dc2626', borderRadius: '2px' }}></div>
+            <span style={{ color: '#dc2626', fontWeight: '600' }}>CNG Pipelines</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ... (Rest of the file: ProductionMap function remains exactly the same) ...
+export default function ProductionMap() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries: LIBRARIES,
+  });
+
+  const [cngData, setCngData] = useState([]);
+  const [electricData, setElectricData] = useState([]);
+  const [pipelines, setPipelines] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch All Data on Mount
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [cngRes, elecRes, pipeRes] = await Promise.all([
+          fetch('/api/production-map?type=cng').then(r => r.json()),
+          fetch('/api/production-map?type=electric').then(r => r.json()),
+          fetch('/api/cng-pipelines').then(r => r.json())
+        ]);
+
+        if (cngRes.success) setCngData(cngRes.data);
+        if (elecRes.success) setElectricData(elecRes.data);
+        if (pipeRes.success) setPipelines(pipeRes.data);
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  if (loading && !isLoaded) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading Dashboard...</div>;
 
   return (
     <div style={{ padding: '32px 24px', maxWidth: '1600px', margin: '0 auto' }}>
       
-      {/* Header & Toggle Controls */}
-      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0' }}>
-            Production Plants
-          </h1>
-          <p style={{ color: '#64748b', margin: 0, fontSize: '1rem' }}>
-            *state-wise production for 2024
-          </p>
-        </div>
-
-        {/* Toggle Bar */}
-        <div style={{ 
-          display: 'flex', 
-          background: '#e2e8f0', 
-          padding: '4px', 
-          borderRadius: '8px',
-          gap: '4px'
-        }}>
-          <button
-            onClick={() => setProductionType('cng')}
-            style={{
-              padding: '8px 24px',
-              borderRadius: '6px',
-              border: 'none',
-              background: productionType === 'cng' ? 'white' : 'transparent',
-              color: productionType === 'cng' ? '#0f172a' : '#64748b',
-              fontWeight: '600',
-              fontSize: '14px',
-              boxShadow: productionType === 'cng' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            CNG (MMcf)
-          </button>
-          <button
-            onClick={() => setProductionType('electric')}
-            style={{
-              padding: '8px 24px',
-              borderRadius: '6px',
-              border: 'none',
-              background: productionType === 'electric' ? 'white' : 'transparent',
-              color: productionType === 'electric' ? '#0f172a' : '#64748b',
-              fontWeight: '600',
-              fontSize: '14px',
-              boxShadow: productionType === 'electric' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            Electric (MWh)
-          </button>
-        </div>
+      <div style={{ marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em' }}>
+          Production Infrastructure
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '800px' }}>
+          Visualizing energy production capacity and distribution networks across the United States.
+        </p>
       </div>
 
-      {/* Map Section */}
-      <div style={{ 
-        background: 'white', 
-        padding: '16px', 
-        borderRadius: '16px', 
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        position: 'relative',
-        border: '1px solid #e2e8f0'
-      }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
         
-        {loading && (
-          <div style={{
-            position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)',
-            zIndex: 10, background: 'rgba(255,255,255,0.95)', padding: '8px 16px', borderRadius: '20px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)', fontWeight: '600', fontSize: '14px', color: '#0f172a',
-            display: 'flex', alignItems: 'center', gap: '8px'
-          }}>
-            <div style={{
-              width: '12px', height: '12px', border: '2px solid #cbd5e1', 
-              borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite'
-            }} />
-            Loading Data...
-          </div>
-        )}
+        {/* MAP 1: CNG */}
+        <section>
+          <SingleMap 
+            title="CNG Infrastructure" 
+            type="cng" 
+            data={cngData} 
+            pipelines={pipelines} 
+            isLoaded={isLoaded} 
+          />
+        </section>
 
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={US_CENTER}
-          zoom={4}
-          options={options}
-        >
-          {plotData.map((point, idx) => (
-            <Marker
-                key={`${productionType}-${point.id}`}
-                position={{ lat: point.lat, lng: point.lng }}
-                icon={getIconForValue(point.production)}
-                onMouseOver={() => setHoveredMarker(point)}
-                onMouseOut={() => setHoveredMarker(null)}
-                zIndex={Math.floor(point.production)} 
-            />
-          ))}
+        {/* MAP 2: ELECTRIC */}
+        <section>
+          <SingleMap 
+            title="Electric Infrastructure" 
+            type="electric" 
+            data={electricData} 
+            pipelines={[]} 
+            isLoaded={isLoaded} 
+          />
+        </section>
 
-          {/* InfoWindow Popup */}
-          {hoveredMarker && (
-            <InfoWindow
-              position={{ lat: hoveredMarker.lat, lng: hoveredMarker.lng }}
-              options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -15) }}
-              onCloseClick={() => setHoveredMarker(null)}
-            >
-              <div style={{ padding: '8px 4px', minWidth: '160px' }}>
-                <div style={{ 
-                  fontSize: '16px', fontWeight: '700', color: '#0f172a', 
-                  marginBottom: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' 
-                }}>
-                  {hoveredMarker.state}
-                </div>
-                <div style={{ fontSize: '13px', color: '#64748b' }}>
-                  <div style={{ fontWeight: '600', color: '#475569', marginBottom: '2px', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>
-                    2024 Production
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>
-                    {hoveredMarker.production.toLocaleString()}
-                    <span style={{ fontSize: '13px', marginLeft: '4px', fontWeight: '500', color: '#64748b' }}>
-                        {productionType === 'cng' ? 'MMcf' : 'MWh'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </InfoWindow>
-          )}
-        </GoogleMap>
-        
-        {/* Helper Legend/Note */}
-        <div style={{ 
-          marginTop: '16px', 
-          padding: '12px', 
-          background: '#f8fafc', 
-          borderRadius: '8px', 
-          fontSize: '13px', 
-          color: '#64748b',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <img src="/images/round.png" alt="Point" style={{ width: '16px', height: '16px' }} />
-          <span>Each point represents a production facility location. Hover to view production volume.</span>
-        </div>
       </div>
-      
-      {/* Add keyframe animation for the loading spinner */}
-      <style jsx global>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
