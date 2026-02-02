@@ -22,6 +22,8 @@ const options = {
   mapTypeControl: false,
 };
 
+const MIN_PIN_SIZE = 5;
+const MAX_PIN_SIZE = 25;
 const libraries = ['places', 'visualization']; 
 
 export default function ProductionMap() {
@@ -57,35 +59,37 @@ export default function ProductionMap() {
 
   // Merge API Data with Coordinate Data
   // Process Data Points
-  const plotData = useMemo(() => {
-    if (!data || data.length === 0) return [];
+  // [REPLACE THIS ENTIRE BLOCK]
+  // Process Data Points and Extract Min/Max for Scaling
+  const { plotData, minVal, maxVal } = useMemo(() => {
+    if (!data || data.length === 0) return { plotData: [], minVal: 0, maxVal: 0 };
 
     const mapped = data.map(item => {
-      // [CHANGE] Look for lowercase 'state' (matching the new API alias)
+      // 1. Safety Check: Ensure state exists (handles both 'State' and 'state')
       if (!item.state) return null;
 
-      // Normalize: Remove spaces, force uppercase (e.g. " al " -> "AL")
+      // 2. Normalize
       const stateCode = item.state.toString().trim().toUpperCase();
-      
       const coords = STATE_COORDINATES[stateCode];
 
-      if (!coords) {
-        console.warn(`[ProductionMap] No coordinates found for state code: "${stateCode}"`);
-        return null;
-      }
+      if (!coords) return null;
 
       return {
         id: stateCode, 
         state: stateCode,
-        // [CHANGE] Look for lowercase 'production'
-        production: item.production, 
+        // Ensure we have a valid number, default to 0
+        production: item.production || 0,
         lat: coords.lat,
         lng: coords.lng
       };
-    }).filter(Boolean); 
+    }).filter(Boolean); // Remove nulls
 
-    console.log(`[ProductionMap] Successfully mapped ${mapped.length} points.`);
-    return mapped;
+    // Calculate Min and Max for the scaling logic
+    const productions = mapped.map(d => d.production);
+    const min = Math.min(...productions);
+    const max = Math.max(...productions);
+
+    return { plotData: mapped, minVal: min, maxVal: max };
   }, [data]);
 
   // Marker Icon
@@ -93,6 +97,36 @@ export default function ProductionMap() {
     url: '/images/round.png',
     scaledSize: isLoaded ? new window.google.maps.Size(24, 24) : null,
     anchor: isLoaded ? new window.google.maps.Point(12, 12) : null,
+  };
+
+  // [ADD THIS FUNCTION]
+  // Dynamic Size Calculator using Logarithmic Scale
+  const getIconForValue = (value) => {
+    if (!isLoaded || !window.google) return null;
+
+    let size = MIN_PIN_SIZE;
+
+    // Avoid division by zero if all values are the same
+    if (maxVal > minVal && value > 0) {
+      // Logarithmic normalization
+      // formula: (log(val) - log(min)) / (log(max) - log(min))
+      const logMin = Math.log(Math.max(minVal, 1)); // Ensure min is at least 1
+      const logMax = Math.log(maxVal);
+      const logVal = Math.log(Math.max(value, 1));
+
+      const scale = (logVal - logMin) / (logMax - logMin);
+      
+      // Map scale (0.0 to 1.0) to pixel range (25px to 60px)
+      size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
+    }
+
+    return {
+      url: '/images/round.png',
+      // Dynamic scaling
+      scaledSize: new window.google.maps.Size(size, size),
+      // Anchor to the center so it grows outwards
+      anchor: new window.google.maps.Point(size / 2, size / 2),
+    };
   };
 
   if (!isLoaded) return <div style={{ padding: '20px' }}>Loading Map...</div>;
@@ -107,7 +141,7 @@ export default function ProductionMap() {
             Production Plants
           </h1>
           <p style={{ color: '#64748b', margin: 0, fontSize: '1rem' }}>
-            State-wise production distribution for 2024
+            *state-wise production for 2024
           </p>
         </div>
 
@@ -189,11 +223,12 @@ export default function ProductionMap() {
         >
           {plotData.map((point, idx) => (
             <Marker
-              key={`${productionType}-${point.state}-${idx}`}
-              position={{ lat: point.lat, lng: point.lng }}
-              icon={markerIcon}
-              onMouseOver={() => setHoveredMarker(point)}
-              onMouseOut={() => setHoveredMarker(null)}
+                key={`${productionType}-${point.id}`}
+                position={{ lat: point.lat, lng: point.lng }}
+                icon={getIconForValue(point.production)}
+                onMouseOver={() => setHoveredMarker(point)}
+                onMouseOut={() => setHoveredMarker(null)}
+                zIndex={Math.floor(point.production)} 
             />
           ))}
 
