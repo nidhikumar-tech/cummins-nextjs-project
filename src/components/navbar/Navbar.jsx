@@ -59,16 +59,16 @@ export default function Navbar() {
       {pathname !== "/login" && (
         <div className={`${styles.navCenter} ${isMenuOpen ? styles.active : ""}`}>
           <Link
-            href="#"
-            className={`${styles.navLink} ${isActive("/dashboard/heatmap")}`}
+            href="/dashboard/production"
+            className={`${styles.navLink} ${isActive("/dashboard/production")}`}
             onClick={() => setIsMenuOpen(false)}
-            style={{ pointerEvents: "none", opacity: 0.5 }}
-            aria-disabled="true"
+            
+            
           >
             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
               <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
             </svg>
-            <span>Heatmap</span>
+            <span>Production</span>
           </Link>
 
           <Link

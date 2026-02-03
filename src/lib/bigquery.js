@@ -825,4 +825,83 @@ export async function getElectricityCapacityData() {
   }
 }
 
+
+
+// Production plants 
+export async function getStatewiseProductionData(type = 'cng') {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const table = type === 'cng' 
+    ? process.env.BIGQUERY_TABLE_15  // CNG Table
+    : process.env.BIGQUERY_TABLE_16; // Electric Table
+
+  
+  const query = `
+    SELECT *
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    
+    if (rows.length === 0) return [];
+
+    const normalizedRows = rows.map(row => {
+      const keys = Object.keys(row);
+      
+      //Find keys that look like 'state' or 'production'
+      const stateKey = keys.find(k => k.toLowerCase().replace(/[^a-z]/g, '') === 'state');
+      const prodKey = keys.find(k => k.toLowerCase().includes('production'));
+
+      return {
+        state: stateKey ? row[stateKey] : null,
+        production: prodKey ? row[prodKey] : 0
+      };
+    });
+
+    return normalizedRows.filter(r => r.state);
+    
+  } catch (error) {
+    console.error(`Error fetching ${type} production data:`, error);
+    throw error;
+  }
+}
+
+//To fetch CNG pipeline data
+export async function getCNGPipelinesData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  // Uses the new BIGQUERY_TABLE_17 variable
+  const query = `
+    SELECT 
+      feature_id, 
+      company_operator, 
+      operational_status, 
+      coordinates 
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_17}\`
+    LIMIT 1000 -- Optional safety limit if the table is massive
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching CNG Pipelines:", error);
+    throw error;
+  }
+}
 export default bigquery;
