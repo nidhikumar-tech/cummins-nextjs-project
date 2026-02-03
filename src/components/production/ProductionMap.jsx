@@ -24,7 +24,6 @@ const MAP_OPTIONS = {
 };
 
 // --- STYLES ---
-// [CHANGE] Updated color to RED
 const PIPELINE_OPTIONS = {
   strokeColor: "#dc2626", // Vivid Red
   strokeOpacity: 0.8,
@@ -34,7 +33,7 @@ const PIPELINE_OPTIONS = {
 };
 
 const PIPELINE_HOVER_OPTIONS = {
-  strokeColor: "#991b1b", // Darker Red on Hover
+  strokeColor: "#991b1b", 
   strokeOpacity: 1.0,
   strokeWeight: 6,
   zIndex: 10
@@ -46,7 +45,7 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
   const [hoveredPipeline, setHoveredPipeline] = useState(null);
   const [pipelineMousePos, setPipelineMousePos] = useState(null);
 
-  // 1. Process Pins
+  // 1. Process Pins (Production Data)
   const { plotData, minVal, maxVal } = useMemo(() => {
     if (!data || data.length === 0) return { plotData: [], minVal: 0, maxVal: 0 };
     
@@ -72,18 +71,76 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
     };
   }, [data]);
 
-  // 2. Process Pipelines
+  
+  // [DEBUG VERSION] Process Pipelines
   const processedPipelines = useMemo(() => {
     if (!pipelines || pipelines.length === 0) return [];
-    return pipelines.map(pipe => {
+
+    // Helper: recursively find all arrays that look like [[num, num], [num, num]...]
+    const extractPaths = (coords) => {
+      if (!Array.isArray(coords) || coords.length === 0) return [];
+
+      // Check if this current array IS a path (array of points)
+      // A point is [number, number]. So a path is [[num, num], ...]
+      const firstItem = coords[0];
+      
+      // Safety check for empty inner arrays
+      if (!firstItem) return [];
+
+      const isPoint = Array.isArray(firstItem) && 
+                      firstItem.length >= 2 && 
+                      typeof firstItem[0] === 'number';
+
+      if (isPoint) {
+        // We found a valid path! Return it wrapped in an array.
+        return [coords];
+      }
+
+      // If not a path, it might be a container (MultiLineString). Dig deeper.
+      if (Array.isArray(firstItem)) {
+        return coords.flatMap(child => extractPaths(child));
+      }
+
+      return [];
+    };
+
+    const drawablePaths = [];
+
+    pipelines.forEach((pipe, i) => {
       try {
-        const rawCoords = typeof pipe.coordinates === 'string' ? JSON.parse(pipe.coordinates) : pipe.coordinates;
-        // Coordinates are [Longitude, Latitude]
-        const path = rawCoords.map(c => ({ lat: c[1], lng: c[0] }));
-        return { ...pipe, path };
-      } catch (e) { return null; }
-    }).filter(Boolean);
+        if (!pipe.coordinates) return;
+
+        // Parse JSON if needed
+        const rawCoords = typeof pipe.coordinates === 'string' 
+          ? JSON.parse(pipe.coordinates) 
+          : pipe.coordinates;
+
+        // Extract all valid paths regardless of nesting depth
+        const paths = extractPaths(rawCoords);
+
+        // Map them to Google Maps format {lat, lng}
+        paths.forEach(pathSegment => {
+          // Double check it's a valid path with length
+          if (pathSegment.length > 0) {
+            const googlePath = pathSegment.map(c => ({
+              lat: c[1], // Index 1 is Latitude (Y)
+              lng: c[0]  // Index 0 is Longitude (X)
+            }));
+            drawablePaths.push({ ...pipe, path: googlePath });
+          }
+        });
+
+      } catch (e) {
+        console.warn(`Row ${i} failed to process`, e);
+      }
+    });
+
+    console.log(`[Pipeline Status] Input Rows: ${pipelines.length} -> Drawable Segments: ${drawablePaths.length}`);
+    
+    return drawablePaths;
   }, [pipelines]);
+  
+
 
   // 3. Dynamic Icon Sizing
   const getIconForValue = (value) => {
@@ -116,6 +173,7 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
 
       <GoogleMap mapContainerStyle={MAP_CONTAINER_STYLE} center={US_CENTER} zoom={4} options={MAP_OPTIONS}>
         
+        {/* Render Pipelines */}
         {processedPipelines.map((pipe, idx) => (
           <Polyline
             key={`pipe-${idx}`}
@@ -126,6 +184,7 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
           />
         ))}
 
+        {/* Render Pins */}
         {plotData.map((point) => (
           <Marker
             key={point.id}
@@ -137,6 +196,7 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
           />
         ))}
 
+        {/* Marker Popup */}
         {hoveredMarker && (
           <InfoWindow
             position={{ lat: hoveredMarker.lat, lng: hoveredMarker.lng }}
@@ -160,6 +220,7 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
           </InfoWindow>
         )}
 
+        {/* Pipeline Popup */}
         {hoveredPipeline && pipelineMousePos && (
           <InfoWindow position={pipelineMousePos} options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -10) }} onCloseClick={() => setHoveredPipeline(null)}>
             <div style={{ padding: '8px 4px', maxWidth: '250px' }}>
@@ -177,19 +238,17 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
         )}
       </GoogleMap>
 
-      {/* --- CONDITIONAL LEGEND --- */}
+      {/* --- LEGEND --- */}
       <div style={{ 
         marginTop: '16px', padding: '12px', background: '#f8fafc', 
         borderRadius: '8px', fontSize: '13px', color: '#64748b',
         display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '20px'
       }}>
-        {/* Item 1: Production Plant (Shown on both) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <img src="/images/round.png" alt="Point" style={{ width: '20px', height: '20px' }} />
-          <span>Production Plant</span>
+          <span>Production Plant (Log Scale)</span>
         </div>
 
-        {/* Item 2: Pipeline (Shown ONLY on CNG) */}
         {type === 'cng' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '30px', height: '4px', background: '#dc2626', borderRadius: '2px' }}></div>
@@ -201,7 +260,7 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
   );
 };
 
-// ... (Rest of the file: ProductionMap function remains exactly the same) ...
+// --- MAIN PAGE COMPONENT ---
 export default function ProductionMap() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -245,7 +304,7 @@ export default function ProductionMap() {
           Production Infrastructure
         </h1>
         <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '800px' }}>
-          Visualizing energy production and distribution networks across the United States.
+          Visualizing energy production capacity and distribution networks across the United States.
         </p>
       </div>
 
