@@ -888,7 +888,7 @@ export async function getCNGPipelinesData() {
       operational_status, 
       coordinates 
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_17}\`
-    LIMIT 1000 -- Optional safety limit if the table is massive
+    
   `;
 
   const options = {

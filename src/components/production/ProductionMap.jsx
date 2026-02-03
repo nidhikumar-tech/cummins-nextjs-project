@@ -40,7 +40,7 @@ const PIPELINE_HOVER_OPTIONS = {
 };
 
 // --- INTERNAL COMPONENT: SINGLE MAP INSTANCE ---
-const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
+const SingleMap = ({ title, type, data, pipelines = [], isLoaded, isLoading }) => {
   const [hoveredMarker, setHoveredMarker] = useState(null);
   const [hoveredPipeline, setHoveredPipeline] = useState(null);
   const [pipelineMousePos, setPipelineMousePos] = useState(null);
@@ -172,7 +172,36 @@ const SingleMap = ({ title, type, data, pipelines = [], isLoaded }) => {
       </div>
 
       <GoogleMap mapContainerStyle={MAP_CONTAINER_STYLE} center={US_CENTER} zoom={4} options={MAP_OPTIONS}>
-        
+        {isLoading && (
+          <div style={{
+            position: 'absolute', 
+            top: '10px', 
+            left: '50%', 
+            transform: 'translateX(-50%)',
+            zIndex: 50,
+            background: 'rgba(255, 255, 255, 0.95)',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#0891b2',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{
+              width: '14px', 
+              height: '14px', 
+              border: '2px solid #cbd5e1', 
+              borderTopColor: '#0891b2', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            Loading Pipeline Data...
+          </div>
+        )}
         {/* Render Pipelines */}
         {processedPipelines.map((pipe, idx) => (
           <Polyline
@@ -270,25 +299,35 @@ export default function ProductionMap() {
   const [cngData, setCngData] = useState([]);
   const [electricData, setElectricData] = useState([]);
   const [pipelines, setPipelines] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Initial page load
+  const [pipelinesLoading, setPipelinesLoading] = useState(true); // Specific to pipelines
 
+  // Fetch All Data on Mount
   // Fetch All Data on Mount
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [cngRes, elecRes, pipeRes] = await Promise.all([
+        // 1. Fetch Point Data first (Fast)
+        const [cngRes, elecRes] = await Promise.all([
           fetch('/api/production-map?type=cng').then(r => r.json()),
           fetch('/api/production-map?type=electric').then(r => r.json()),
-          fetch('/api/cng-pipelines').then(r => r.json())
         ]);
 
         if (cngRes.success) setCngData(cngRes.data);
         if (elecRes.success) setElectricData(elecRes.data);
+        
+        // Stop the main "page loading" spinner here so the map appears quickly
+        setLoading(false); 
+
+        // 2. Fetch Pipelines (Slow) - keep pipelinesLoading true
+        const pipeRes = await fetch('/api/cng-pipelines').then(r => r.json());
         if (pipeRes.success) setPipelines(pipeRes.data);
+        
       } catch (err) {
         console.error("Error loading dashboard data:", err);
+        setLoading(false); // Ensure main loader stops on error
       } finally {
-        setLoading(false);
+        setPipelinesLoading(false); // Stop pipeline spinner
       }
     };
     fetchAll();
@@ -318,6 +357,7 @@ export default function ProductionMap() {
             data={cngData} 
             pipelines={pipelines} 
             isLoaded={isLoaded} 
+            isLoading={pipelinesLoading}
           />
         </section>
 
