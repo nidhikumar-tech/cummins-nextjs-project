@@ -27,15 +27,15 @@ const MAP_OPTIONS = {
 const PIPELINE_OPTIONS = {
   strokeColor: "#dc2626", // Vivid Red
   strokeOpacity: 0.8,
-  strokeWeight: 4,
+  strokeWeight: 1,
   clickable: true,
   zIndex: 1
 };
 
 const PIPELINE_HOVER_OPTIONS = {
   strokeColor: "#991b1b", 
-  strokeOpacity: 1.0,
-  strokeWeight: 6,
+  strokeOpacity: 0.75,
+  strokeWeight: 4,
   zIndex: 10
 };
 
