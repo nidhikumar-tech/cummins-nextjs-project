@@ -619,8 +619,8 @@ export async function getElectricDataStatewise(year = null) {
   }
 }
 
-// Returns the array of HYBRID vehicle data
-export async function getHybridVehicleData(year = null) {
+// Returns the array of ELECTRIC vehicle data
+export async function getElectricVehicleData(year = null) {
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
     return [];
   }
