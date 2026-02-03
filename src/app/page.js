@@ -13,7 +13,7 @@ export default function Home() {
     if (!loading) {
       if (user) {
         
-        router.push("/dashboard/map");
+        router.push("/dashboard/predictions");
       } else {
         
         router.push("/login");

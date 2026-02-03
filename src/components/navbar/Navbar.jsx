@@ -26,7 +26,7 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       {/* Left Section - Logo */}
       <div className={styles.navLeft}>
-        <Link href="/dashboard/map" className={styles.logo}>
+        <Link href="/dashboard/predictions" className={styles.logo}>
           <svg
             className={styles.logoIcon}
             viewBox="0 0 40 40"
@@ -96,14 +96,14 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/dashboard/map"
-            className={`${styles.navLink} ${isActive("/dashboard/map")}`}
+            href="/dashboard/predictions"
+            className={`${styles.navLink} ${isActive("/dashboard/predictions")}`}
             onClick={() => setIsMenuOpen(false)}
           >
             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
             </svg>
-            <span>Map</span>
+            <span>Predictions</span>
           </Link>
         </div>
       )}
