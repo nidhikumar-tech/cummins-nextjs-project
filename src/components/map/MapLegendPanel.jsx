@@ -38,7 +38,8 @@ export default function MapLegendPanel({
 
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportType, setExportType] = useState('vehicles');
-  const [vehicleDataType, setVehicleDataType] = useState('cng'); // 'cng', 'hybrid', or 'both'
+  const [vehicleDataType, setVehicleDataType] = useState('cng'); // 'cng', 'electric', or 'both'
+  const [aggregationType, setAggregationType] = useState('statewise'); // 'statewise' or 'cumulative'
   const [isExporting, setIsExporting] = useState(false);
   
   // Generate years array from 2020 to 2040
@@ -154,11 +155,11 @@ export default function MapLegendPanel({
 
   // Helper function to download a single file
   const downloadSingleFile = async (vType) => {
-    console.log('Starting export...', { type: exportType, vehicleType: vType });
+    console.log('Starting export...', { type: exportType, vehicleType: vType, aggregationType });
     
     let url = `/api/export-data?type=${exportType}`;
     if (exportType === 'vehicles' || exportType === 'all') {
-      url += `&vehicleType=${vType}`;
+      url += `&vehicleType=${vType}&aggregationType=${aggregationType}`;
     }
     
     const response = await fetch(url);
@@ -178,9 +179,9 @@ export default function MapLegendPanel({
       filename = `fuel_stations_${dateStr}.csv`;
     } else if (exportType === 'vehicles') {
       if (vType === 'cng') {
-        filename = `cng_forecast_${dateStr}.csv`;
+        filename = `cng_${aggregationType}_forecast_${dateStr}.csv`;
       } else if (vType === 'electric') {
-        filename = `electric_forecast_${dateStr}.csv`;
+        filename = `electric_${aggregationType}_forecast_${dateStr}.csv`;
       }
     } else if (exportType === 'plants') {
       filename = `production_plants_${dateStr}.csv`;
@@ -375,41 +376,57 @@ export default function MapLegendPanel({
 
               {/* Vehicle Dataset Type Selection - Only show when Vehicle Data is selected */}
               {exportType === 'vehicles' && (
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Vehicle Dataset Type</h4>
-                  <div className={styles.filterItems}>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleDataType"
-                        className={styles.filterCheckbox}
-                        checked={vehicleDataType === 'cng'}
-                        onChange={() => setVehicleDataType('cng')}
-                      />
-                      <span>CNG Forecast</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleDataType"
-                        className={styles.filterCheckbox}
-                        checked={vehicleDataType === 'electric'}
-                        onChange={() => setVehicleDataType('electric')}
-                      />
-                      <span>Electric Forecast</span>
-                    </label>
-                    <label className={styles.filterLabel}>
-                      <input
-                        type="radio"
-                        name="vehicleDataType"
-                        className={styles.filterCheckbox}
-                        checked={vehicleDataType === 'both'}
-                        onChange={() => setVehicleDataType('both')}
-                      />
-                      <span>Both (2 separate files)</span>
-                    </label>
+                <>
+                  <div className={styles.filterGroup}>
+                    <h4 className={styles.filterGroupTitle}>Aggregation Type</h4>
+                    <div className={styles.filterItems}>
+                      <select
+                        className={styles.filterSelect}
+                        value={aggregationType}
+                        onChange={(e) => setAggregationType(e.target.value)}
+                      >
+                        <option value="statewise">Statewise</option>
+                        <option value="cumulative">Cumulative (US Aggregate)</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
+
+                  <div className={styles.filterGroup}>
+                    <h4 className={styles.filterGroupTitle}>Vehicle Dataset Type</h4>
+                    <div className={styles.filterItems}>
+                      <label className={styles.filterLabel}>
+                        <input
+                          type="radio"
+                          name="vehicleDataType"
+                          className={styles.filterCheckbox}
+                          checked={vehicleDataType === 'cng'}
+                          onChange={() => setVehicleDataType('cng')}
+                        />
+                        <span>CNG {aggregationType === 'statewise' ? 'Statewise' : 'Cumulative'} Forecast</span>
+                      </label>
+                      <label className={styles.filterLabel}>
+                        <input
+                          type="radio"
+                          name="vehicleDataType"
+                          className={styles.filterCheckbox}
+                          checked={vehicleDataType === 'electric'}
+                          onChange={() => setVehicleDataType('electric')}
+                        />
+                        <span>Electric {aggregationType === 'statewise' ? 'Statewise' : 'Cumulative'} Forecast</span>
+                      </label>
+                      <label className={styles.filterLabel}>
+                        <input
+                          type="radio"
+                          name="vehicleDataType"
+                          className={styles.filterCheckbox}
+                          checked={vehicleDataType === 'both'}
+                          onChange={() => setVehicleDataType('both')}
+                        />
+                        <span>Both (2 separate files)</span>
+                      </label>
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Export Info */}
@@ -423,9 +440,9 @@ export default function MapLegendPanel({
                     {exportType === 'stations' && 'Downloads fuel station data including location, fuel type, and availability status from BigQuery.'}
                     {exportType === 'vehicles' && (
                       <>
-                        {vehicleDataType === 'cng' && 'Downloads CNG vehicle forecast data (2020-2040) including predicted/actual vehicles, CNG prices, and state-level data from BigQuery.'}
-                        {vehicleDataType === 'electric' && 'Downloads Electric vehicle forecast data (2020-2040) including predicted/actual vehicles, Electric prices, and state-level data from BigQuery.'}
-                        {vehicleDataType === 'both' && 'Downloads BOTH CNG and Electric vehicle forecast datasets as 2 separate CSV files from BigQuery.'}
+                        {vehicleDataType === 'cng' && `Downloads CNG ${aggregationType} vehicle forecast data (2020-2040) including predicted/actual vehicles${aggregationType === 'statewise' ? ', CNG prices, and state-level' : ' and US aggregate'} data from BigQuery.`}
+                        {vehicleDataType === 'electric' && `Downloads Electric ${aggregationType} vehicle forecast data (2020-2040) including predicted/actual vehicles${aggregationType === 'statewise' ? ', Electric prices, and state-level' : ' and US aggregate'} data from BigQuery.`}
+                        {vehicleDataType === 'both' && `Downloads BOTH CNG and Electric ${aggregationType} vehicle forecast datasets as 2 separate CSV files from BigQuery.`}
                       </>
                     )}
                     {exportType === 'plants' && 'Downloads production plant data including vendor, operator, location (latitude/longitude), state, and fuel type from BigQuery.'}

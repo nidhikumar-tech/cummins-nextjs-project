@@ -1,6 +1,13 @@
 
 import { NextResponse } from 'next/server';
-import { getFuelStations, getCNGVehicleData, getElectricVehicleData, getProductionPlants } from '@/lib/bigquery';
+import { 
+  getFuelStations, 
+  getCNGVehicleData, 
+  getElectricVehicleData, 
+  getCNGVehicleDataForLineChart,
+  getElectricVehicleDataForLineChart,
+  getProductionPlants 
+} from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +16,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';
     const vehicleType = searchParams.get('vehicleType') || 'cng';
+    const aggregationType = searchParams.get('aggregationType') || 'statewise';
 
     let csvContent = '';
     
@@ -133,31 +141,47 @@ export async function GET(request) {
       
       if (vehicleType === 'cng') {
         try {
-          vehicles = await getCNGVehicleData();
-          console.log('Exported CNG vehicle data from BigQuery:', vehicles.length);
+          // Use different functions based on aggregationType
+          if (aggregationType === 'cumulative') {
+            vehicles = await getCNGVehicleDataForLineChart();
+          } else {
+            vehicles = await getCNGVehicleData();
+          }
+          console.log(`Exported CNG vehicle data (${aggregationType}) from BigQuery:`, vehicles.length);
         } catch (error) {
-          console.warn('BigQuery failed for CNG vehicles, using CSV fallback');
+          console.warn('BigQuery failed for CNG vehicles');
         }
         
         if (type === 'all' && csvContent) {
           csvContent += '\n\n';
         }
         
-        const vehicleHeaders = [
-          'Year', 'State','Predicted_CNG_Vehicles', 'Actual_CNG_Vehicles', 'Fuel_Type'
-        ];
+        // Headers vary based on aggregationType
+        const vehicleHeaders = aggregationType === 'cumulative'
+          ? ['Year', 'CNG_Price', 'Predicted_CNG_Vehicles', 'Actual_CNG_Vehicles', 'Fuel_Type', 'Annual_Mileage', 'Incentive', 'CMI_VIN']
+          : ['Year', 'State', 'CNG_Fuel_Price', 'Predicted_CNG_Vehicles', 'Actual_CNG_Vehicles', 'Fuel_Type'];
         
         let vehiclesCsv = vehicleHeaders.join(',') + '\n';
         vehicles.forEach(vehicle => {
-          const row = [
-            vehicle.year || vehicle.Year || '',
-            vehicle.state || vehicle.State || '',
-            // vehicle.cng_price || vehicle.CNG_Price || vehicle.cngPrice || '',
-            vehicle.predicted_cng_vehicles || vehicle.Predicted_CNG_Vehicles || vehicle.vehicleCount || '',
-            vehicle.actual_cng_vehicles || vehicle.Actual_CNG_Vehicles || vehicle.actualVehicles || '',
-            // vehicle.data_type || vehicle.Data_Type || vehicle.dataType || '',
-            vehicle.fuel_type || vehicle.Fuel_Type || vehicle.fuelType || ''
-          ];
+          const row = aggregationType === 'cumulative'
+            ? [
+                vehicle.year || '',
+                vehicle.cng_price || '',
+                vehicle.predicted_cng_vehicles || '',
+                vehicle.actual_cng_vehicles || '',
+                vehicle.fuel_type || '',
+                vehicle.annual_mileage || '',
+                vehicle.incentive || '',
+                vehicle.CMI_VIN || ''
+              ]
+            : [
+                vehicle.year || '',
+                vehicle.state || '',
+                vehicle.cng_fuel_price || '',
+                vehicle.predicted_cng_vehicles || '',
+                vehicle.actual_cng_vehicles || '',
+                vehicle.fuel_type || ''
+              ];
           vehiclesCsv += row.join(',') + '\n';
         });
         
@@ -165,8 +189,13 @@ export async function GET(request) {
         
       } else if (vehicleType === 'electric') {
         try {
-          vehicles = await getElectricVehicleData();
-          console.log('Exported Electric vehicle data from BigQuery:', vehicles.length);
+          // Use different functions based on aggregationType
+          if (aggregationType === 'cumulative') {
+            vehicles = await getElectricVehicleDataForLineChart();
+          } else {
+            vehicles = await getElectricVehicleData();
+          }
+          console.log(`Exported Electric vehicle data (${aggregationType}) from BigQuery:`, vehicles.length);
         } catch (error) {
           console.warn('BigQuery failed for Electric vehicles');
         }
@@ -175,21 +204,32 @@ export async function GET(request) {
           csvContent += '\n\n';
         }
         
-        const vehicleHeaders = [
-          'Year', 'State', 'Predicted_EV_Vehicles', 'Actual_EV_Vehicles', 'Fuel_Type'
-        ];
+        // Headers vary based on aggregationType
+        const vehicleHeaders = aggregationType === 'cumulative'
+          ? ['Year', 'EV_Price', 'Predicted_EV_Vehicles', 'Actual_EV_Vehicles', 'Fuel_Type', 'Annual_Mileage', 'Incentive', 'CMI_VIN']
+          : ['Year', 'State', 'Electric_Price', 'Predicted_EV_Vehicles', 'Actual_EV_Vehicles', 'Fuel_Type'];
         
         let vehiclesCsv = vehicleHeaders.join(',') + '\n';
         vehicles.forEach(vehicle => {
-          const row = [
-            vehicle.year || vehicle.Year || '',
-            vehicle.state || vehicle.State || '',
-            // vehicle.hybrid_price || vehicle.Hybrid_Price || '',
-            vehicle.predicted_ev_vehicles || vehicle.Predicted_EV_Vehicles || '',
-            vehicle.actual_ev_vehicles || vehicle.Actual_EV_Vehicles || '',
-            // vehicle.data_type || vehicle.Data_Type || vehicle.dataType || '',
-            vehicle.fuel_type || vehicle.Fuel_Type || vehicle.fuelType || ''
-          ];
+          const row = aggregationType === 'cumulative'
+            ? [
+                vehicle.year || '',
+                vehicle.ev_price || '',
+                vehicle.predicted_ev_vehicles || '',
+                vehicle.actual_ev_vehicles || '',
+                vehicle.fuel_type || '',
+                vehicle.annual_mileage || '',
+                vehicle.incentive || '',
+                vehicle.CMI_VIN || ''
+              ]
+            : [
+                vehicle.year || '',
+                vehicle.state || '',
+                vehicle.electric_price || '',
+                vehicle.predicted_ev_vehicles || '',
+                vehicle.actual_ev_vehicles || '',
+                vehicle.fuel_type || ''
+              ];
           vehiclesCsv += row.join(',') + '\n';
         });
         
@@ -201,12 +241,9 @@ export async function GET(request) {
       let plants;
       try {
         plants = await getProductionPlants();
-        // dataSource.plants = 'bigquery';
         console.log('Exported production plants from BigQuery:', plants.length);
       } catch (error) {
-        console.warn('BigQuery failed for plants, using CSV fallback');
-        // plants = await getProductionPlantsFromCSV();
-        // dataSource.plants = 'csv_fallback';
+        console.warn('BigQuery failed for plants');
       }
       
       const plantHeaders = ['Vendor', 'Operator', 'Latitude', 'Longitude', 'State', 'Fuel_Type'];
@@ -233,9 +270,9 @@ export async function GET(request) {
       filename = `fuel_stations_${dateStr}.csv`;
     } else if (type === 'vehicles') {
       if (vehicleType === 'cng') {
-        filename = `cng_forecast_${dateStr}.csv`;
-      } else if (vehicleType === 'hybrid') {
-        filename = `electric_forecast_${dateStr}.csv`;
+        filename = `cng_${aggregationType}_forecast_${dateStr}.csv`;
+      } else if (vehicleType === 'electric' || vehicleType === 'hybrid') {
+        filename = `electric_${aggregationType}_forecast_${dateStr}.csv`;
       }
     } else if (type === 'plants') {
       filename = `production_plants_${dateStr}.csv`;
@@ -244,8 +281,8 @@ export async function GET(request) {
     console.log('Export completed:', {
       type,
       vehicleType,
+      aggregationType,
       filename,
-      // dataSource,
       contentLength: csvContent.length
     });
 
@@ -254,9 +291,6 @@ export async function GET(request) {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="${filename}"`,
-        // 'X-Data-Source-Stations': dataSource.stations || 'n/a',
-        // 'X-Data-Source-Vehicles': dataSource.vehicles || 'n/a',
-        // 'X-Data-Source-Plants': dataSource.plants || 'n/a',
       },
     });
   } catch (error) {
