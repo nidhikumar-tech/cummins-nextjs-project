@@ -905,37 +905,5 @@ export async function getCNGPipelinesData() {
   }
 }
 
-// lib/bigquery.js
 
-export async function getElectricCapacityPredictions(state) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
-    return [];
-  }
-
-  const query = `
-    SELECT 
-      year, 
-      actual_capacity_mwh, 
-      predicted_capacity_mwh, 
-      min_predicted_capacity_mwh, 
-      max_predicted_capacity_mwh
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_18}\`
-    WHERE state = @state
-    ORDER BY year ASC
-  `;
-
-  const options = {
-    query: query,
-    params: { state: state },
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
-  };
-
-  try {
-    const [rows] = await bigquery.query(options);
-    return rows;
-  } catch (error) {
-    console.error(`Error fetching Electric Predictions for ${state}:`, error);
-    throw error;
-  }
-}
 export default bigquery;

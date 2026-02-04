@@ -6,7 +6,7 @@ import VinCountBarGraph from './Bar/VinCountBarGraph';
 import EmissionBarGraph from './Bar/EmissionBarGraph';
 import GenerationConsumptionBarChart from './Bar/GenerationConsumptionBarChart';
 import CapacityBarChart from './Bar/CapacityBarChart';
-import ElectricCapacityPredictionChart from './Line/ElectricCapacityPredictionChart';
+
 
 export default function ChartComponent() {
   return (
@@ -48,35 +48,7 @@ export default function ChartComponent() {
         </div>
       </div>
 
-      <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
-        <div style={{marginBottom: '32px', textAlign: 'center'}}>
-          <h1 style={{fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em'}}>
-            Predictions
-          </h1>
-        </div>
-        
-        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
-          
-          {/* 1. Electric Prediction Chart */}
-          <ElectricCapacityPredictionChart />
-          
-          {/* 2. Placeholder for Future CNG Chart */}
-          <div style={{
-            background: '#f1f5f9', 
-            borderRadius: '12px', 
-            border: '2px dashed #cbd5e1', 
-            height: '500px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: '#94a3b8',
-            fontWeight: '600'
-          }}>
-            CNG Forecast (Coming Soon)
-          </div>
-
-        </div>
-      </div>
+      
     </div>
   );
 }
