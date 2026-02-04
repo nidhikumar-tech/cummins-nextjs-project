@@ -60,6 +60,8 @@ jobs:
             --platform managed \
             --region $REGION \
             --allow-unauthenticated \
+            --port=3000
+            --memory=1Gi
             --memory=512Mi \
             --cpu=1 \
             --max-instances=10 \
