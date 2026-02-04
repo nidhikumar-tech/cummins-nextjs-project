@@ -61,7 +61,7 @@ jobs:
             --region $REGION \
             --allow-unauthenticated \
             --port=3000 \
-            --memory=512Mi \
+            --memory=1Gi \
             --cpu=1 \
             --max-instances=10 \
             --min-instances=0 \
