@@ -91,7 +91,14 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6,
-            fill: false
+            fill: false,
+            spanGaps: true,
+            segment: {
+              borderDash: ctx => {
+                // Use dotted line when connecting across missing data
+                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+              }
+            }
           }
         ]
       };
@@ -109,7 +116,14 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6,
-            fill: false
+            fill: false,
+            spanGaps: true,
+            segment: {
+              borderDash: ctx => {
+                // Use dotted line when connecting across missing data
+                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+              }
+            }
           }
         ]
       };
@@ -127,7 +141,14 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6,
-            fill: false
+            fill: false,
+            spanGaps: true,
+            segment: {
+              borderDash: ctx => {
+                // Use dotted line when connecting across missing data
+                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+              }
+            }
           }
         ]
       };
@@ -149,7 +170,14 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6,
-            fill: false
+            fill: false,
+            spanGaps: true,
+            segment: {
+              borderDash: ctx => {
+                // Use dotted line when connecting across missing data
+                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+              }
+            }
           },
           {
             label: cmiVinLabel,
@@ -159,7 +187,14 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
             tension: 0.3,
             pointRadius: 4,
             pointHoverRadius: 6,
-            fill: false
+            fill: false,
+            spanGaps: true,
+            segment: {
+              borderDash: ctx => {
+                // Use dotted line when connecting across missing data
+                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+              }
+            }
           }
         ]
       };
