@@ -19,12 +19,12 @@ export default function ChartComponent() {
           </h1>
         </div>
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
-          <LineChart dataType="vehicles" showFuelTypeSelector={true} borderColor='#10b981' backgroundColor='#10b981'/>
-          <LineChart dataType="price" showFuelTypeSelector={true} borderColor='#f59e0b' backgroundColor='#f59e0b' />
+          <LineChart dataType="vehicles" showFuelTypeSelector={true} showAggregateSelector={true} borderColor='#10b981' backgroundColor='#10b981'/>
+          <LineChart dataType="price" showFuelTypeSelector={true} showAggregateSelector={true} borderColor='#f59e0b' backgroundColor='#f59e0b' />
         </div>
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
           <LineChart dataType="incentive" showFuelTypeSelector={true} borderColor='#2563eb' backgroundColor='#2563eb'/>
-          <LineChart dataType="annual_mileage" showFuelTypeSelector={true} borderColor='#fb7185' backgroundColor='#fb7185' />
+          <LineChart dataType="annual_mileage" showFuelTypeSelector={true} showAggregateSelector={true} borderColor='#fb7185' backgroundColor='#fb7185' />
         </div>
       </div>
       <div style={{padding: '32px 24px', background:'#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>

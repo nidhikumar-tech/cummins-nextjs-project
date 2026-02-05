@@ -970,4 +970,97 @@ export async function getCNGCapacityPredictions(state) {
     throw error;
   }
 }
+
+// NEW: Fetch Electric data for LINE CHART STATEWISE from electric_prophet_forecast_2010_2040_final
+export async function getElectricDataStatewiseForLineChart(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      year,
+      state,
+      fuel_type,
+      ev_price,
+      actual_ev_vehicles,
+      predicted_ev_vehicles,
+      annual_mileage,
+      CMI_VIN
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_20}\`
+    WHERE year <= 2025
+    ORDER BY year, state
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery Electric Statewise Line Chart Data Fetch - Rows Retrieved:', rows.length);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    console.error('Error fetching Electric statewise line chart data:', error);
+    throw error;
+  }
+}
+
+// NEW: Fetch CNG data for LINE CHART STATEWISE from cng_prophet_forecast_2010_2040_final
+export async function getCNGDataStatewiseForLineChart(year = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      year,
+      state,
+      fuel_type,
+      cng_price,
+      actual_cng_vehicles,
+      predicted_cng_vehicles,
+      annual_mileage,
+      CMI_VIN
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_21}\`
+    WHERE year <= 2025
+    ORDER BY year, state
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery CNG Statewise Line Chart Data Fetch - Rows Retrieved:', rows.length);
+    
+    // Filter by year in JavaScript if needed
+    let filteredRows = rows;
+    if (year && year !== 'all') {
+      filteredRows = rows.filter(row => {
+        const rowYear = row.year || row.Year || row.YEAR;
+        return String(rowYear) === String(year);
+      });
+    }
+    
+    return filteredRows;
+  } catch (error) {
+    console.error('Error fetching CNG statewise line chart data:', error);
+    throw error;
+  }
+}
+
 export default bigquery;
