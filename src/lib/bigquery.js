@@ -905,6 +905,7 @@ export async function getCNGPipelinesData() {
   }
 }
 
+//Electric capacity prediction chart
 export async function getElectricCapacityPredictions(state) {
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
     return [];
@@ -937,4 +938,36 @@ export async function getElectricCapacityPredictions(state) {
   }
 }
 
+//cng capacity prediction chart
+export async function getCNGCapacityPredictions(state) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      year, 
+      actual_capacity_mmcf, 
+      predicted_capacity_mmcf, 
+      min_predicted_capacity_mmcf, 
+      max_predicted_capacity_mmcf
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_19}\`
+    WHERE state = @state
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    params: { state: state },
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error(`Error fetching CNG Predictions for ${state}:`, error);
+    throw error;
+  }
+}
 export default bigquery;

@@ -7,6 +7,7 @@ import EmissionBarGraph from './Bar/EmissionBarGraph';
 import GenerationConsumptionBarChart from './Bar/GenerationConsumptionBarChart';
 import CapacityBarChart from './Bar/CapacityBarChart';
 import ElectricCapacityPredictionChart from './Line/ElectricCapacityPredictionChart';
+import CNGCapacityPredictionChart from './Line/CNGCapacityPredictionChart';
 
 export default function ChartComponent() {
   return (
@@ -60,23 +61,13 @@ export default function ChartComponent() {
           {/* 1. Electric Prediction Chart */}
           <ElectricCapacityPredictionChart />
           
-          {/* 2. Placeholder for Future CNG Chart */}
-          <div style={{
-            background: '#f1f5f9', 
-            borderRadius: '12px', 
-            border: '2px dashed #cbd5e1', 
-            height: '500px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: '#94a3b8',
-            fontWeight: '600'
-          }}>
-            CNG Forecast (Coming Soon)
-          </div>
+          {/* 2. CNG Prediction Chart (Replaced Placeholder) */}
+          <CNGCapacityPredictionChart />
 
         </div>
+
       </div>
+      
     </div>
   );
 }
