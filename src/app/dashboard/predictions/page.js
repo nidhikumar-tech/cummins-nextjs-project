@@ -1,12 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import MapComponent from "@/components/predictions/MapComponent";
+import PredictionComponent from "@/components/predictions/PredictionComponent";
 
-export default function MapRoute() {
+export default function PredictionRoute() {
   return (
     <DashboardLayout>
-      <MapComponent/>
+      <PredictionComponent/>
     </DashboardLayout>
   );
 }

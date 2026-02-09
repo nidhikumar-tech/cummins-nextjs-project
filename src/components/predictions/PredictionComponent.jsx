@@ -3,7 +3,7 @@
 import MinMaxChartCNG from './MinMaxChartCNG';
 import MinMaxChartHybrid from './MinMaxChartHybrid';
 
-export default function MapComponent() {
+export default function PredictionComponent() {
   return (
     <div>
       <div style={{padding: '32px 24px', background: '#f8f9fa', minHeight: '60vh', maxWidth: '1600px', margin: '0 auto'}}>

@@ -1,33 +1,8 @@
 import { useState } from 'react';
 import { FileDown, Loader2, Info } from 'lucide-react';
 import { iconMap } from '@/constants/mapConfig';
-import styles from './MapComponent.module.css';
 
-export default function MapLegendPanel({ 
-  selectedFuelType,
-  selectFuelType,
-  stationStatusFilter,
-  setStationStatusFilter,
-  stateFilter,
-  setStateFilter,
-  ownershipFilter,
-  setOwnershipFilter,
-  stationCount, 
-  isFilterOpen, 
-  setIsFilterOpen,
-  showHeatmap,
-  setShowHeatmap,
-  selectedYear,
-  setSelectedYear,
-  vehicleFuelTypeFilter,
-  setVehicleFuelTypeFilter,
-  heatmapPointCount,
-  vehiclesLoading,
-  showProductionPlants,
-  setShowProductionPlants,
-  ppFilters,    
-  setPpFilters
-}) {
+export default function MapLegendPanel({   selectedFuelType,  selectFuelType,  stationStatusFilter,  setStationStatusFilter,  stateFilter,  setStateFilter,  ownershipFilter,  setOwnershipFilter,  stationCount,   isFilterOpen,   setIsFilterOpen,  showHeatmap,  setShowHeatmap,  selectedYear,  setSelectedYear,  vehicleFuelTypeFilter,  setVehicleFuelTypeFilter,  heatmapPointCount,  vehiclesLoading,  showProductionPlants,  setShowProductionPlants,  ppFilters,   setPpFilters}) {
   //Helper to toggle specific fuel filters
   const togglePpFilter = (type) => {
     setPpFilters(prev => ({
@@ -201,10 +176,10 @@ export default function MapLegendPanel({
   return (
     <>
       <button 
-          className={styles.filterTriggerButton}
+          style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 16px', background: 'white', color: 'black', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', opacity: 0.65}}
           onClick={() => setIsFilterOpen(true)}
         >
-          <span>Apply Filters</span><span className={styles.spanChild}></span>
+          <span>Apply Filters</span><span style={{backgroundImage: 'url(/images/down.png)', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'contain', width: '25px', height: '25px', border: 'none', cursor: 'pointer'}}></span>
       </button>
       
 {/* Disabled - Panel to show number of heatpoints and fuel stations in focus
@@ -226,7 +201,7 @@ export default function MapLegendPanel({
 */}
       {/*Disabled for Demo ->*/}
       
-      <div className={styles.filterTriggerSection} style={{ marginBottom: '16px', display:'none'}}>
+      <div style={{background: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)', padding: '20px', marginBottom: '16px', display:'none'}}>
          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
            <label style={{ 
               display: 'flex', 
@@ -246,7 +221,7 @@ export default function MapLegendPanel({
                 disabled={!isStateSelected} 
                 style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
               />
-              <span className={styles.filterTriggerButton}>
+              <span style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 16px', background: 'white', color: 'black', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', opacity: 0.65}}>
                 Show Production Plants
               </span>
            </label>
@@ -297,14 +272,14 @@ export default function MapLegendPanel({
       {/* Disabled for Demo ^ */}
 
       {/* Legend  */}
-      <div className={styles.legendSection}>
-        <h3 className={styles.sectionTitle}>Legend</h3>
+      <div style={{background: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)', padding: '20px'}}>
+        <h3 style={{textAlign: 'center', textDecoration: 'underline', fontSize: '1rem', fontWeight: '600', color: '#000000', margin: '0', opacity: 0.65, marginBottom: '16px'}}>Legend</h3>
         {legends.map(({ key, label, icon }) => (
-          <div key={key} className={styles.legendItem}>
-            <img src={icon} className={styles.legendIcon} alt={label} />
-            <span className={styles.legendLabel}>{label}</span>
+          <div key={key} style={{display: 'flex', alignItems: 'center', marginBottom: '12px', gap: '12px'}}>
+            <img src={icon} style={{width: '24px', height: '24px', flexShrink: 0}} alt={label} />
+            <span style={{fontSize: '0.875rem', color: '#475569'}}>{label}</span>
           </div>
-        ))}
+        ))})
       </div>
       
 
@@ -312,7 +287,7 @@ export default function MapLegendPanel({
       {/* Download button*/}
       <div>
         <button 
-          className={styles.downloadButton}
+          style={{backgroundImage: 'url(/images/download.png)', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'contain', width: '40px', height: '40px', border: 'none', cursor: 'pointer', backgroundColor: '#4299E1'}}
           onClick={() => setIsExportOpen(true)}
         >
         </button>
@@ -321,51 +296,51 @@ export default function MapLegendPanel({
     
       {/* Export Slide Panel */}
       {isExportOpen && (
-        <div className={styles.filterOverlay} onClick={() => setIsExportOpen(false)}>
+        <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', zIndex: 1000, animation: 'fadeIn 0.3s ease'}} onClick={() => setIsExportOpen(false)}>
           <div 
-            className={`${styles.filterSlidePanel} ${isExportOpen ? styles.open : ''}`}
+            style={{position: 'fixed', top: 0, right: isExportOpen ? 0 : '-400px', width: '334px', height: '100vh', background: 'white', boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.15)', transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 1001, display: 'flex', flexDirection: 'column'}}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles.filterPanelHeader}>
-              <h3 className={styles.filterPanelTitle}>Export Data</h3>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', borderBottom: '1px solid #e2e8f0', background: '#ffffff'}}>
+              <h3 style={{fontSize: '1.25rem', fontWeight: '600', color: '#000000', opacity: 0.65, margin: 0}}>Export Data</h3>
               <button 
-                className={styles.closeButton}
+                style={{width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '1.25rem', color: '#64748b', cursor: 'pointer', transition: 'all 0.2s'}}
                 onClick={() => setIsExportOpen(false)}
               >
                 ✕
               </button>
             </div>
             
-            <div className={styles.filterPanelContent}>
+            <div style={{flex: 1, padding: '24px', overflowY: 'auto'}}>
               {/* Export Type Selection */}
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Select Data to Export</h4>
-                <div className={styles.filterItems}>
-                  <label className={styles.filterLabel}>
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Select Data to Export</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="exportType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={exportType === 'stations'}
                       onChange={() => setExportType('stations')}
                     />
                     <span>Fuel Stations Only</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="exportType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={exportType === 'vehicles'}
                       onChange={() => setExportType('vehicles')}
                     />
                     <span>Vehicle Data Only</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="exportType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={exportType === 'plants'}
                       onChange={() => setExportType('plants')}
                     />
@@ -377,11 +352,11 @@ export default function MapLegendPanel({
               {/* Vehicle Dataset Type Selection - Only show when Vehicle Data is selected */}
               {exportType === 'vehicles' && (
                 <>
-                  <div className={styles.filterGroup}>
-                    <h4 className={styles.filterGroupTitle}>Aggregation Type</h4>
-                    <div className={styles.filterItems}>
+                  <div style={{marginBottom: '24px'}}>
+                    <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Aggregation Type</h4>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                       <select
-                        className={styles.filterSelect}
+                        style={{width: '100%', padding: '10px 10px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600', cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%2364748b\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '40px'}}
                         value={aggregationType}
                         onChange={(e) => setAggregationType(e.target.value)}
                       >
@@ -391,34 +366,34 @@ export default function MapLegendPanel({
                     </div>
                   </div>
 
-                  <div className={styles.filterGroup}>
-                    <h4 className={styles.filterGroupTitle}>Vehicle Dataset Type</h4>
-                    <div className={styles.filterItems}>
-                      <label className={styles.filterLabel}>
+                  <div style={{marginBottom: '24px'}}>
+                    <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Vehicle Dataset Type</h4>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                      <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                         <input
                           type="radio"
                           name="vehicleDataType"
-                          className={styles.filterCheckbox}
+                          style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                           checked={vehicleDataType === 'cng'}
                           onChange={() => setVehicleDataType('cng')}
                         />
                         <span>CNG {aggregationType === 'statewise' ? 'Statewise' : 'Cumulative'} Forecast</span>
                       </label>
-                      <label className={styles.filterLabel}>
+                      <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                         <input
                           type="radio"
                           name="vehicleDataType"
-                          className={styles.filterCheckbox}
+                          style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                           checked={vehicleDataType === 'electric'}
                           onChange={() => setVehicleDataType('electric')}
                         />
                         <span>Electric {aggregationType === 'statewise' ? 'Statewise' : 'Cumulative'} Forecast</span>
                       </label>
-                      <label className={styles.filterLabel}>
+                      <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                         <input
                           type="radio"
                           name="vehicleDataType"
-                          className={styles.filterCheckbox}
+                          style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                           checked={vehicleDataType === 'both'}
                           onChange={() => setVehicleDataType('both')}
                         />
@@ -430,7 +405,7 @@ export default function MapLegendPanel({
               )}
 
               {/* Export Info */}
-              <div className={styles.filterGroup}>
+              <div style={{marginBottom: '24px'}}>
                 <div style={{ padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '8px', fontSize: '13px' }}>
                   <p style={{ margin: '0 0 8px', fontWeight: '500', color: '#0369a1', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Info size={18} style={{ verticalAlign: 'middle' }} />
@@ -454,17 +429,11 @@ export default function MapLegendPanel({
               </div>
 
               {/* Export Button */}
-              <div className={styles.filterGroup}>
+              <div style={{marginBottom: '24px'}}>
                 <button 
-                  className={styles.filterTriggerButton}
+                  style={{width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', background: 'white', color: 'black', border: 'none', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', opacity: isExporting ? 0.6 : 1}}
                   onClick={handleExport}
                   disabled={isExporting}
-                  style={{ 
-                    width: '100%', 
-                    justifyContent: 'center',
-                    opacity: isExporting ? 0.6 : 1,
-                    cursor: isExporting ? 'not-allowed' : 'pointer'
-                  }}
                 >
                   {isExporting ? (
                     <>
@@ -487,28 +456,28 @@ export default function MapLegendPanel({
 
       {/* Filter Slide Panel */}
       {isFilterOpen && (
-        <div className={styles.filterOverlay} onClick={() => setIsFilterOpen(false)}>
+        <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', zIndex: 1000, animation: 'fadeIn 0.3s ease'}} onClick={() => setIsFilterOpen(false)}>
           <div 
-            className={`${styles.filterSlidePanel} ${isFilterOpen ? styles.open : ''}`}
+            style={{position: 'fixed', top: 0, right: isFilterOpen ? 0 : '-400px', width: '334px', height: '100vh', background: 'white', boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.15)', transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 1001, display: 'flex', flexDirection: 'column'}}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles.filterPanelHeader}>
-              <h3 className={styles.filterPanelTitle}>Apply Filters</h3>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', borderBottom: '1px solid #e2e8f0', background: '#ffffff'}}>
+              <h3 style={{fontSize: '1.25rem', fontWeight: '600', color: '#000000', opacity: 0.65, margin: 0}}>Apply Filters</h3>
               <button 
-                className={styles.closeButton}
+                style={{width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '1.25rem', color: '#64748b', cursor: 'pointer', transition: 'all 0.2s'}}
                 onClick={() => setIsFilterOpen(false)}
               >
                 ✕
               </button>
             </div>
             
-            <div className={styles.filterPanelContent}>
+            <div style={{flex: 1, padding: '24px', overflowY: 'auto'}}>
               {/* State Filter */}
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>State</h4>
-                <div className={styles.filterItems}>
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>State</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                   <select
-                    className={styles.filterSelect}
+                    style={{width: '100%', padding: '10px 10px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600', cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%2364748b\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '40px'}}
                     value={stateFilter}
                     onChange={(e) => setStateFilter(e.target.value)}
                   >
@@ -526,34 +495,34 @@ export default function MapLegendPanel({
 
 
               {/* View Mode Filter - Heatmap Only or Fuel Stations Only or Both*/}
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>View Mode</h4>
-                <div className={styles.filterItems}>
-                  <label className={styles.filterLabel}>
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>View Mode</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="viewMode"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={showHeatmap === 'markers'}
                       onChange={() => setShowHeatmap('markers')}
                     />
                     <span>Fuel Stations Only</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="viewMode"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={showHeatmap === 'heatmap'}
                       onChange={() => setShowHeatmap('heatmap')}
                     />
                     <span>Heatmap Only</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="viewMode"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={showHeatmap === 'both'}
                       onChange={() => setShowHeatmap('both')}
                     />
@@ -566,11 +535,11 @@ export default function MapLegendPanel({
 
               {/* Year Filter - for Heatmap */}
               {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Heatmap - Year</h4>
-                  <div className={styles.filterItems}>
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Heatmap - Year</h4>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                     <select
-                      className={styles.filterSelect}
+                      style={{width: '100%', padding: '10px 10px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600', cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23333\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '40px'}}
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
                     >
@@ -586,34 +555,34 @@ export default function MapLegendPanel({
 
               {/* Vehicle Fuel Type Filter - for Heatmap */}
               {(showHeatmap === 'heatmap' || showHeatmap === 'both') && (
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterGroupTitle}>Heatmap - Vehicle Type</h4>
-                  <div className={styles.filterItems}>
-                    <label className={styles.filterLabel}>
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Heatmap - Vehicle Type</h4>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                    <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                       <input
                         type="radio"
                         name="vehicleFuelType"
-                        className={styles.filterCheckbox}
+                        style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                         checked={vehicleFuelTypeFilter === 'all'}
                         onChange={() => setVehicleFuelTypeFilter('all')}
                       />
                       <span>All Vehicle Types</span>
                     </label>
-                    <label className={styles.filterLabel}>
+                    <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                       <input
                         type="radio"
                         name="vehicleFuelType"
-                        className={styles.filterCheckbox}
+                        style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                         checked={vehicleFuelTypeFilter === 'cng'}
                         onChange={() => setVehicleFuelTypeFilter('cng')}
                       />
                       <span>CNG</span>
                     </label>
-                    <label className={styles.filterLabel}>
+                    <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                       <input
                         type="radio"
                         name="vehicleFuelType"
-                        className={styles.filterCheckbox}
+                        style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                         checked={vehicleFuelTypeFilter === 'electric'}
                         onChange={() => setVehicleFuelTypeFilter('electric')}
                       />
@@ -627,44 +596,44 @@ export default function MapLegendPanel({
 
 
               {/* Fuel Type Filter - Fuel Stations */}
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Fuel Stations - Fuel Type</h4>
-                <div className={styles.filterItems}>
-                  <label className={styles.filterLabel}>
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Fuel Stations - Fuel Type</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="fuelType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={selectedFuelType === 'all'}
                       onChange={() => selectFuelType('all')}
                     />
                     <span>All Fuel Types</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="fuelType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={selectedFuelType === 'cng'}
                       onChange={() => selectFuelType('cng')}
                     />
                     <span>CNG</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="fuelType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={selectedFuelType === 'elec'}
                       onChange={() => selectFuelType('elec')}
                     />
                     <span>Electric</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="fuelType"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={selectedFuelType === 'diesel'}
                       onChange={() => selectFuelType('diesel')}
                     />
@@ -681,34 +650,34 @@ export default function MapLegendPanel({
 
               
               {/* Station Status Filter - Fuel Stations*/}
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Fuel Stations - Station Status</h4>
-                <div className={styles.filterItems}>
-                  <label className={styles.filterLabel}>
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Fuel Stations - Station Status</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="stationStatus"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={stationStatusFilter === 'all'}
                       onChange={() => setStationStatusFilter('all')}
                     />
                     <span>All</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="stationStatus"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={stationStatusFilter === 'available'}
                       onChange={() => setStationStatusFilter('available')}
                     />
                     <span>Available</span>
                   </label>
-                  <label className={styles.filterLabel}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
                     <input
                       type="radio"
                       name="stationStatus"
-                      className={styles.filterCheckbox}
+                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
                       checked={stationStatusFilter === 'planned'}
                       onChange={() => setStationStatusFilter('planned')}
                     />
@@ -719,11 +688,11 @@ export default function MapLegendPanel({
 
               {/* Station Type Filter - Fuel Stations*/}
               
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterGroupTitle}>Fuel Stations - Station Type</h4>
-                <div className={styles.filterItems}>
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '0.875rem', fontWeight: '600', color: '#000000', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '2px solid #e2e8f0'}}>Fuel Stations - Station Type</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                   <select 
-                    className={styles.filterSelect}
+                    style={{width: '100%', padding: '10px 10px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600', cursor: 'pointer', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23333\' d=\'M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '40px'}}
                     value={ownershipFilter}
                     onChange={(e) => setOwnershipFilter(e.target.value)}
                   >

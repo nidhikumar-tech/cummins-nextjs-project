@@ -1,14 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import DataCharts from "@/components/data/charts/DataCharts";
-import DataMap from "@/components/data/map/DataMap";
+import DataComponent from "@/components/data/DataComponent";
 
-export default function ChartRoute() {
+export default function DataRoute() {
   return (
     <DashboardLayout>
-      <DataMap/>
-      <DataCharts/>
+      <DataComponent/>
     </DashboardLayout>
   );
 }

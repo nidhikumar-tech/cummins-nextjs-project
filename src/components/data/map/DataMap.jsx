@@ -7,9 +7,7 @@ import MapView from './MapView';
 import {
   parseVehicleCSV,
   aggregateByState,
-  getHeatmapIntensity,
 } from '@/utils/csvParser';
-import styles from './MapComponent.module.css';
 
 const libraries = ['places', 'visualization'];
 
@@ -428,8 +426,8 @@ export default function MapComponent() {
   // --- 5. EARLY RETURNS (AFTER ALL HOOKS) ---
 
   if (!isLoaded) return (
-    <div className={styles.container}>
-      <div className={styles.loading}>Loading map…</div>
+    <div style={{padding: '32px 24px', background: '#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
+      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px', fontSize: '1.125rem'}}>Loading map…</div>
     </div>
   );
 
@@ -441,16 +439,16 @@ export default function MapComponent() {
   // );
 
   if (error) return (
-    <div className={styles.container}>
-      <div className={styles.error}>Error: {error}</div>
+    <div style={{padding: '32px 24px', background: '#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
+      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px', fontSize: '1.125rem'}}>Error: {error}</div>
     </div>
   );
 
   return (
     <div>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Fuel Adoption Rate Heatmap</h1>
+      <div style={{padding: '32px 24px', background: '#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
+        <div style={{ marginBottom: '20px',   textAlign: 'center' }}>
+          <h1 style={{  fontSize: '2rem',  fontWeight: '700',  color: '#0f172a',  margin: '0 0 8px 0',  letterSpacing: '-0.025em'}}>Fuel Adoption Rate Heatmap</h1>
           {loadingTypes.length > 0 && (
             <div style={{
               fontSize: '12px',
@@ -482,36 +480,12 @@ export default function MapComponent() {
           )}
         </div>
 
-        <div className={styles.content}>
-          <div className={styles.mapSection} style={{ position: 'relative' }}>
+        <div style={{display: 'grid',  gridTemplateColumns: '1fr 300px', gap: '24px', alignItems: 'start'}}>
+          <div style={{background: 'white', border: '3px solid black', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)', overflow: 'hidden', position: 'relative'}}>
             {/* [UPDATE] Smart Alert: Only shows if user is filtering for something not yet loaded */}
             {isLoadingActiveFilter && (
-              <div style={{
-                position: 'absolute',
-                top: '20px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                padding: '10px 20px',
-                borderRadius: '30px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#333',
-                border: '1px solid #eee'
-              }}>
-                <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid #f3f3f3',
-                  borderTop: '2px solid #3498db',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
+              <div style={{position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '10px 20px', borderRadius: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex',alignItems: 'center',gap: '10px',fontSize: '14px',fontWeight: '600',color: '#333',border: '1px solid #eee'}}>
+                <div style={{width: '16px',height: '16px',border: '2px solid #f3f3f3',borderTop: '2px solid #3498db',borderRadius: '50%',animation: 'spin 1s linear infinite'}} />
                 <span>Fetching {selectedFuelType.toUpperCase()} stations...</span>
               </div>
             )}
@@ -529,7 +503,7 @@ export default function MapComponent() {
             />
           </div>
 
-          <div className={styles.sidebar}>
+          <div style={{display: 'flex',  flexDirection: 'column',  gap: '16px',  height: '100%',  overflowY: 'auto'}}>
             <MapLegendPanel
               selectedFuelType={selectedFuelType}
               selectFuelType={selectFuelType}
