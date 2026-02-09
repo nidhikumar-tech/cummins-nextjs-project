@@ -1,12 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import ProductionMap from "@/components/production/ProductionMap";
 
-export default function ProductionPage() {
+
+export default function InfrastructurePage() {
   return (
     <DashboardLayout>
-      <ProductionMap />
+
     </DashboardLayout>
   );
 }
