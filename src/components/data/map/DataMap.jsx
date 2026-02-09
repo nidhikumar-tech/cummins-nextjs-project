@@ -4,8 +4,6 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MapLegendPanel from './MapLegendPanel';
 import MapView from './MapView';
-import MinMaxChartCNG from './MinMaxChartCNG';
-import MinMaxChartHybrid from './MinMaxChartHybrid';
 import {
   parseVehicleCSV,
   aggregateByState,

@@ -1,13 +1,4 @@
-import LineChart from './Line/LineChart';
-// import IncentivesLineChart from './Line/IncentivesLineChart';
-import VehicleConsumptionBarGraph from './Bar/VehicleConsumptionBarGraph';
-import ProductionAndConsumptionBarGraph from './Bar/ProductionAndConsumptionBarGraph';
-import VinCountBarGraph from './Bar/VinCountBarGraph';
-import EmissionBarGraph from './Bar/EmissionBarGraph';
-import GenerationConsumptionBarChart from './Bar/GenerationConsumptionBarChart';
-import CapacityBarChart from './Bar/CapacityBarChart';
-import ElectricCapacityPredictionChart from './Line/ElectricCapacityPredictionChart';
-import CNGCapacityPredictionChart from './Line/CNGCapacityPredictionChart';
+import LineChart from './LineChart';
 
 export default function ChartComponent() {
   return (

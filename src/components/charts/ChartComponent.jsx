@@ -1,4 +1,4 @@
-import LineChart from './Line/LineChart';
+import LineChart from '../data/charts/LineChart';
 // import IncentivesLineChart from './Line/IncentivesLineChart';
 import VehicleConsumptionBarGraph from './Bar/VehicleConsumptionBarGraph';
 import ProductionAndConsumptionBarGraph from './Bar/ProductionAndConsumptionBarGraph';
