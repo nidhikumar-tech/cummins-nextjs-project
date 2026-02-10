@@ -32,7 +32,6 @@ const getPlantIconUrl = (fuelType) => {
   const type = fuelType.toLowerCase();
   
   if (type.includes('cng')) return '/images/pink-pin.png';
-  if (type.includes('diesel') || type === 'rd' || type === 'bd') return '/images/yellow-pin.png';
   if (type.includes('elec')) return '/images/blue-pin.png';
   
   return '/images/blue-pin.png'; // Default to electric/blue if unknown

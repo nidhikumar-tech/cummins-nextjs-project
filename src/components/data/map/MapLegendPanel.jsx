@@ -81,11 +81,6 @@ export default function MapLegendPanel({   selectedFuelType,  selectFuelType,  s
     { key: 'planned_commercial', label: 'Planned / Commercial', icon: '/images/red-dot.png' } 
   ];
 
-     {/* Disabled for demo
-    { key: 'production_plant_electric', label: 'Electric Production Plant', icon: '/images/blue-pin.png' },
-    { key: 'production_plant_cng', label: 'CNG Production Plant', icon: '/images/pink-pin.png' },
-    { key: 'production_plant_diesel', label: 'Diesel Production Plant', icon: '/images/yellow-pin.png' }
-      */}
   const fuelLegends = [
     { key: 'elec', label: 'Electric (ELEC)', icon: iconMap.elec },
     { key: 'cng', label: 'CNG', icon: iconMap.cng },
@@ -237,7 +232,7 @@ export default function MapLegendPanel({   selectedFuelType,  selectFuelType,  s
          {/* Sub-Checkboxes (Only visible if checked) */}
          {showProductionPlants && (
            <div style={{ marginLeft: '28px', display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
-             {/* CNG/Diesel/Electric Checkboxes */}
+             {/* CNG/Electric Checkboxes */}
              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
                   type="checkbox" 
@@ -246,15 +241,6 @@ export default function MapLegendPanel({   selectedFuelType,  selectFuelType,  s
                   style={{ width: '16px', height: '16px', accentColor: '#2563eb' }}
                 />
                 <span style={{ fontSize: '14px', color: '#475569' }}>CNG</span>
-             </label>
-             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={ppFilters.diesel}
-                  onChange={() => togglePpFilter('diesel')}
-                  style={{ width: '16px', height: '16px', accentColor: '#2563eb' }}
-                />
-                <span style={{ fontSize: '14px', color: '#475569' }}>Diesel</span>
              </label>
              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
@@ -279,7 +265,7 @@ export default function MapLegendPanel({   selectedFuelType,  selectFuelType,  s
             <img src={icon} style={{width: '24px', height: '24px', flexShrink: 0}} alt={label} />
             <span style={{fontSize: '0.875rem', color: '#475569'}}>{label}</span>
           </div>
-        ))})
+        ))}
       </div>
       
 
@@ -628,16 +614,6 @@ export default function MapLegendPanel({   selectedFuelType,  selectFuelType,  s
                       onChange={() => selectFuelType('elec')}
                     />
                     <span>Electric</span>
-                  </label>
-                  <label style={{display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px 16px', fontSize: '1rem', color: '#000000', opacity: 0.65, background: '#ffffff', border: 'none', fontWeight: '600'}}>
-                    <input
-                      type="radio"
-                      name="fuelType"
-                      style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6'}}
-                      checked={selectedFuelType === 'diesel'}
-                      onChange={() => selectFuelType('diesel')}
-                    />
-                    <span>Diesel (RD + BD)</span>
                   </label>
                 </div>
               </div>

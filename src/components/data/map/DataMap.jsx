@@ -50,7 +50,6 @@ export default function MapComponent() {
   const [showProductionPlants, setShowProductionPlants] = useState(false);
   const [ppFilters, setPpFilters] = useState({
     cng: true,
-    diesel: true,
     electric: true
   });
 
@@ -133,11 +132,6 @@ export default function MapComponent() {
     }
     if (selectedFuelType === 'cng') return loadingTypes.includes('CNG');
 
-    // Diesel includes RD and BD
-    if (selectedFuelType === 'diesel') {
-      return loadingTypes.includes('RD') || loadingTypes.includes('BD');
-    }
-
     return false;
   }, [selectedFuelType, loadingTypes]);
 
@@ -219,8 +213,6 @@ export default function MapComponent() {
     setError(null);
     const fetchConfigs = [
       { type: 'CNG', status: null, label: 'CNG' },
-      { type: 'RD',  status: null, label: 'RD' },
-      { type: 'BD',  status: null, label: 'BD' },
       { type: 'ELEC', status: 'P', label: 'ELEC-Planned' },   // <-- Fast load
       { type: 'ELEC', status: 'E', label: 'ELEC-Available' }, // <-- Slow load
     ];
@@ -292,10 +284,8 @@ export default function MapComponent() {
     const filtered = stations.filter((s) => {
       // Fuel type filter
       const fuelKey = getFuelTypeKey(s.fuel_type);
-      // Diesel includes both RD (Renewable Diesel) and BD (Biodiesel)
       const fuelMatch = selectedFuelType === 'all' ||
-        fuelKey === selectedFuelType ||
-        (selectedFuelType === 'diesel' && (fuelKey === 'rd' || fuelKey === 'bd'));
+        fuelKey === selectedFuelType;
 
       // Station status filter
       const statusMatch = stationStatusFilter === 'all' ||
@@ -360,8 +350,7 @@ export default function MapComponent() {
     return stations.filter((s) => {
       const fuelKey = getFuelTypeKey(s.fuel_type);
       const fuelMatch = selectedFuelType === 'all' ||
-        fuelKey === selectedFuelType ||
-        (selectedFuelType === 'diesel' && (fuelKey === 'rd' || fuelKey === 'bd'));
+        fuelKey === selectedFuelType;
       const statusMatch = stationStatusFilter === 'all' ||
         (stationStatusFilter === 'available' && s.status_code === 'E') ||
         (stationStatusFilter === 'planned' && s.status_code === 'P');
