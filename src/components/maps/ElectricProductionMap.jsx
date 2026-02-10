@@ -5,10 +5,8 @@ import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-map
 
 const LIBRARIES = ['places', 'visualization'];
 const US_CENTER = { lat: 39.8283, lng: -98.5795 };
-
-// [CHANGE] Updated sizes to be smaller
-const MIN_PIN_SIZE = 5;
-const MAX_PIN_SIZE = 20;
+const MIN_PIN_SIZE = 2;
+const MAX_PIN_SIZE = 12;
 
 const MAP_CONTAINER_STYLE = {
   width: '100%',
@@ -23,7 +21,7 @@ const MAP_OPTIONS = {
   mapTypeControl: false,
 };
 
-export default function CNGProductionMap() {
+export default function ElectricProductionMap() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: LIBRARIES,
@@ -33,16 +31,17 @@ export default function CNGProductionMap() {
   const [loading, setLoading] = useState(true);
   const [hoveredPlant, setHoveredPlant] = useState(null);
 
+  // 1. Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/cng-production-plants');
+        const response = await fetch('/api/electric-production-plants');
         const result = await response.json();
         if (result.success) {
           setPlants(result.data);
         }
       } catch (err) {
-        console.error("Failed to load CNG plants", err);
+        console.error("Failed to load Electric plants", err);
       } finally {
         setLoading(false);
       }
@@ -50,13 +49,17 @@ export default function CNGProductionMap() {
     fetchData();
   }, []);
 
-  const getIcon = (capacity) => {
+  // 2. Calculate Pin Sizes based on Net Generation
+  const getIcon = (generation) => {
     if (!window.google) return null;
 
-    const safeCapacity = Math.max(Math.abs(capacity || 0), 1); 
+    // Handle negative generation (e.g. plant consumed more than it produced) by taking absolute value
+    // Ensure we don't log(0)
+    const safeGen = Math.max(Math.abs(generation || 0), 1); 
     
-    // Log scale calculation
-    const scale = Math.log(safeCapacity) / Math.log(100000); 
+    // Log scale calculation. 
+    // Electric generation numbers can be huge (millions), so we divide by a larger base
+    const scale = Math.log(safeGen) / Math.log(1000000); 
     
     let size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     size = Math.max(MIN_PIN_SIZE, Math.min(size, MAX_PIN_SIZE));
@@ -73,9 +76,9 @@ export default function CNGProductionMap() {
   return (
     <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
       <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>CNG Infrastructure</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Electric Infrastructure</h2>
         <p style={{ margin: '8px 0 0', color: '#64748b' }}>
-          Production Plants and Pipelines as of 2017 (latest publicly available information from EIA)
+          Productions Plants as of 2024
         </p>
       </div>
 
@@ -97,18 +100,19 @@ export default function CNGProductionMap() {
 
         {plants.map((plant, index) => (
           <Marker
-            key={`${plant.plant_name}-${index}`}
+            key={`${plant.plant_code}-${index}`}
             position={{ lat: plant.latitude, lng: plant.longitude }}
-            icon={getIcon(plant.capacity)}
+            icon={getIcon(plant.net_generation)}
             onMouseOver={() => setHoveredPlant(plant)}
             onMouseOut={() => setHoveredPlant(null)}
+            zIndex={1}
           />
         ))}
 
         {hoveredPlant && (
           <InfoWindow
             position={{ lat: hoveredPlant.latitude, lng: hoveredPlant.longitude }}
-            options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -5) }}
+            options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -15) }}
             onCloseClick={() => setHoveredPlant(null)}
           >
             <div style={{ padding: '8px', minWidth: '200px' }}>
@@ -118,13 +122,13 @@ export default function CNGProductionMap() {
               <div style={{ fontSize: '13px', color: '#64748b', display: 'grid', gap: '4px' }}>
                 <div><span style={{ fontWeight: '600' }}>State:</span> {hoveredPlant.state}</div>
                 <div>
-                  <span style={{ fontWeight: '600' }}>Capacity:</span> 
+                  <span style={{ fontWeight: '600' }}>Net Generation:</span> 
                   <span style={{ color: '#0f172a', fontWeight: '600', marginLeft: '4px' }}>
-                    {hoveredPlant.capacity?.toLocaleString()}
+                    {hoveredPlant.net_generation?.toLocaleString()} MWh
                   </span>
                 </div>
-                {hoveredPlant.liquid_storage !== null && (
-                  <div><span style={{ fontWeight: '600' }}>Liquid Storage:</span> {hoveredPlant.liquid_storage}</div>
+                {hoveredPlant.nameplate_capacity !== null && (
+                  <div><span style={{ fontWeight: '600' }}>Capacity:</span> {hoveredPlant.nameplate_capacity?.toLocaleString()} MW</div>
                 )}
               </div>
             </div>
