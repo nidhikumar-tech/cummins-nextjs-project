@@ -1085,5 +1085,31 @@ export async function getElectricProductionPlants() {
   }
 }
 
+//Fetch CNG Production by State per Year
+export async function getCNGProductionByState() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+
+  const query = `
+    SELECT * FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_22}\`
+    ORDER BY date ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching CNG Production by State:", error);
+    throw error;
+  }
+}
+
 
 export default bigquery;
