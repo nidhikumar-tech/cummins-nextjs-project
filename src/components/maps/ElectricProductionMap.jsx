@@ -8,9 +8,11 @@ const US_CENTER = { lat: 39.8283, lng: -98.5795 };
 const MIN_PIN_SIZE = 2;
 const MAX_PIN_SIZE = 12;
 
+// Map fills remaining space
 const MAP_CONTAINER_STYLE = {
   width: '100%',
-  height: '600px', 
+  flexGrow: 1,   
+  height: '100%', 
   borderRadius: '12px',
 };
 
@@ -31,7 +33,6 @@ export default function ElectricProductionMap() {
   const [loading, setLoading] = useState(true);
   const [hoveredPlant, setHoveredPlant] = useState(null);
 
-  // 1. Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -49,18 +50,10 @@ export default function ElectricProductionMap() {
     fetchData();
   }, []);
 
-  // 2. Calculate Pin Sizes based on Net Generation
   const getIcon = (generation) => {
     if (!window.google) return null;
-
-    // Handle negative generation (e.g. plant consumed more than it produced) by taking absolute value
-    // Ensure we don't log(0)
     const safeGen = Math.max(Math.abs(generation || 0), 1); 
-    
-    // Log scale calculation. 
-    // Electric generation numbers can be huge (millions), so we divide by a larger base
     const scale = Math.log(safeGen) / Math.log(1000000); 
-    
     let size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     size = Math.max(MIN_PIN_SIZE, Math.min(size, MAX_PIN_SIZE));
 
@@ -71,14 +64,24 @@ export default function ElectricProductionMap() {
     };
   };
 
-  if (!isLoaded) return <div style={{ height: '600px', background: '#f1f5f9', borderRadius: '12px' }} />;
+  if (!isLoaded) return <div style={{ height: '100%', background: '#f1f5f9', borderRadius: '12px' }} />;
 
   return (
-    <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-      <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
+    // [FIX] Added height: 100%, display: flex, and flexDirection: column
+    <div style={{ 
+      background: 'white', 
+      padding: '24px', 
+      borderRadius: '16px', 
+      border: '1px solid #e2e8f0', 
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      height: '100%',         // Fixes the visibility issue
+      display: 'flex',        // Enables flex layout
+      flexDirection: 'column' // Stacks header and map vertically
+    }}>
+      <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Electric Infrastructure</h2>
         <p style={{ margin: '8px 0 0', color: '#64748b' }}>
-          Productions Plants as of 2024
+          Production Plants as of 2024
         </p>
       </div>
 

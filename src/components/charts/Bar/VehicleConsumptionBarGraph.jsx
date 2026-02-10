@@ -103,11 +103,9 @@ export default function VehicleConsumptionBarGraph({ borderColor = '#facc15', ba
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <div style={{ height: '400px', width: '100%' }}>
-
-        {chartData && <Bar data={chartData} options={options} />}
-        {!chartData && <p>No data available.</p>}
+    <div style={{ width: '100%', height: '100%', background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #e2e8f0' }}>
+      <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+        {chartData ? <Bar data={chartData} options={options} /> : <p>No data.</p>}
       </div>
     </div>
   );

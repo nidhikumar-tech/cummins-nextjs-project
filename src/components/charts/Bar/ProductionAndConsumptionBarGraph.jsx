@@ -162,18 +162,10 @@ export default function ProductionAndConsumptionBarGraph({ prodColor = '#fb7185'
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <div style={{ height: '400px', width: '100%' }}>
-        {chartData && <Bar data={chartData} options={options} plugins={[percentagePlugin]} />}
-        {!chartData && <p>No data available.</p>}
-      </div>
-      <div style={{ marginTop: '16px', padding: '10px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
-        <div>
-          *The percentage above each bar shows the percentage of production that is consumed for that year.
-        </div>
-        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '2px' }}>
-          *MMcf = Million Cubic Feet
-        </div>
+    <div style={{ width: '100%', height: '100%', background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #e2e8f0' }}>
+      <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+         {/* Ensure you are rendering your chart variable here */}
+        {chartData ? <Bar data={chartData} options={options} /> : <p>No data.</p>}
       </div>
     </div>
   );
