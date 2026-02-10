@@ -4,7 +4,6 @@ import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { GoogleMapsOverlay } from '@deck.gl/google-maps';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
-import styles from './MapView.module.css';
 
 const mapContainerStyle = {
   width: '100%',
@@ -33,7 +32,6 @@ const getPlantIconUrl = (fuelType) => {
   const type = fuelType.toLowerCase();
   
   if (type.includes('cng')) return '/images/pink-pin.png';
-  if (type.includes('diesel') || type === 'rd' || type === 'bd') return '/images/yellow-pin.png';
   if (type.includes('elec')) return '/images/blue-pin.png';
   
   return '/images/blue-pin.png'; // Default to electric/blue if unknown
@@ -245,7 +243,7 @@ const mapOptions = {
         >
           {/* ========== FIX: Prevent closing when hovering over InfoWindow ========== */}
           <div 
-            className={styles.InfoWindow}
+            style={{minWidth: '200px',maxWidth: '300px',}}
             onMouseEnter={() => {
               if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
             }}
@@ -254,29 +252,23 @@ const mapOptions = {
             }}
           >
           {/* ======================================================================= */}
-            <h4 className={styles.infoWindowTitle}>
+            <h4 style={{margin: '0 0 4px', paddingBottom: '4px'}}>
               {selectedStation.station_name || "Station"}
             </h4>
-            <div className={styles.infoWindowPopupWrapper}>
-                <span className={styles.infoWindowPopup} style={{ 
-                    background: (selectedStation.access_code || '').toLowerCase() === 'private' ? '#e5e7eb' : '#f3f4f6',
-                }}>
+            <div style={{    display: 'flex',    gap: '8px',    marginBottom: '8px',    flexWrap: 'wrap'}}>
+                <span style={{    fontSize: '10px',    padding: '2px 6px',    borderRadius: '4px',    color: '#374151',    fontWeight: 'bold',    border: '1px solid #d1d5db', background: (selectedStation.access_code || '').toLowerCase() === 'private' ? '#e5e7eb' : '#f3f4f6'}}>
                     {(selectedStation.access_code || 'PUBLIC').toUpperCase()}
                 </span>
                 
-                <span className={styles.infoWindowPopup} style={{ 
-                    background: selectedStation.status_code === 'E' ? '#DBEAFE' : '#FFF7ED',
-                    color: selectedStation.status_code === 'E' ? '#1E40AF' : '#9A3412',
-                    borderColor: selectedStation.status_code === 'E' ? '#93C5FD' : '#FED7AA',
-                }}>
+                <span style={{    fontSize: 10,    padding: '2px 6px',    borderRadius: 4,    color: '#374151',    fontWeight: 'bold', border: '1px solid #d1d5db', background: selectedStation.status_code === 'E' ? '#DBEAFE' : '#FFF7ED', color: selectedStation.status_code === 'E' ? '#1E40AF' : '#9A3412', borderColor: selectedStation.status_code === 'E' ? '#93C5FD' : '#FED7AA'}}>
                     {selectedStation.status_code === 'E' ? 'AVAILABLE' : 'PLANNED'}
                 </span>
             </div>
             
-            <p className={styles.infoWindowSection}>
+            <p style={{margin: '4px 0', fontSize: '13px'}}>
               <strong>Fuel Type:</strong> {selectedStation.fuel_type?.toUpperCase()}
             </p>
-            <p className={styles.infoWindowSection}>
+            <p style={{margin: '4px 0', fontSize: '13px'}}>
               <strong>Address:</strong> {selectedStation.street_address || 'N/A'}
             </p>
           </div>
@@ -290,7 +282,7 @@ const mapOptions = {
           onCloseClick={() => setSelectedPlant(null)}
         >
           <div 
-            className={styles.InfoWindow}
+            style={{minWidth: '200px', maxWidth: '300px'}}
             onMouseEnter={() => {
               if (plantHoverTimeoutRef.current) clearTimeout(plantHoverTimeoutRef.current);
             }}
@@ -298,27 +290,27 @@ const mapOptions = {
               setSelectedPlant(null);
             }}
           >
-            <h4 className={styles.infoWindowTitle}>
+            <h4 style={{margin: '0 0 4px', paddingBottom: '4px'}}>
               Production Plant
             </h4>
             
-            <p className={styles.infoWindowSection} >
+            <p style={{margin: '4px 0', fontSize: '13px'}} >
               <strong>Vendor:</strong> {selectedPlant.vendor || 'N/A'}
             </p>
             
-            <p className={styles.infoWindowSection} >
+            <p style={{margin: '4px 0', fontSize: '13px'}} >
               <strong>Operator:</strong> {selectedPlant.operator || 'N/A'}
             </p>
             
-            <p className={styles.infoWindowSection} >
+            <p style={{margin: '4px 0', fontSize: '13px'}} >
               <strong>Fuel Type:</strong> {selectedPlant.fuel_type ? selectedPlant.fuel_type.toUpperCase() : 'N/A'}
             </p>
 
-            <p className={styles.infoWindowSection} >
+            <p style={{margin: '4px 0', fontSize: '13px'}} >
               <strong>State: </strong> {selectedPlant.state}
             </p>
 
-            <p className={styles.infoWindowSection} >
+            <p style={{margin: '4px 0', fontSize: '13px'}} >
               <strong>Coordinates:</strong> {selectedPlant.lat.toFixed(4)}, {selectedPlant.lng.toFixed(4)}
             </p>
 
