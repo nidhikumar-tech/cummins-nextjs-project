@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
+import React, { useState, useEffect, useMemo } from 'react';
+
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polyline } from "@react-google-maps/api";
 
 const LIBRARIES = ['places', 'visualization'];
 const US_CENTER = { lat: 39.8283, lng: -98.5795 };
 
-// [CHANGE] Updated sizes to be smaller
 const MIN_PIN_SIZE = 5;
 const MAX_PIN_SIZE = 20;
 
@@ -23,6 +23,22 @@ const MAP_OPTIONS = {
   mapTypeControl: false,
 };
 
+
+const PIPELINE_OPTIONS = {
+  strokeColor: "#dc2626", // Red color for pipelines
+  strokeOpacity: 0.8,
+  strokeWeight: 1,        // Thinner lines to avoid clutter
+  clickable: true,
+  zIndex: 1
+};
+
+const PIPELINE_HOVER_OPTIONS = {
+  strokeColor: "#991b1b", // Darker red on hover
+  strokeOpacity: 1.0,
+  strokeWeight: 4,        // Thicker on hover
+  zIndex: 10
+};
+
 export default function CNGProductionMap() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -30,19 +46,30 @@ export default function CNGProductionMap() {
   });
 
   const [plants, setPlants] = useState([]);
+  const [pipelines, setPipelines] = useState([]); // [CHANGE 3] State for raw pipelines
   const [loading, setLoading] = useState(true);
+  
   const [hoveredPlant, setHoveredPlant] = useState(null);
+  
+  // [CHANGE 4] State for Pipeline interaction
+  const [hoveredPipeline, setHoveredPipeline] = useState(null);
+  const [pipelineMousePos, setPipelineMousePos] = useState(null);
 
+  // 1. Fetch Data (Plants + Pipelines)
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/cng-production-plants');
-        const result = await response.json();
-        if (result.success) {
-          setPlants(result.data);
-        }
+        // Run both fetches in parallel
+        const [plantsRes, pipesRes] = await Promise.all([
+          fetch('/api/cng-production-plants').then(r => r.json()),
+          fetch('/api/cng-pipelines').then(r => r.json())
+        ]);
+
+        if (plantsRes.success) setPlants(plantsRes.data);
+        if (pipesRes.success) setPipelines(pipesRes.data);
+        
       } catch (err) {
-        console.error("Failed to load CNG plants", err);
+        console.error("Failed to load map data", err);
       } finally {
         setLoading(false);
       }
@@ -50,17 +77,65 @@ export default function CNGProductionMap() {
     fetchData();
   }, []);
 
+  
+  const processedPipelines = useMemo(() => {
+    if (!pipelines || pipelines.length === 0) return [];
+
+    const extractPaths = (coords) => {
+      if (!Array.isArray(coords) || coords.length === 0) return [];
+      const firstItem = coords[0];
+      if (!firstItem) return [];
+
+      // Check if it's a point [lon, lat]
+      const isPoint = Array.isArray(firstItem) && 
+                      firstItem.length >= 2 && 
+                      typeof firstItem[0] === 'number';
+
+      if (isPoint) return [coords];
+      
+      // Dig deeper (MultiLineString)
+      if (Array.isArray(firstItem)) {
+        return coords.flatMap(child => extractPaths(child));
+      }
+      return [];
+    };
+
+    const drawablePaths = [];
+
+    pipelines.forEach((pipe, i) => {
+      try {
+        if (!pipe.coordinates) return;
+
+        const rawCoords = typeof pipe.coordinates === 'string' 
+          ? JSON.parse(pipe.coordinates) 
+          : pipe.coordinates;
+
+        const paths = extractPaths(rawCoords);
+
+        paths.forEach(pathSegment => {
+          if (pathSegment.length > 0) {
+            const googlePath = pathSegment.map(c => ({
+              lat: c[1], // Index 1 is Lat
+              lng: c[0]  // Index 0 is Lng
+            }));
+            drawablePaths.push({ ...pipe, path: googlePath });
+          }
+        });
+      } catch (e) {
+        console.warn(`Pipeline Row ${i} failed`, e);
+      }
+    });
+    
+    return drawablePaths;
+  }, [pipelines]);
+
+
   const getIcon = (capacity) => {
     if (!window.google) return null;
-
     const safeCapacity = Math.max(Math.abs(capacity || 0), 1); 
-    
-    // Log scale calculation
     const scale = Math.log(safeCapacity) / Math.log(100000); 
-    
     let size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     size = Math.max(MIN_PIN_SIZE, Math.min(size, MAX_PIN_SIZE));
-
     return {
       url: '/images/round.png',
       scaledSize: new window.google.maps.Size(size, size),
@@ -75,7 +150,7 @@ export default function CNGProductionMap() {
       <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>CNG Infrastructure</h2>
         <p style={{ margin: '8px 0 0', color: '#64748b' }}>
-          Production Plants and Pipelines as of 2017 (latest publicly available information from EIA)
+          Production Plants and Pipelines as of 2017 (*latest publicly available EIA data)
         </p>
       </div>
 
@@ -88,13 +163,31 @@ export default function CNGProductionMap() {
         {loading && (
           <div style={{
             position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)',
-            zIndex: 10, background: 'white', padding: '8px 16px', borderRadius: '20px',
+            zIndex: 50, background: 'white', padding: '8px 16px', borderRadius: '20px',
             boxShadow: '0 2px 6px rgba(0,0,0,0.15)', fontWeight: '600', color: '#64748b'
           }}>
-            Loading Plants...
+            Loading Data...
           </div>
         )}
 
+        {/* Render Pipelines FIRST (so they are under the pins) */}
+        {processedPipelines.map((pipe, idx) => (
+          <Polyline
+            key={`pipe-${idx}`}
+            path={pipe.path}
+            options={hoveredPipeline?.feature_id === pipe.feature_id ? PIPELINE_HOVER_OPTIONS : PIPELINE_OPTIONS}
+            onMouseOver={(e) => { 
+              setHoveredPipeline(pipe); 
+              setPipelineMousePos(e.latLng); 
+            }}
+            onMouseOut={() => { 
+              setHoveredPipeline(null); 
+              setPipelineMousePos(null); 
+            }}
+          />
+        ))}
+
+        {/* Render Plants */}
         {plants.map((plant, index) => (
           <Marker
             key={`${plant.plant_name}-${index}`}
@@ -102,9 +195,11 @@ export default function CNGProductionMap() {
             icon={getIcon(plant.capacity)}
             onMouseOver={() => setHoveredPlant(plant)}
             onMouseOut={() => setHoveredPlant(null)}
+            zIndex={100} // Ensure pins stay on top of lines
           />
         ))}
 
+        {/* Plant Popup */}
         {hoveredPlant && (
           <InfoWindow
             position={{ lat: hoveredPlant.latitude, lng: hoveredPlant.longitude }}
@@ -117,19 +212,36 @@ export default function CNGProductionMap() {
               </div>
               <div style={{ fontSize: '13px', color: '#64748b', display: 'grid', gap: '4px' }}>
                 <div><span style={{ fontWeight: '600' }}>State:</span> {hoveredPlant.state}</div>
-                <div>
-                  <span style={{ fontWeight: '600' }}>Capacity:</span> 
-                  <span style={{ color: '#0f172a', fontWeight: '600', marginLeft: '4px' }}>
-                    {hoveredPlant.capacity?.toLocaleString()}
-                  </span>
-                </div>
-                {hoveredPlant.liquid_storage !== null && (
-                  <div><span style={{ fontWeight: '600' }}>Liquid Storage:</span> {hoveredPlant.liquid_storage}</div>
-                )}
+                <div><span style={{ fontWeight: '600' }}>Capacity:</span> {hoveredPlant.capacity?.toLocaleString()}</div>
               </div>
             </div>
           </InfoWindow>
         )}
+
+        {/* Pipeline Popup */}
+        {hoveredPipeline && pipelineMousePos && (
+          <InfoWindow 
+            position={pipelineMousePos} 
+            options={{ disableAutoPan: true, pixelOffset: new window.google.maps.Size(0, -10) }} 
+            onCloseClick={() => setHoveredPipeline(null)}
+          >
+            <div style={{ padding: '8px 4px', maxWidth: '250px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626', marginBottom: '6px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
+                CNG Pipeline
+              </div>
+              <div style={{ display: 'grid', gap: '4px', fontSize: '12px' }}>
+                <div><span style={{ fontWeight: '600', color: '#475569' }}>Operator: </span>{hoveredPipeline.company_operator || 'Unknown'}</div>
+                <div>
+                  <span style={{ fontWeight: '600', color: '#475569' }}>Status: </span>
+                  <span style={{ padding: '1px 6px', borderRadius: '4px', background: '#dcfce7', color: '#166534', fontWeight: '600', fontSize: '11px' }}>
+                    {hoveredPipeline.operational_status || 'Active'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+
       </GoogleMap>
     </div>
   );
