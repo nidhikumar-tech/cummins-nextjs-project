@@ -1018,4 +1018,39 @@ export async function getCNGDataStatewiseForLineChart(year = null) {
   }
 }
 
+//Fetch CNG Production Plant data 
+export async function getCNGProductionPlants() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      plant_name, 
+      state, 
+      latitude, 
+      longitude, 
+      capacity, 
+      liquid_storage
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_15}\`
+    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('CNG Plants Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching CNG Production Plants:', error);
+    throw error;
+  }
+}
+
+
+
 export default bigquery;
