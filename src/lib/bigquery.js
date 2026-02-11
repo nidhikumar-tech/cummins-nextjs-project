@@ -1111,5 +1111,50 @@ export async function getCNGProductionByState() {
   }
 }
 
+// Fetches fuel station concentration data for Pie Chart
+export async function getFuelStationConcentrationData(year, state, fuelType) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  // Select table based on fuel type
+  const table = fuelType.toLowerCase() === 'electric' 
+    ? process.env.BIGQUERY_TABLE_23_ELECTRIC 
+    : process.env.BIGQUERY_TABLE_23_CNG;
+
+  const query = `
+    SELECT 
+      year,
+      state,
+      fuel_type,
+      concentration_vehicle_type,
+      SUM(vin) as total_vin,
+      MAX(fuel_station_count) as fuel_station_count
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
+    WHERE year = @year
+      AND UPPER(state) = UPPER(@state)
+      AND LOWER(fuel_type) = LOWER(@fuelType)
+    GROUP BY year, state, fuel_type, concentration_vehicle_type
+    ORDER BY total_vin DESC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    params: { 
+      year: parseInt(year),
+      state: state,
+      fuelType: fuelType
+    },
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching fuel station concentration data:", error);
+    throw error;
+  }
+}
 
 export default bigquery;

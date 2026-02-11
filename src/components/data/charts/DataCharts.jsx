@@ -1,3 +1,5 @@
+import EmissionBarGraph from '@/components/charts/Bar/EmissionBarGraph';
+import FuelStationPieChart from '@/components/data/charts/FuelStationPieChart';
 import LineChart from './LineChart';
 
 export default function ChartComponent() {
@@ -16,6 +18,19 @@ export default function ChartComponent() {
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px'}}>
           <LineChart dataType="incentive" showFuelTypeSelector={true} borderColor='#2563eb' backgroundColor='#2563eb'/>
           <LineChart dataType="annual_mileage" showFuelTypeSelector={true} showAggregateSelector={true} borderColor='#fb7185' backgroundColor='#fb7185' />
+        </div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px'}}>
+          <EmissionBarGraph />
+        </div>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px'}}>
+          {/* FuelStationPieChart with default colors. To customize, pass colors prop:
+              <FuelStationPieChart colors={{
+                'Highly Concentrated Locally truck': '#ff0000',
+                'Highly Concentrated Locally bus': '#00ff00',
+                ...
+              }} />
+          */}
+          <FuelStationPieChart />
         </div>
       </div>
     </div>
