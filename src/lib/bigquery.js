@@ -1120,7 +1120,7 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
   // Select table based on fuel type
   const table = fuelType.toLowerCase() === 'electric' 
     ? process.env.BIGQUERY_TABLE_23_ELECTRIC 
-    : process.env.BIGQUERY_TABLE_23_CNG;
+    : process.env.BIGQUERY_TABLE_24_CNG;
 
   const query = `
     SELECT 
