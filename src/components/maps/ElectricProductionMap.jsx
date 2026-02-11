@@ -125,7 +125,7 @@ export default function ElectricProductionMap() {
               <div style={{ fontSize: '13px', color: '#64748b', display: 'grid', gap: '4px' }}>
                 <div><span style={{ fontWeight: '600' }}>State:</span> {hoveredPlant.state}</div>
                 <div>
-                  <span style={{ fontWeight: '600' }}>Net Generation:</span> 
+                  <span style={{ fontWeight: '600' }}>Gross Generation:</span> 
                   <span style={{ color: '#0f172a', fontWeight: '600', marginLeft: '4px' }}>
                     {hoveredPlant.net_generation?.toLocaleString()} MWh
                   </span>

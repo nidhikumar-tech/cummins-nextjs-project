@@ -6,6 +6,8 @@ import VehicleConsumptionBarGraph from "@/components/charts/Bar/VehicleConsumpti
 import ProductionAndConsumptionBarGraphs from "@/components/charts/Bar/ProductionAndConsumptionBarGraph";
 import ElectricProductionMap from "@/components/maps/ElectricProductionMap";
 import ProductionByYearByStateCNG from "@/components/charts/Line/ProductionByYearByStateCNG";
+import GenerationConsumptionBarChart from "@/components/charts/Bar/GenerationConsumptionBarChart";
+import CapacityBarChart from "@/components/charts/Bar/CapacityBarChart";
 
 export default function InfrastructurePage() {
   
@@ -101,13 +103,13 @@ export default function InfrastructurePage() {
             minHeight: '0'
           }}>
             {/* Slot 1: Empty */}
-            <div style={placeholderStyle}>
-              Electric Chart 1 (Future)
+            <div style={{ width: '100%', height: '100%' }}>
+              <GenerationConsumptionBarChart />
             </div>
 
             {/* Slot 2: Empty */}
-            <div style={placeholderStyle}>
-              Electric Chart 2 (Future)
+            <div style={{ width: '100%', height: '100%' }}>
+              <CapacityBarChart />
             </div>
 
             {/* Slot 3: Empty */}

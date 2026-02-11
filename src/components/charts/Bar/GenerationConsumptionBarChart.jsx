@@ -58,9 +58,9 @@ export default function GenerationConsumptionBarChart() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      title: { display: true, text: 'Electric Generation (by source) vs Consumption (by sector)', align: 'start', font: { size: 16 }, padding: { bottom: 25 } },
+      title: { display: true, text: 'Electric Generation (by source) vs Consumption (by sector)', align: 'start', font: { size: 16, weight: 'bold' }, padding: { bottom: 15 } },
       
-      legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+      legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 10 } },
       tooltip: { mode: 'index', intersect: false }
     },
     scales: {
@@ -72,8 +72,19 @@ export default function GenerationConsumptionBarChart() {
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Gen/Cons Data...</div>;
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '8px', height: '500px' }}>
-      {data ? <Bar data={data} options={options} /> : <p>No data available</p>}
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      background: 'white', 
+      padding: '16px', 
+      borderRadius: '12px',
+      border: '1px solid #e2e8f0',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <div style={{ flexGrow: 1, position: 'relative', width: '100%' }}>
+        {data ? <Bar data={data} options={options} /> : <p className="text-center text-gray-400 mt-10">No data available</p>}
+      </div>
     </div>
   );
 }
