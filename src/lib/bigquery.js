@@ -1152,4 +1152,67 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
   }
 }
 
+// Fetches CNG Line Plot data from Line_Plot_CNG_Final table
+// Returns data for Total Supply, Consumption by Sector, and Natural Gas Spot Price
+export async function getCNGLinePlotData(label = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let query = `
+    SELECT 
+      Label,
+      \`Case\`,
+      Units,
+      \`2023\` as year_2023,
+      \`2024\` as year_2024,
+      \`2025\` as year_2025,
+      \`2026\` as year_2026,
+      \`2027\` as year_2027,
+      \`2028\` as year_2028,
+      \`2029\` as year_2029,
+      \`2030\` as year_2030,
+      \`2031\` as year_2031,
+      \`2032\` as year_2032,
+      \`2033\` as year_2033,
+      \`2034\` as year_2034,
+      \`2035\` as year_2035,
+      \`2036\` as year_2036,
+      \`2037\` as year_2037,
+      \`2038\` as year_2038,
+      \`2039\` as year_2039,
+      \`2040\` as year_2040,
+      \`2041\` as year_2041,
+      \`2042\` as year_2042,
+      \`2043\` as year_2043,
+      \`2044\` as year_2044,
+      \`2045\` as year_2045,
+      \`2046\` as year_2046,
+      \`2047\` as year_2047,
+      \`2048\` as year_2048,
+      \`2049\` as year_2049,
+      \`2050\` as year_2050
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_25}\`
+  `;
+
+  if (label) {
+    query += ` WHERE Label = @label`;
+  }
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    params: label ? { label: label } : undefined,
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('CNG Line Plot Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching CNG Line Plot data:', error);
+    throw error;
+  }
+}
+
 export default bigquery;
