@@ -776,7 +776,7 @@ export async function getElectricityGenConsData() {
   // Fetch Consumption
   // Schema: year, total, residential, commercial, industrial, transportation
   const consQuery = `
-    SELECT year, residential, commercial, industrial, transportation
+    SELECT year, residential, commercial, industrial, transportation, direct_use
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_12}\`
     ORDER BY year ASC
   `;

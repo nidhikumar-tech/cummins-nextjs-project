@@ -50,6 +50,7 @@ export default function GenerationConsumptionBarChart() {
         { label: 'Sector: Commercial', data: cons.map(d => d.commercial), backgroundColor: '#b91c1c', stack: STACK_CONS },
         { label: 'Sector: Industrial', data: cons.map(d => d.industrial), backgroundColor: '#ef4444', stack: STACK_CONS },
         { label: 'Sector: Transportation', data: cons.map(d => d.transportation), backgroundColor: '#fb923c', stack: STACK_CONS },
+        { label: 'Direct Use', data: cons.map(d => d.direct_use), backgroundColor: '#be123c', stack: STACK_CONS },
       ]
     };
   }, [chartData]);
