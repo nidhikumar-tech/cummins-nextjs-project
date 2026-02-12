@@ -1,9 +1,8 @@
 "use client";
 
 import CNGLineChart from './line_charts/CNGLineChart';
-import CNGProductionBarChart from './stacked_bar_graph/CNGProductionBarChart';
-import CNGNetImportBarChart from './stacked_bar_graph/CNGNetImportBarChart';
-import CNGConsumptionBarChart from './stacked_bar_graph/CNGConsumptionBarChart';
+import CNGSupplyConsumptionLineChart from './line_charts/CNGSupplyConsumptionLineChart';
+import CNGCombinedBarChart from './stacked_bar_graph/CNGCombinedBarChart';
 import MinMaxChartCNG from './MinMaxChartCNG';
 import MinMaxChartHybrid from './MinMaxChartHybrid';
 
@@ -18,21 +17,14 @@ export default function PredictionComponent() {
           <MinMaxChartCNG />
         </div>
       </div>
+      
       <div style={{ padding: '32px 24px', background: '#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <CNGLineChart label="Total Supply" borderColor="#facc15" backgroundColor="rgba(16, 185, 129, 0.1)" title="CNG Total Supply (2023-2050)"/>  
-          <CNGLineChart label="Consumption by Sector" borderColor="#10b981" backgroundColor="rgba(16, 185, 129, 0.1)" title="Consumption by Commercial Sector (2023-2050)"/>  
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+          <CNGSupplyConsumptionLineChart />
           <CNGLineChart label="Natural Gas Spot Price at Henry Hub" borderColor="#fb7185" backgroundColor="rgba(16, 185, 129, 0.1)" title="Natural Gas Price (2023-2050)"/>  
-          <CNGProductionBarChart />
         </div>
-      </div>
-
-      <div style={{ padding: '32px 24px', background: '#f8f9fa', minHeight: '80vh', maxWidth: '1600px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <CNGNetImportBarChart />
-          <CNGConsumptionBarChart />
+        <div style={{ marginTop: '24px' }}>
+          <CNGCombinedBarChart />
         </div>
       </div>
 
