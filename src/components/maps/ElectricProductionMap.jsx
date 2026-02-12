@@ -105,7 +105,7 @@ export default function ElectricProductionMap() {
           <Marker
             key={`${plant.plant_code}-${index}`}
             position={{ lat: plant.latitude, lng: plant.longitude }}
-            icon={getIcon(plant.net_generation)}
+            icon={getIcon(plant.gross_generation)}
             onMouseOver={() => setHoveredPlant(plant)}
             onMouseOut={() => setHoveredPlant(null)}
             zIndex={1}
@@ -127,11 +127,11 @@ export default function ElectricProductionMap() {
                 <div>
                   <span style={{ fontWeight: '600' }}>Gross Generation:</span> 
                   <span style={{ color: '#0f172a', fontWeight: '600', marginLeft: '4px' }}>
-                    {hoveredPlant.net_generation?.toLocaleString()} MWh
+                    {hoveredPlant.gross_generation?.toLocaleString()} MWh
                   </span>
                 </div>
                 {hoveredPlant.nameplate_capacity !== null && (
-                  <div><span style={{ fontWeight: '600' }}>Capacity:</span> {hoveredPlant.nameplate_capacity?.toLocaleString()} MW</div>
+                  <div><span style={{ fontWeight: '600' }}>Nameplate Capacity:</span> {hoveredPlant.nameplate_capacity?.toLocaleString()} MW</div>
                 )}
               </div>
             </div>

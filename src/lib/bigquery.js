@@ -1065,7 +1065,7 @@ export async function getElectricProductionPlants() {
       latitude, 
       longitude, 
       nameplate_capacity, 
-      net_generation
+      gross_generation
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_16}\`
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
   `;
