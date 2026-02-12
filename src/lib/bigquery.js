@@ -1120,8 +1120,9 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
   // Select table based on fuel type
   const table = fuelType.toLowerCase() === 'electric' 
     ? process.env.BIGQUERY_TABLE_23_ELECTRIC 
-    : process.env.BIGQUERY_TABLE_23_CNG;
+    : process.env.BIGQUERY_TABLE_24_CNG;
 
+  // Always fetch ALL data (all years, all states) for client-side filtering
   const query = `
     SELECT 
       year,
@@ -1131,21 +1132,15 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
       SUM(vin) as total_vin,
       MAX(fuel_station_count) as fuel_station_count
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
-    WHERE year = @year
-      AND UPPER(state) = UPPER(@state)
-      AND LOWER(fuel_type) = LOWER(@fuelType)
+    WHERE LOWER(fuel_type) = LOWER(@fuelType)
     GROUP BY year, state, fuel_type, concentration_vehicle_type
-    ORDER BY total_vin DESC
+    ORDER BY year, state, total_vin DESC
   `;
 
   const options = {
     query: query,
     location: process.env.BIGQUERY_LOCATION_2 || 'US',
-    params: { 
-      year: parseInt(year),
-      state: state,
-      fuelType: fuelType
-    },
+    params: { fuelType: fuelType },
   };
 
   try {

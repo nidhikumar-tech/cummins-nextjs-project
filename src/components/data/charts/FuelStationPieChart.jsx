@@ -19,6 +19,7 @@ ChartJS.register(
 
 // Standard US State Codes (50 States + DC)
 const US_STATES = [
+  'ALL', // Add 'All States' option
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA',
   'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA',
   'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY',
@@ -40,9 +41,9 @@ const DEFAULT_COLOR = '#94a3b8'; // Gray for unknown types
 
 export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COLORS }) {
   const [fuelType, setFuelType] = useState('cng');
-  const [state, setState] = useState('CA');
+  const [state, setState] = useState('ALL');
   const [year, setYear] = useState('2022');
-  const [data, setData] = useState([]);
+  const [allData, setAllData] = useState([]); // Store all states data
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -54,41 +55,76 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
     return Array.from({ length: 16 }, (_, i) => (2010 + i).toString());
   }, []);
 
-  // Fetch data whenever filters change
+  // Fetch ALL data once per fuelType (all years, all states)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       
       try {
-        const response = await fetch(`/api/fuel-station-concentration?year=${year}&state=${state}&fuelType=${fuelType}`);
+        // Fetch ALL data for this fuel type (all years, all states)
+        const response = await fetch(`/api/fuel-station-concentration?year=all&state=ALL&fuelType=${fuelType}`);
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {
-          setData(result.data);
+          setAllData(result.data);
         } else {
           setError(result.error || 'Failed to load data');
-          setData([]);
+          setAllData([]);
         }
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load fuel station concentration data');
-        setData([]);
+        setAllData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [fuelType, state, year]);
+  }, [fuelType]); // Only refetch when fuelType changes
+
+  // Filter data based on selected year and state (client-side)
+  const filteredData = useMemo(() => {
+    if (!allData || allData.length === 0) return [];
+    
+    // First filter by year
+    const yearFiltered = allData.filter(item => String(item.year) === String(year));
+    
+    // If 'ALL' is selected, aggregate data across all states for the selected year
+    if (state === 'ALL') {
+      // Group by concentration_vehicle_type and sum across all states
+      const aggregated = {};
+      yearFiltered.forEach(item => {
+        const key = item.concentrationVehicleType;
+        if (!aggregated[key]) {
+          aggregated[key] = {
+            year: item.year,
+            state: 'ALL',
+            fuelType: item.fuelType,
+            concentrationVehicleType: key,
+            totalVin: 0,
+            fuelStationCount: 0
+          };
+        }
+        aggregated[key].totalVin += item.totalVin || 0;
+        aggregated[key].fuelStationCount += item.fuelStationCount || 0;
+      });
+      return Object.values(aggregated);
+    }
+    
+    // Otherwise, filter for the specific state
+    const stateData = yearFiltered.filter(item => item.state?.toUpperCase() === state.toUpperCase());
+    return stateData;
+  }, [allData, state, year]);
 
   // Prepare chart data
   const chartData = useMemo(() => {
-    if (!data || data.length === 0) return null;
+    if (!filteredData || filteredData.length === 0) return null;
 
-    const labels = data.map(d => d.concentrationVehicleType);
-    const values = data.map(d => d.totalVin);
-    const colors = data.map(d => CONCENTRATION_COLORS[d.concentrationVehicleType] || DEFAULT_COLOR);
+    const labels = filteredData.map(d => d.concentrationVehicleType);
+    const values = filteredData.map(d => d.totalVin);
+    const colors = filteredData.map(d => CONCENTRATION_COLORS[d.concentrationVehicleType] || DEFAULT_COLOR);
 
     return {
       labels: labels,
@@ -102,7 +138,7 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         }
       ]
     };
-  }, [data]);
+  }, [filteredData, CONCENTRATION_COLORS]);
 
   const options = useMemo(() => ({
     responsive: true,
@@ -120,8 +156,8 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
       },
       title: {
         display: true,
-        text: `No. Of Fueling Stations: ${data.reduce((sum, d) => sum + d.totalVin, 0).toLocaleString()}`,
-        align: 'center',
+        text: `No. Of Fueling Stations: ${filteredData.reduce((sum, d) => sum + d.totalVin, 0).toLocaleString()}`,
+        align: 'end',
         font: { 
           size: 16,
           weight: 'bold'
@@ -142,15 +178,15 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         }
       }
     }
-  }), [data]);
+  }), [filteredData]);
 
   const totalStations = useMemo(() => {
     // Use fuel_station_count if available, otherwise fall back to totalVin
-    if (data.length > 0 && data[0].fuelStationCount !== undefined) {
-      return data[0].fuelStationCount; // Same count for all rows in same state/year/fuel
+    if (filteredData.length > 0 && filteredData[0].fuelStationCount !== undefined) {
+      return filteredData[0].fuelStationCount; // Same count for all rows in same state/year/fuel
     }
-    return data.reduce((sum, d) => sum + d.totalVin, 0);
-  }, [data]);
+    return filteredData.reduce((sum, d) => sum + d.totalVin, 0);
+  }, [filteredData]);
 
   return (
     <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
@@ -183,10 +219,10 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
             border: '1px solid #cbd5e1',
             fontSize: '14px',
             cursor: 'pointer',
-            minWidth: '100px'
+            minWidth: '120px'
           }}
         >
-          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+          {US_STATES.map(s => <option key={s} value={s}>{s === 'ALL' ? 'All States' : s}</option>)}
         </select>
 
         <label style={{ fontWeight: '600', color: '#475569' }}>Year:</label>
