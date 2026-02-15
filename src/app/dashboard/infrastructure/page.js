@@ -8,7 +8,7 @@ import ElectricProductionMap from "@/components/maps/ElectricProductionMap";
 import ProductionByYearByStateCNG from "@/components/charts/Line/ProductionByYearByStateCNG";
 import GenerationConsumptionBarChart from "@/components/charts/Bar/GenerationConsumptionBarChart";
 import CapacityBarChart from "@/components/charts/Bar/CapacityBarChart";
-
+import OverheadUsingElectricLineChart from "@/components/charts/Line/OverheadUsingElectricLineChart";
 export default function InfrastructurePage() {
   
   // Reusable style for the empty chart placeholders
@@ -107,14 +107,14 @@ export default function InfrastructurePage() {
               <GenerationConsumptionBarChart />
             </div>
 
-            {/* Slot 2: Empty */}
+            {/* Slot 2:  */}
             <div style={{ width: '100%', height: '100%' }}>
               <CapacityBarChart />
             </div>
 
-            {/* Slot 3: Empty */}
-            <div style={placeholderStyle}>
-              Electric Chart 3 (Future)
+            {/* Slot 3:  */}
+            <div style={{ width: '100%', height: '100%' }}>
+              <OverheadUsingElectricLineChart />
             </div>
           </div>
         </div>
