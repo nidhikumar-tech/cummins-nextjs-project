@@ -136,8 +136,8 @@ export default function MapView({
 
     return {
       url: iconUrl,
-      scaledSize: new window.google.maps.Size(32, 30), 
-      anchor: new window.google.maps.Point(16, 40),    
+      scaledSize: new window.google.maps.Size(10, 10), 
+      anchor: new window.google.maps.Point(6, 6),    
     };
   }, []);
 /*
