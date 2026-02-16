@@ -8,7 +8,6 @@ const US_CENTER = { lat: 39.8283, lng: -98.5795 };
 const MIN_PIN_SIZE = 2;
 const MAX_PIN_SIZE = 12;
 
-// Map fills remaining space
 const MAP_CONTAINER_STYLE = {
   width: '100%',
   flexGrow: 1,   
@@ -38,7 +37,8 @@ export default function ElectricProductionMap() {
       try {
         const response = await fetch('/api/electric-production-plants');
         const result = await response.json();
-        if (result.success) {
+        // Ensure we actually got an array before setting state
+        if (result.success && Array.isArray(result.data)) {
           setPlants(result.data);
         }
       } catch (err) {
@@ -50,15 +50,40 @@ export default function ElectricProductionMap() {
     fetchData();
   }, []);
 
-  const getIcon = (generation) => {
-    if (!window.google) return null;
-    const safeGen = Math.max(Math.abs(generation || 0), 1); 
+  // [FIX] Updated Safety Logic
+  const getIcon = (plant) => {
+    // 1. Immediate Safety Check: If plant is null/undefined, stop here.
+    if (!plant) return null;
+
+    // 2. Extract values, defaulting to 0 if null or undefined
+    const grossGen = plant.gross_generation ?? 0;
+    const netGen = plant.net_generation ?? 0;
+
+    // 3. Size Logic: Based ONLY on gross_generation
+    // Math.abs handles negatives. || 0 handles nulls. Math.max ensures minimum size 1.
+    const safeGen = Math.max(Math.abs(grossGen), 1); 
     const scale = Math.log(safeGen) / Math.log(1000000); 
     let size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     size = Math.max(MIN_PIN_SIZE, Math.min(size, MAX_PIN_SIZE));
 
+    // 4. Image Selection Logic
+    // Default to 'round1.png'
+    let iconUrl = '/images/round1.png';
+
+    // Condition: If Gross is 0 (or null/blank) AND Net has a non-zero value -> Use 'round2.png'
+    const isGrossZero = grossGen === 0;
+    const hasNetValue = netGen !== 0;
+
+    if (isGrossZero && hasNetValue) {
+      iconUrl = '/images/round2.png';
+    }
+
+    // 5. Return the marker object safely
+    // window.google is checked at the top level, but good to be safe
+    if (!window.google) return null;
+
     return {
-      url: '/images/round1.png',
+      url: iconUrl,
       scaledSize: new window.google.maps.Size(size, size),
       anchor: new window.google.maps.Point(size / 2, size / 2),
     };
@@ -67,16 +92,15 @@ export default function ElectricProductionMap() {
   if (!isLoaded) return <div style={{ height: '100%', background: '#f1f5f9', borderRadius: '12px' }} />;
 
   return (
-    // [FIX] Added height: 100%, display: flex, and flexDirection: column
     <div style={{ 
       background: 'white', 
       padding: '24px', 
       borderRadius: '16px', 
       border: '1px solid #e2e8f0', 
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-      height: '100%',         // Fixes the visibility issue
-      display: 'flex',        // Enables flex layout
-      flexDirection: 'column' // Stacks header and map vertically
+      height: '100%',        
+      display: 'flex',       
+      flexDirection: 'column'
     }}>
       <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Electric Infrastructure</h2>
@@ -101,16 +125,22 @@ export default function ElectricProductionMap() {
           </div>
         )}
 
-        {plants.map((plant, index) => (
-          <Marker
-            key={`${plant.plant_code}-${index}`}
-            position={{ lat: plant.latitude, lng: plant.longitude }}
-            icon={getIcon(plant.gross_generation)}
-            onMouseOver={() => setHoveredPlant(plant)}
-            onMouseOut={() => setHoveredPlant(null)}
-            zIndex={1}
-          />
-        ))}
+        {plants.map((plant, index) => {
+            // [FIX] Calculate icon outside JSX to ensure it's valid before rendering Marker
+            const iconData = getIcon(plant);
+            if (!iconData) return null; // Skip rendering if icon generation failed
+
+            return (
+              <Marker
+                key={`${plant.plant_code}-${index}`}
+                position={{ lat: plant.latitude, lng: plant.longitude }}
+                icon={iconData}
+                onMouseOver={() => setHoveredPlant(plant)}
+                onMouseOut={() => setHoveredPlant(null)}
+                zIndex={1}
+              />
+            );
+        })}
 
         {hoveredPlant && (
           <InfoWindow
@@ -124,14 +154,24 @@ export default function ElectricProductionMap() {
               </div>
               <div style={{ fontSize: '13px', color: '#64748b', display: 'grid', gap: '4px' }}>
                 <div><span style={{ fontWeight: '600' }}>State:</span> {hoveredPlant.state}</div>
+                
+                {/* Safe Data Display using coalescing (?? 0) */}
                 <div>
                   <span style={{ fontWeight: '600' }}>Gross Generation:</span> 
                   <span style={{ color: '#0f172a', fontWeight: '600', marginLeft: '4px' }}>
-                    {hoveredPlant.gross_generation?.toLocaleString()} MWh
+                    {(hoveredPlant.gross_generation ?? 0).toLocaleString()} MWh
                   </span>
                 </div>
+
+                <div>
+                  <span style={{ fontWeight: '600' }}>Net Generation:</span> 
+                  <span style={{ color: '#0f172a', fontWeight: '600', marginLeft: '4px' }}>
+                    {(hoveredPlant.net_generation ?? 0).toLocaleString()} MWh
+                  </span>
+                </div>
+
                 {hoveredPlant.nameplate_capacity !== null && (
-                  <div><span style={{ fontWeight: '600' }}>Nameplate Capacity:</span> {hoveredPlant.nameplate_capacity?.toLocaleString()} MW</div>
+                  <div><span style={{ fontWeight: '600' }}>Capacity:</span> {hoveredPlant.nameplate_capacity?.toLocaleString()} MW</div>
                 )}
               </div>
             </div>
