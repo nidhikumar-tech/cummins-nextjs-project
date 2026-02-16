@@ -1122,6 +1122,7 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
     ? process.env.BIGQUERY_TABLE_23_ELECTRIC 
     : process.env.BIGQUERY_TABLE_24_CNG;
 
+  // Always fetch ALL data (all years, all states) for client-side filtering
   const query = `
     SELECT 
       year,
@@ -1131,21 +1132,15 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
       SUM(vin) as total_vin,
       MAX(fuel_station_count) as fuel_station_count
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
-    WHERE year = @year
-      AND UPPER(state) = UPPER(@state)
-      AND LOWER(fuel_type) = LOWER(@fuelType)
+    WHERE LOWER(fuel_type) = LOWER(@fuelType)
     GROUP BY year, state, fuel_type, concentration_vehicle_type
-    ORDER BY total_vin DESC
+    ORDER BY year, state, total_vin DESC
   `;
 
   const options = {
     query: query,
     location: process.env.BIGQUERY_LOCATION_2 || 'US',
-    params: { 
-      year: parseInt(year),
-      state: state,
-      fuelType: fuelType
-    },
+    params: { fuelType: fuelType },
   };
 
   try {
@@ -1153,6 +1148,324 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
     return rows;
   } catch (error) {
     console.error("Error fetching fuel station concentration data:", error);
+    throw error;
+  }
+}
+
+// Fetches CNG Line Plot data from Line_Plot_CNG_Final table
+// Returns data for Total Supply, Consumption by Sector, and Natural Gas Spot Price
+export async function getCNGLinePlotData(label = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let query = `
+    SELECT 
+      Label,
+      \`Case\`,
+      Units,
+      \`2023\` as year_2023,
+      \`2024\` as year_2024,
+      \`2025\` as year_2025,
+      \`2026\` as year_2026,
+      \`2027\` as year_2027,
+      \`2028\` as year_2028,
+      \`2029\` as year_2029,
+      \`2030\` as year_2030,
+      \`2031\` as year_2031,
+      \`2032\` as year_2032,
+      \`2033\` as year_2033,
+      \`2034\` as year_2034,
+      \`2035\` as year_2035,
+      \`2036\` as year_2036,
+      \`2037\` as year_2037,
+      \`2038\` as year_2038,
+      \`2039\` as year_2039,
+      \`2040\` as year_2040,
+      \`2041\` as year_2041,
+      \`2042\` as year_2042,
+      \`2043\` as year_2043,
+      \`2044\` as year_2044,
+      \`2045\` as year_2045,
+      \`2046\` as year_2046,
+      \`2047\` as year_2047,
+      \`2048\` as year_2048,
+      \`2049\` as year_2049,
+      \`2050\` as year_2050
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_25}\`
+  `;
+
+  if (label) {
+    query += ` WHERE Label = @label`;
+  }
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    params: label ? { label: label } : undefined,
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('CNG Line Plot Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching CNG Line Plot data:', error);
+    throw error;
+  }
+}
+
+// Fetches CNG Bar Graph data from bar_graph_cng_final table
+// Returns data for Production, Net Import, and Consumption by Sector
+export async function getCNGBarGraphData(label = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let query = `
+    SELECT 
+      Label,
+      Sub_Label,
+      \`Case\`,
+      Units,
+      \`2023\` as year_2023,
+      \`2024\` as year_2024,
+      \`2025\` as year_2025,
+      \`2026\` as year_2026,
+      \`2027\` as year_2027,
+      \`2028\` as year_2028,
+      \`2029\` as year_2029,
+      \`2030\` as year_2030,
+      \`2031\` as year_2031,
+      \`2032\` as year_2032,
+      \`2033\` as year_2033,
+      \`2034\` as year_2034,
+      \`2035\` as year_2035,
+      \`2036\` as year_2036,
+      \`2037\` as year_2037,
+      \`2038\` as year_2038,
+      \`2039\` as year_2039,
+      \`2040\` as year_2040,
+      \`2041\` as year_2041,
+      \`2042\` as year_2042,
+      \`2043\` as year_2043,
+      \`2044\` as year_2044,
+      \`2045\` as year_2045,
+      \`2046\` as year_2046,
+      \`2047\` as year_2047,
+      \`2048\` as year_2048,
+      \`2049\` as year_2049,
+      \`2050\` as year_2050
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_26}\`
+  `;
+
+  if (label) {
+    query += ` WHERE Label = @label`;
+  }
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    params: label ? { label: label } : undefined,
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('CNG Bar Graph Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching CNG Bar Graph data:', error);
+    throw error;
+  }
+}
+
+// Fetches Electricity Line Plot data from Line_Plot_Sector_Elec_Final table
+// Returns data for Electricity Sales by Sector and Electricity Prices by Sector
+// Sector is always "Commercial"
+export async function getElectricityLinePlotData(label = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let query = `
+    SELECT 
+      Label,
+      Sector,
+      \`Case\` as \`Case\`,
+      Units,
+      \`2023\` as year_2023,
+      \`2024\` as year_2024,
+      \`2025\` as year_2025,
+      \`2026\` as year_2026,
+      \`2027\` as year_2027,
+      \`2028\` as year_2028,
+      \`2029\` as year_2029,
+      \`2030\` as year_2030,
+      \`2031\` as year_2031,
+      \`2032\` as year_2032,
+      \`2033\` as year_2033,
+      \`2034\` as year_2034,
+      \`2035\` as year_2035,
+      \`2036\` as year_2036,
+      \`2037\` as year_2037,
+      \`2038\` as year_2038,
+      \`2039\` as year_2039,
+      \`2040\` as year_2040,
+      \`2041\` as year_2041,
+      \`2042\` as year_2042,
+      \`2043\` as year_2043,
+      \`2044\` as year_2044,
+      \`2045\` as year_2045,
+      \`2046\` as year_2046,
+      \`2047\` as year_2047,
+      \`2048\` as year_2048,
+      \`2049\` as year_2049,
+      \`2050\` as year_2050
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_27}\`
+    WHERE Sector = 'Commercial'
+  `;
+
+  if (label) {
+    query += ` AND Label = @label`;
+  }
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    params: label ? { label: label } : undefined,
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('Electricity Line Plot Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Electricity Line Plot data:', error);
+    throw error;
+  }
+}
+
+// Fetches Electricity Fuel Bar Graph data from Final_Ele_Fuel table
+// Returns data for Total Net Electricity Generation by Fuel
+export async function getElectricityFuelData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      Label,
+      Fuel,
+      \`Case\` as \`Case\`,
+      Units,
+      \`2023\` as year_2023,
+      \`2024\` as year_2024,
+      \`2025\` as year_2025,
+      \`2026\` as year_2026,
+      \`2027\` as year_2027,
+      \`2028\` as year_2028,
+      \`2029\` as year_2029,
+      \`2030\` as year_2030,
+      \`2031\` as year_2031,
+      \`2032\` as year_2032,
+      \`2033\` as year_2033,
+      \`2034\` as year_2034,
+      \`2035\` as year_2035,
+      \`2036\` as year_2036,
+      \`2037\` as year_2037,
+      \`2038\` as year_2038,
+      \`2039\` as year_2039,
+      \`2040\` as year_2040,
+      \`2041\` as year_2041,
+      \`2042\` as year_2042,
+      \`2043\` as year_2043,
+      \`2044\` as year_2044,
+      \`2045\` as year_2045,
+      \`2046\` as year_2046,
+      \`2047\` as year_2047,
+      \`2048\` as year_2048,
+      \`2049\` as year_2049,
+      \`2050\` as year_2050
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_28}\`
+    WHERE Label = 'Total Net Electricity Generation by Fuel'
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('Electricity Fuel Bar Graph Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Electricity Fuel Bar Graph data:', error);
+    throw error;
+  }
+}
+
+// Fetches Electricity Generation Line Plot data from Line_Plot_Elec_Final table
+// Returns data for Total Net Electricity Generation, Net Available to the Grid, 
+// Net Generation to the Grid, and Total Use From Grid
+export async function getElectricityGenerationLinePlotData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT 
+      Label,
+      \`Case\` as \`Case\`,
+      Units,
+      \`2023\` as year_2023,
+      \`2024\` as year_2024,
+      \`2025\` as year_2025,
+      \`2026\` as year_2026,
+      \`2027\` as year_2027,
+      \`2028\` as year_2028,
+      \`2029\` as year_2029,
+      \`2030\` as year_2030,
+      \`2031\` as year_2031,
+      \`2032\` as year_2032,
+      \`2033\` as year_2033,
+      \`2034\` as year_2034,
+      \`2035\` as year_2035,
+      \`2036\` as year_2036,
+      \`2037\` as year_2037,
+      \`2038\` as year_2038,
+      \`2039\` as year_2039,
+      \`2040\` as year_2040,
+      \`2041\` as year_2041,
+      \`2042\` as year_2042,
+      \`2043\` as year_2043,
+      \`2044\` as year_2044,
+      \`2045\` as year_2045,
+      \`2046\` as year_2046,
+      \`2047\` as year_2047,
+      \`2048\` as year_2048,
+      \`2049\` as year_2049,
+      \`2050\` as year_2050
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_29}\`
+    WHERE Label IN (
+      'Total Net Electricity Generation',
+      'Net Available to the Grid',
+      'Net Generation to the Grid',
+      'Total Use From Grid'
+    )
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('Electricity Generation Line Plot Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Electricity Generation Line Plot data:', error);
     throw error;
   }
 }
