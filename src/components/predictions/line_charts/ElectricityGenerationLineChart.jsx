@@ -1,0 +1,195 @@
+"use client";
+
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+export default function ElectricityGenerationLineChart() {
+  const [allData, setAllData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCase, setSelectedCase] = useState('');
+  const [units, setUnits] = useState('');
+
+  useEffect(() => {
+    fetch('/api/electricity-generation-line-plot')
+      .then(res => res.json())
+      .then(response => {
+        if (response.success && response.data) {
+          console.log('Electricity Generation Line Data:', response.data.length);
+          setAllData(response.data);
+          if (response.data.length > 0 && response.data[0].Units) {
+            setUnits(response.data[0].Units);
+          }
+        }
+      })
+      .catch(err => console.error('Error fetching electricity generation data:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const cases = useMemo(() => {
+    if (!allData.length) return [];
+    return ['All', ...[...new Set(allData.map(r => r.Case))].filter(Boolean)];
+  }, [allData]);
+
+  useEffect(() => {
+    if (cases.length > 1 && !selectedCase) {
+      setSelectedCase(cases[Math.floor(Math.random() * (cases.length - 1)) + 1]);
+    }
+  }, [cases, selectedCase]);
+
+  const chartData = useMemo(() => {
+    if (!allData.length) return null;
+    const years = Array.from({ length: 28 }, (_, i) => 2023 + i);
+    const filtered = selectedCase === 'All' ? allData : allData.filter(r => r.Case === selectedCase);
+    if (!filtered.length) return null;
+
+    // Define the 4 lines we need
+    const labels = [
+      'Total Net Electricity Generation',
+      'Net Available to the Grid',
+      'Net Generation to the Grid',
+      'Total Use From Grid'
+    ];
+
+    // Define distinct vibrant colors for each line
+    const colors = {
+      'Total Net Electricity Generation': '#3b82f6',  // Blue
+      'Net Available to the Grid': '#10b981',          // Green
+      'Net Generation to the Grid': '#f59e0b',         // Amber
+      'Total Use From Grid': '#8b5cf6'                 // Purple
+    };
+
+    const datasets = labels.map(label => {
+      const rows = filtered.filter(r => r.Label === label);
+      if (rows.length === 0) return null;
+
+      const values = years.map(year => {
+        const key = `year_${year}`;
+        return rows.reduce((sum, row) => sum + (row[key] || 0), 0);
+      });
+
+      return {
+        label: label,
+        data: values,
+        borderColor: colors[label] || '#6b7280',
+        backgroundColor: colors[label] || '#6b7280',
+        tension: 0.3,
+        pointRadius: 3,
+        segment: {
+          borderDash: ctx => values[ctx.p0DataIndex] === 0 ? [6, 6] : [],
+        },
+      };
+    }).filter(Boolean);
+
+    return { labels: years.map(y => y.toString()), datasets };
+  }, [allData, selectedCase]);
+
+  // Calculate y-axis max with padding
+  const yMax = useMemo(() => {
+    if (!chartData || !chartData.datasets.length) return undefined;
+    
+    const allValues = chartData.datasets.flatMap(ds => ds.data);
+    const maxVal = Math.max(...allValues);
+    
+    // Add padding: round up to next multiple of nice step
+    const step = Math.pow(10, Math.floor(Math.log10(maxVal)));
+    return Math.ceil((maxVal + step) / step) * step;
+  }, [chartData]);
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: { 
+        display: true, 
+        text: 'Electricity Generation & Grid Usage (2023-2050)', 
+        align: 'start', 
+        font: { size: 16 }, 
+        padding: { bottom: 25 } 
+      },
+      legend: {
+        display: true,
+        position: 'top',
+        align: 'end',
+        labels: {
+          boxWidth: 16,
+          font: { size: 12 },
+          padding: 12
+        }
+      },
+      tooltip: { 
+        mode: 'index', 
+        intersect: false,
+        callbacks: {
+          label: function(context) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y;
+            return `${label}: ${value.toLocaleString()}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Year' },
+        grid: {
+          display: false,
+        }
+      },
+      y: {
+        title: { display: true, text: units || 'Billion Kilowatthours' },
+        suggestedMax: yMax,
+        grid: {
+          color: 'rgba(0,0,0,0.05)',
+          lineWidth: 1,
+          display: true,
+        },
+        ticks: {
+          callback: function(value) {
+            return value.toLocaleString();
+          }
+        }
+      }
+    }
+  };
+
+  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
+
+  return (
+    <div style={{ background: 'white', padding: '20px', borderRadius: '8px' }}>
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <label style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
+        <select
+          value={selectedCase}
+          onChange={e => setSelectedCase(e.target.value)}
+          style={{ 
+            padding: '8px 12px', 
+            borderRadius: '6px', 
+            border: '1px solid #cbd5e1', 
+            fontSize: '14px', 
+            cursor: 'pointer', 
+            minWidth: '150px' 
+          }}
+        >
+          {cases.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        {units && (
+          <div style={{ marginLeft: 'auto', color: '#64748b', fontSize: '14px', fontStyle: 'italic' }}>
+            Units: {units}
+          </div>
+        )}
+      </div>
+      <div style={{ height: '500px' }}>
+        {chartData ? (
+          <Line data={chartData} options={options} />
+        ) : (
+          <p style={{ textAlign: 'center' }}>No data available</p>
+        )}
+      </div>
+    </div>
+  );
+}

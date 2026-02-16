@@ -438,7 +438,7 @@ export default function MapComponent() {
 
   return (
     <div>
-      <div style={{padding: '32px 24px', background: '#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto'}}>
+      <div style={{padding: '32px 24px', background: '#f8f9fa', minHeight: '80vh', maxWidth: '1600px', margin: '0 auto'}}>
         <div style={{ marginBottom: '20px',   textAlign: 'center' }}>
           <h1 style={{  fontSize: '2rem',  fontWeight: '700',  color: '#0f172a',  margin: '0 0 8px 0',  letterSpacing: '-0.025em'}}>Fuel Adoption Rate Heatmap</h1>
           {loadingTypes.length > 0 && (
