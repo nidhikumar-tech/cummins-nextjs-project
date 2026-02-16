@@ -130,7 +130,7 @@ export default function CNGProductionMap() {
     let size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     size = Math.max(MIN_PIN_SIZE, Math.min(size, MAX_PIN_SIZE));
     return {
-      url: '/images/round.png',
+      url: '/images/round1.png',
       scaledSize: new window.google.maps.Size(size, size),
       anchor: new window.google.maps.Point(size / 2, size / 2),
     };
