@@ -776,7 +776,7 @@ export async function getElectricityGenConsData() {
   // Fetch Consumption
   // Schema: year, total, residential, commercial, industrial, transportation
   const consQuery = `
-    SELECT year, residential, commercial, industrial, transportation
+    SELECT year, residential, commercial, industrial, transportation, direct_use
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_12}\`
     ORDER BY year ASC
   `;
@@ -1065,6 +1065,7 @@ export async function getElectricProductionPlants() {
       latitude, 
       longitude, 
       nameplate_capacity, 
+      gross_generation, 
       net_generation
     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_16}\`
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -1469,5 +1470,32 @@ export async function getElectricityGenerationLinePlotData() {
     throw error;
   }
 }
+
+// Fetch Overhead and Using from grid data
+export async function getOverheadAndUsingElectricData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const query = `
+    SELECT state, year, gross_generation, net_generation, overhead_to_grid, using_from_grid
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_30}\`
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching Overhead/Using Electric data:", error);
+    throw error;
+  }
+}
+
 
 export default bigquery;

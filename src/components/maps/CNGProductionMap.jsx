@@ -130,7 +130,7 @@ export default function CNGProductionMap() {
     let size = MIN_PIN_SIZE + (scale * (MAX_PIN_SIZE - MIN_PIN_SIZE));
     size = Math.max(MIN_PIN_SIZE, Math.min(size, MAX_PIN_SIZE));
     return {
-      url: '/images/round.png',
+      url: '/images/round1.png',
       scaledSize: new window.google.maps.Size(size, size),
       anchor: new window.google.maps.Point(size / 2, size / 2),
     };
@@ -153,7 +153,7 @@ export default function CNGProductionMap() {
       <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>CNG Infrastructure</h2>
         <p style={{ margin: '8px 0 0', color: '#64748b' }}>
-          Production Plants and Pipelines as of 2017 (*latest publicly available EIA data)
+          Production Plants and Pipelines as of 2017 (*latest publicly available data - EIA 757)
         </p>
       </div>
 
@@ -214,6 +214,12 @@ export default function CNGProductionMap() {
               <div style={{ fontSize: '13px', color: '#64748b', display: 'grid', gap: '4px' }}>
                 <div><span style={{ fontWeight: '600' }}>State:</span> {hoveredPlant.state}</div>
                 <div><span style={{ fontWeight: '600' }}>Capacity:</span> {hoveredPlant.capacity?.toLocaleString()}</div>
+                {hoveredPlant.liquid_storage !== null && hoveredPlant.liquid_storage !== undefined && (
+                  <div>
+                    <span style={{ fontWeight: '600' }}>NG Liquid Storage:</span> 
+                    <span style={{ marginLeft: '4px' }}>{hoveredPlant.liquid_storage.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
             </div>
           </InfoWindow>

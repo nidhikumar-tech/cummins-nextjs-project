@@ -6,7 +6,9 @@ import VehicleConsumptionBarGraph from "@/components/charts/Bar/VehicleConsumpti
 import ProductionAndConsumptionBarGraphs from "@/components/charts/Bar/ProductionAndConsumptionBarGraph";
 import ElectricProductionMap from "@/components/maps/ElectricProductionMap";
 import ProductionByYearByStateCNG from "@/components/charts/Line/ProductionByYearByStateCNG";
-
+import GenerationConsumptionBarChart from "@/components/charts/Bar/GenerationConsumptionBarChart";
+import CapacityBarChart from "@/components/charts/Bar/CapacityBarChart";
+import OverheadUsingElectricLineChart from "@/components/charts/Line/OverheadUsingElectricLineChart";
 export default function InfrastructurePage() {
   
   // Reusable style for the empty chart placeholders
@@ -101,18 +103,18 @@ export default function InfrastructurePage() {
             minHeight: '0'
           }}>
             {/* Slot 1: Empty */}
-            <div style={placeholderStyle}>
-              Electric Chart 1 (Future)
+            <div style={{ width: '100%', height: '100%' }}>
+              <GenerationConsumptionBarChart />
             </div>
 
-            {/* Slot 2: Empty */}
-            <div style={placeholderStyle}>
-              Electric Chart 2 (Future)
+            {/* Slot 2:  */}
+            <div style={{ width: '100%', height: '100%' }}>
+              <CapacityBarChart />
             </div>
 
-            {/* Slot 3: Empty */}
-            <div style={placeholderStyle}>
-              Electric Chart 3 (Future)
+            {/* Slot 3:  */}
+            <div style={{ width: '100%', height: '100%' }}>
+              <OverheadUsingElectricLineChart />
             </div>
           </div>
         </div>

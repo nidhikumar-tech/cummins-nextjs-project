@@ -136,14 +136,14 @@ export default function MapView({
 
     return {
       url: iconUrl,
-      scaledSize: new window.google.maps.Size(32, 30), 
-      anchor: new window.google.maps.Point(16, 40),    
+      scaledSize: new window.google.maps.Size(10, 10), 
+      anchor: new window.google.maps.Point(6, 6),    
     };
   }, []);
 /*
   // --- 2. PRODUCTION PLANT ICON LOGIC ---
   const plantIcon = useMemo(() => ({
-    url: '/images/round.png',
+    url: '/images/round1.png',
     scaledSize: new window.google.maps.Size(30, 30), 
     anchor: new window.google.maps.Point(15, 15)     
   }), []);
