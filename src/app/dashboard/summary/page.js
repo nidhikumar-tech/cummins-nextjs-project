@@ -4,6 +4,7 @@ import React from 'react';
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import CNGSummaryMap from "@/components/maps/CNGSummaryMap";
 import ElectricSummaryMap from "@/components/maps/ElectricSummaryMap";
+import dynamic from 'next/dynamic';
 
 // Reusable Placeholder component 
 const Placeholder = ({ label }) => (
@@ -27,6 +28,21 @@ const Placeholder = ({ label }) => (
   </div>
 );
 
+// Dynamically import the CNG and Electric MinMax Chart (Required for Chart.js)
+const MinMaxChartCNG = dynamic(() => import('@/components/predictions/MinMaxChartCNG'), {
+  ssr: false, 
+  loading: () => <Placeholder label="Loading Chart..." />
+});
+
+const MinMaxChartHybrid = dynamic(() => import('@/components/predictions/MinMaxChartHybrid'), {
+  ssr: false, 
+  loading: () => <Placeholder label="Loading Chart..." />
+});
+
+const CNGSupplyConsumptionLineChart = dynamic(() => import('@/components/predictions/line_charts/CNGSupplyConsumptionLineChart'), { ssr: false });
+const CNGCombinedBarChart = dynamic(() => import('@/components/predictions/stacked_bar_graph/CNGCombinedBarChart'), { ssr: false });
+const CNGLineChart = dynamic(() => import('@/components/predictions/line_charts/CNGLineChart'), { ssr: false });
+
 export default function SummaryPage() {
   
   const styles = {
@@ -39,8 +55,8 @@ export default function SummaryPage() {
       margin: '0 auto',
     },
     section: {
-      height: 'calc(100vh - 100px)', 
-      minHeight: '800px', 
+      height: 'calc(100vh - 120px)', 
+      minHeight: '550px', 
       display: 'flex',
       flexDirection: 'column',
     },
@@ -67,6 +83,7 @@ export default function SummaryPage() {
       minHeight: 0,
       display: 'flex',
       flexDirection: 'column',
+      
     },
     innerGrid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%', height: '100%' },
     innerGrid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', width: '100%', height: '100%' },
@@ -93,17 +110,23 @@ export default function SummaryPage() {
               <CNGSummaryMap />
             </div>
 
-            {/* Top Right */}
+            {/* Top Right: Powertrain Predictions Chart */}
             <div style={styles.quadrant}>
-              <Placeholder label="Powertrain Predictions Chart (Top Right)" />
+              {/* [NEW] Inserted MinMaxChartCNG with the isSummaryView prop */}
+              <MinMaxChartCNG isSummaryView={true} />
             </div>
 
             {/* Bottom Left */}
             <div style={styles.quadrant}>
               <div style={styles.innerGrid3}>
-                <Placeholder label="Chart 1" />
-                <Placeholder label="Chart 2" />
-                <Placeholder label="Chart 3" />
+                <CNGSupplyConsumptionLineChart isSummaryView={true} />
+                <CNGCombinedBarChart isSummaryView={true} />
+                <CNGLineChart 
+                  label="Natural Gas Spot Price at Henry Hub" 
+                  title="Natural Gas Price (2023-2050)" 
+                  borderColor="#fb7185" 
+                  isSummaryView={true} 
+                />
               </div>
             </div>
 
@@ -138,7 +161,7 @@ export default function SummaryPage() {
 
             {/* Top Right */}
             <div style={styles.quadrant}>
-              <Placeholder label="Powertrain Predictions Chart (Top Right)" />
+              <MinMaxChartHybrid isSummaryView={true} />
             </div>
 
             {/* Bottom Left */}
