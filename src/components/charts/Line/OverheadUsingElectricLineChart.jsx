@@ -67,42 +67,119 @@ export default function OverheadUsingElectricLineChart() {
     // Filter rows for the selected state
     const stateData = rawData.filter(d => d.state === selectedState);
 
+    // Define shading colors for the 4 lines
+    const shadingColors = [
+      'rgba(220, 38, 38, 0.1)',   // Light red
+      'rgba(37, 99, 235, 0.1)',   // Light blue
+      'rgba(139, 92, 246, 0.1)',  // Light purple
+      'rgba(239, 68, 68, 0.1)',   // Light red-orange
+    ];
+
+    const lineConfigs = [
+      { label: 'Gross Generation', data: stateData.map(d => d.gross_generation), color: '#16a34a', shadingColor: shadingColors[0] },
+      { label: 'Net Generation', data: stateData.map(d => d.net_generation), color: '#2563eb', shadingColor: shadingColors[1] },
+      { label: 'Overhead to Grid', data: stateData.map(d => d.overhead_to_grid), color: '#9333ea', shadingColor: shadingColors[2] },
+      { label: 'Using from Grid', data: stateData.map(d => d.using_from_grid), color: '#dc2626', shadingColor: shadingColors[3] }
+    ];
+
+    const datasets = [];
+
+    lineConfigs.forEach((config, lineIndex) => {
+      const values = config.data;
+
+      // Find min and max
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      values.forEach((val, index) => {
+        if (val !== null && val !== undefined) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
+      // Track the index of the main line
+      const mainLineIndex = datasets.length;
+
+      // Main line
+      datasets.push({
+        label: config.label,
+        data: values,
+        borderColor: config.color,
+        backgroundColor: config.color,
+        tension: 0.3,
+        pointRadius: 2,
+        order: 1
+      });
+
+      // Add min/max points and shading if valid
+      if (minIndex !== -1 && maxIndex !== -1) {
+        const minPointData = Array(values.length).fill(null);
+        minPointData[minIndex] = minVal;
+        const maxPointData = Array(values.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+        const maxLineData = Array(values.length).fill(maxVal);
+        const minLineData = Array(values.length).fill(minVal);
+
+        datasets.push({
+          label: `${config.label} Max`,
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${config.label} Min`,
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${config.label} Max Fill`,
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: config.shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+
+        datasets.push({
+          label: `${config.label} Min Fill`,
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: config.shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+      }
+    });
+
     return {
       labels: stateData.map(d => d.year),
-      datasets: [
-        {
-          label: 'Gross Generation',
-          data: stateData.map(d => d.gross_generation),
-          borderColor: '#16a34a', // Green
-          backgroundColor: '#16a34a',
-          tension: 0.3,
-          pointRadius: 2,
-        },
-        {
-          label: 'Net Generation',
-          data: stateData.map(d => d.net_generation),
-          borderColor: '#2563eb', // Blue
-          backgroundColor: '#2563eb',
-          tension: 0.3,
-          pointRadius: 2,
-        },
-        {
-          label: 'Overhead to Grid',
-          data: stateData.map(d => d.overhead_to_grid),
-          borderColor: '#9333ea', // Purple
-          backgroundColor: '#9333ea',
-          tension: 0.3,
-          pointRadius: 2,
-        },
-        {
-          label: 'Using from Grid',
-          data: stateData.map(d => d.using_from_grid),
-          borderColor: '#dc2626', // Red
-          backgroundColor: '#dc2626',
-          tension: 0.3,
-          pointRadius: 2,
-        }
-      ],
+      datasets: datasets,
     };
   }, [rawData, selectedState]);
 
@@ -112,12 +189,24 @@ export default function OverheadUsingElectricLineChart() {
     plugins: {
       legend: { 
         position: 'bottom',
-        labels: { boxWidth: 10, font: { size: 10 }, padding: 10 } 
+        labels: { 
+          boxWidth: 10, 
+          font: { size: 10 }, 
+          padding: 10,
+          filter: function(item) {
+            // Only show main lines and min/max points, hide fill datasets
+            return !item.text.includes('Fill');
+          }
+        } 
       },
       title: { display: false },
       tooltip: {
         mode: 'index',
         intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        }
       }
     },
     scales: {

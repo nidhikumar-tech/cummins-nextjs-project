@@ -63,16 +63,49 @@ export default function ElectricityGenerationLineChart() {
       'Total Use From Grid': '#8b5cf6'                 // Purple
     };
 
-    const datasets = labels.map(label => {
+    // Define shading colors for the 4 lines
+    const shadingColors = [
+      'rgba(220, 38, 38, 0.1)',   // Light red
+      'rgba(37, 99, 235, 0.1)',   // Light blue
+      'rgba(16, 185, 129, 0.1)',  // Light green
+      'rgba(139, 92, 246, 0.1)',  // Light purple
+    ];
+
+    const datasets = [];
+
+    labels.forEach((label, lineIndex) => {
       const rows = filtered.filter(r => r.Label === label);
-      if (rows.length === 0) return null;
+      if (rows.length === 0) return;
 
       const values = years.map(year => {
         const key = `year_${year}`;
         return rows.reduce((sum, row) => sum + (row[key] || 0), 0);
       });
 
-      return {
+      // Find min and max
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      values.forEach((val, index) => {
+        if (val !== null && val !== undefined && val !== 0) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
+      // Track the index of the main line
+      const mainLineIndex = datasets.length;
+
+      // Main line
+      datasets.push({
         label: label,
         data: values,
         borderColor: colors[label] || '#6b7280',
@@ -82,8 +115,65 @@ export default function ElectricityGenerationLineChart() {
         segment: {
           borderDash: ctx => values[ctx.p0DataIndex] === 0 ? [6, 6] : [],
         },
-      };
-    }).filter(Boolean);
+        order: 1
+      });
+
+      // Add min/max points and shading if valid
+      if (minIndex !== -1 && maxIndex !== -1) {
+        const minPointData = Array(years.length).fill(null);
+        minPointData[minIndex] = minVal;
+        const maxPointData = Array(years.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+        const maxLineData = Array(years.length).fill(maxVal);
+        const minLineData = Array(years.length).fill(minVal);
+
+        datasets.push({
+          label: `${label} Max`,
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${label} Min`,
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${label} Max Fill`,
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[lineIndex % shadingColors.length],
+          fill: mainLineIndex,
+          order: 2
+        });
+
+        datasets.push({
+          label: `${label} Min Fill`,
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[lineIndex % shadingColors.length],
+          fill: mainLineIndex,
+          order: 2
+        });
+      }
+    });
 
     return { labels: years.map(y => y.toString()), datasets };
   }, [allData, selectedCase]);
@@ -118,12 +208,20 @@ export default function ElectricityGenerationLineChart() {
         labels: {
           boxWidth: 16,
           font: { size: 12 },
-          padding: 12
+          padding: 12,
+          filter: function(item) {
+            // Only show main lines and min/max points, hide fill datasets
+            return !item.text.includes('Fill');
+          }
         }
       },
       tooltip: { 
         mode: 'index', 
         intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        },
         callbacks: {
           label: function(context) {
             const label = context.dataset.label || '';

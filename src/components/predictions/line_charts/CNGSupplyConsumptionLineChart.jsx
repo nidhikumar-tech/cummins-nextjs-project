@@ -53,6 +53,13 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
     const consRows = filtered.filter(r => r.Label === 'Consumption by Sector');
 
     const datasets = [];
+    let datasetIndex = 0;
+
+    // Define shading colors for the two lines
+    const shadingColors = [
+      'rgba(220, 38, 38, 0.1)',   // Light red for Supply
+      'rgba(37, 99, 235, 0.1)',   // Light blue for Consumption
+    ];
 
     // Total Supply line
     if (supplyRows.length > 0) {
@@ -60,7 +67,30 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
         const key = `year_${year}`;
         return supplyRows.reduce((sum, row) => sum + (row[key] || 0), 0);
       });
-      // Dotted line for any year where value is zero
+
+      // Find min and max for supply
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      supplyValues.forEach((val, index) => {
+        if (val !== null && val !== undefined && val !== 0) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
+      // Track the index of the supply line
+      const supplyLineIndex = datasets.length;
+
+      // Main supply line
       datasets.push({
         label: 'Total Supply',
         data: supplyValues,
@@ -71,7 +101,64 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
         segment: {
           borderDash: ctx => supplyValues[ctx.p0DataIndex] === 0 ? [6, 6] : [],
         },
+        order: 1
       });
+
+      // Add min/max points and shading if valid
+      if (minIndex !== -1 && maxIndex !== -1) {
+        const minPointData = Array(years.length).fill(null);
+        minPointData[minIndex] = minVal;
+        const maxPointData = Array(years.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+        const maxLineData = Array(years.length).fill(maxVal);
+        const minLineData = Array(years.length).fill(minVal);
+
+        datasets.push({
+          label: 'Total Supply Max',
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: 'Total Supply Min',
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: 'Total Supply Max Fill',
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[0],
+          fill: supplyLineIndex,
+          order: 2
+        });
+
+        datasets.push({
+          label: 'Total Supply Min Fill',
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[0],
+          fill: supplyLineIndex,
+          order: 2
+        });
+      }
     }
 
     // Consumption line
@@ -80,7 +167,30 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
         const key = `year_${year}`;
         return consRows.reduce((sum, row) => sum + (row[key] || 0), 0);
       });
-      // Dotted line for any year where value is zero
+
+      // Find min and max for consumption
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      consValues.forEach((val, index) => {
+        if (val !== null && val !== undefined && val !== 0) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
+      // Track the index of the consumption line
+      const consLineIndex = datasets.length;
+
+      // Main consumption line
       datasets.push({
         label: 'Consumption',
         data: consValues,
@@ -91,7 +201,64 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
         segment: {
           borderDash: ctx => consValues[ctx.p0DataIndex] === 0 ? [6, 6] : [],
         },
+        order: 1
       });
+
+      // Add min/max points and shading if valid
+      if (minIndex !== -1 && maxIndex !== -1) {
+        const minPointData = Array(years.length).fill(null);
+        minPointData[minIndex] = minVal;
+        const maxPointData = Array(years.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+        const maxLineData = Array(years.length).fill(maxVal);
+        const minLineData = Array(years.length).fill(minVal);
+
+        datasets.push({
+          label: 'Consumption Max',
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: 'Consumption Min',
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: 'Consumption Max Fill',
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[1],
+          fill: consLineIndex,
+          order: 2
+        });
+
+        datasets.push({
+          label: 'Consumption Min Fill',
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[1],
+          fill: consLineIndex,
+          order: 2
+        });
+      }
     }
 
     return { labels: years.map(y => y.toString()), datasets };
@@ -109,10 +276,21 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
         labels: {
           boxWidth: 16,
           font: { size: 14 },
-          padding: 16
+          padding: 16,
+          filter: function(item) {
+            // Only show main lines and min/max points, hide fill datasets
+            return !item.text.includes('Fill');
+          }
         }
       },
-      tooltip: { mode: 'index', intersect: false }
+      tooltip: { 
+        mode: 'index', 
+        intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        }
+      }
     },
     scales: {
       x: {
