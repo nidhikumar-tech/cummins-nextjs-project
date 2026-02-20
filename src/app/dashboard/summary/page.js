@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import CNGSummaryMap from "@/components/maps/CNGSummaryMap";
 import ElectricSummaryMap from "@/components/maps/ElectricSummaryMap";
 import dynamic from 'next/dynamic';
+import EnergyInsightsAgent from "@/components/predictions/EnergyInsightsAgent";
 
 // Reusable Placeholder component 
 const Placeholder = ({ label }) => (
@@ -188,6 +189,13 @@ export default function SummaryPage() {
         </section>
 
       </div>
+
+      {/* ========================================== */}
+      {/* ENERGY INSIGHTS AGENT — floating bubble    */}
+      {/* Only visible on the Summary page           */}
+      {/* ========================================== */}
+      <EnergyInsightsAgent />
+
     </DashboardLayout>
   );
 }
