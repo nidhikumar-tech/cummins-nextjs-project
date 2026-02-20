@@ -32,19 +32,19 @@ export default function ElectricityGenerationLineChart() {
 
   const cases = useMemo(() => {
     if (!allData.length) return [];
-    return ['All', ...[...new Set(allData.map(r => r.Case))].filter(Boolean)];
+    return [...new Set(allData.map(r => r.Case))].filter(Boolean);
   }, [allData]);
 
   useEffect(() => {
-    if (cases.length > 1 && !selectedCase) {
-      setSelectedCase(cases[Math.floor(Math.random() * (cases.length - 1)) + 1]);
+    if (cases.length > 0 && !selectedCase) {
+      setSelectedCase(cases[Math.floor(Math.random() * cases.length)]);
     }
   }, [cases, selectedCase]);
 
   const chartData = useMemo(() => {
     if (!allData.length) return null;
     const years = Array.from({ length: 28 }, (_, i) => 2023 + i);
-    const filtered = selectedCase === 'All' ? allData : allData.filter(r => r.Case === selectedCase);
+    const filtered = allData.filter(r => r.Case === selectedCase);
     if (!filtered.length) return null;
 
     // Define the 4 lines we need
@@ -63,13 +63,13 @@ export default function ElectricityGenerationLineChart() {
       'Total Use From Grid': '#8b5cf6'                 // Purple
     };
 
-    // Define shading colors for the 4 lines
-    const shadingColors = [
-      'rgba(220, 38, 38, 0.1)',   // Light red
-      'rgba(37, 99, 235, 0.1)',   // Light blue
-      'rgba(16, 185, 129, 0.1)',  // Light green
-      'rgba(139, 92, 246, 0.1)',  // Light purple
-    ];
+    // Define shading colors matching each line's color
+    const shadingColors = {
+      'Total Net Electricity Generation': 'rgba(59, 130, 246, 0.15)',  // from #3b82f6
+      'Net Available to the Grid':        'rgba(16, 185, 129, 0.15)', // from #10b981
+      'Net Generation to the Grid':       'rgba(245, 158, 11, 0.15)', // from #f59e0b
+      'Total Use From Grid':              'rgba(139, 92, 246, 0.15)'  // from #8b5cf6
+    };
 
     const datasets = [];
 
@@ -158,7 +158,7 @@ export default function ElectricityGenerationLineChart() {
           data: maxLineData,
           borderColor: 'transparent',
           pointRadius: 0,
-          backgroundColor: shadingColors[lineIndex % shadingColors.length],
+          backgroundColor: shadingColors[label] || 'rgba(99, 102, 241, 0.15)',
           fill: mainLineIndex,
           order: 2
         });
@@ -168,7 +168,7 @@ export default function ElectricityGenerationLineChart() {
           data: minLineData,
           borderColor: 'transparent',
           pointRadius: 0,
-          backgroundColor: shadingColors[lineIndex % shadingColors.length],
+          backgroundColor: shadingColors[label] || 'rgba(99, 102, 241, 0.15)',
           fill: mainLineIndex,
           order: 2
         });
@@ -210,8 +210,8 @@ export default function ElectricityGenerationLineChart() {
           font: { size: 12 },
           padding: 12,
           filter: function(item) {
-            // Only show main lines and min/max points, hide fill datasets
-            return !item.text.includes('Fill');
+            // Hide fill datasets and min/max legend labels (bubbles stay on chart)
+            return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
           }
         }
       },

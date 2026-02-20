@@ -37,6 +37,14 @@ const US_STATES = new Set([
   'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
+// Helper: convert hex color to rgba with given alpha
+const hexToRgba = (hex, alpha = 0.15) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`
+    : `rgba(99, 102, 241, ${alpha})`;
+};
+
 /**
  * Example usage:
  *   <LineChart dataType="vehicles" showFuelTypeSelector={true} showAggregateSelector={true} />
@@ -246,7 +254,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           }
         },
         order: 1
-      }, dataValues, 'rgba(220, 38, 38, 0.1)');
+      }, dataValues, hexToRgba(borderColor));
 
       return {
         labels: rawData.map(d => d.year),
@@ -273,7 +281,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           }
         },
         order: 1
-      }, dataValues, 'rgba(220, 38, 38, 0.1)');
+      }, dataValues, hexToRgba(borderColor));
 
       return {
         labels: rawData.map(d => d.year),
@@ -300,7 +308,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           }
         },
         order: 1
-      }, dataValues, 'rgba(220, 38, 38, 0.1)');
+      }, dataValues, hexToRgba(borderColor));
 
       return {
         labels: rawData.map(d => d.year),
@@ -332,7 +340,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           }
         },
         order: 1
-      }, actualVehiclesData, 'rgba(220, 38, 38, 0.1)');
+      }, actualVehiclesData, hexToRgba(borderColor));
 
       // Add second line with min/max
       addMinMaxForLine(datasets, {
@@ -351,7 +359,7 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           }
         },
         order: 1
-      }, cmiVinData, 'rgba(37, 99, 235, 0.1)');
+      }, cmiVinData, hexToRgba('#8b5cf6'));
       
       return {
         labels: rawData.map(d => d.year),
@@ -388,8 +396,8 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           align: 'end',
           labels: {
             filter: function(item) {
-              // Only show main lines and min/max points, hide fill datasets
-              return !item.text.includes('Fill');
+              // Hide fill datasets and min/max legend labels (bubbles stay on chart)
+              return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
             }
           }
         },

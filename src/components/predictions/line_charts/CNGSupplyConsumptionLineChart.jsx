@@ -33,12 +33,12 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
 
   const cases = useMemo(() => {
     if (!allData.length) return [];
-    return ['All', ...[...new Set(allData.map(r => r.Case))].filter(Boolean)];
+    return [...new Set(allData.map(r => r.Case))].filter(Boolean);
   }, [allData]);
 
   useEffect(() => {
-    if (cases.length > 1 && !selectedCase) {
-      setSelectedCase(cases[Math.floor(Math.random() * (cases.length - 1)) + 1]);
+    if (cases.length > 0 && !selectedCase) {
+      setSelectedCase(cases[Math.floor(Math.random() * cases.length)]);
     }
   }, [cases, selectedCase]);
 
@@ -55,10 +55,10 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
     const datasets = [];
     let datasetIndex = 0;
 
-    // Define shading colors for the two lines
+    // Define shading colors for the two lines (matching each line's color)
     const shadingColors = [
-      'rgba(220, 38, 38, 0.1)',   // Light red for Supply
-      'rgba(37, 99, 235, 0.1)',   // Light blue for Consumption
+      'rgba(250, 204, 21, 0.15)',  // Light yellow for Supply (#facc15)
+      'rgba(16, 185, 129, 0.15)', // Light green for Consumption (#10b981)
     ];
 
     // Total Supply line
@@ -278,8 +278,8 @@ export default function CNGSupplyConsumptionLineChart({ isSummaryView = false })
           font: { size: 14 },
           padding: 16,
           filter: function(item) {
-            // Only show main lines and min/max points, hide fill datasets
-            return !item.text.includes('Fill');
+            // Hide fill datasets and min/max legend labels (bubbles stay on chart)
+            return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
           }
         }
       },

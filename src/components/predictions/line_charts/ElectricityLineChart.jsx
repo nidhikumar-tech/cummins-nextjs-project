@@ -25,6 +25,14 @@ ChartJS.register(
   Filler
 );
 
+// Helper: convert hex color to rgba with given alpha
+const hexToRgba = (hex, alpha = 0.15) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`
+    : `rgba(99, 102, 241, ${alpha})`;
+};
+
 export default function ElectricityLineChart({
   label,
   borderColor = '#2563eb',
@@ -79,15 +87,13 @@ export default function ElectricityLineChart({
   const cases = useMemo(() => {
     if (!allData || allData.length === 0) return [];
     const uniqueCases = [...new Set(allData.map(row => row.Case))].filter(Boolean);
-    return ['All', ...uniqueCases];
+    return [...uniqueCases];
   }, [allData]);
 
-  // Set default selectedCase randomly (not 'All') if not set
+  // Set default selectedCase randomly if not set
   useEffect(() => {
-    if (cases.length > 1 && !selectedCase) {
-      // Exclude 'All' from random selection
-      const randomIndex = Math.floor(Math.random() * (cases.length - 1)) + 1;
-      setSelectedCase(cases[randomIndex]);
+    if (cases.length > 0 && !selectedCase) {
+      setSelectedCase(cases[Math.floor(Math.random() * cases.length)]);
     }
   }, [cases, selectedCase]);
 
@@ -112,7 +118,7 @@ export default function ElectricityLineChart({
     
     // Filter data by selected case
     let filteredData;
-    if (selectedCase === 'All' || !selectedCase) {
+    if (!selectedCase) {
       filteredData = allData;
     } else {
       filteredData = allData.filter(row => row.Case === selectedCase);
@@ -158,7 +164,7 @@ export default function ElectricityLineChart({
 
       // Use consistent colors from color map
       const datasetBorderColor = caseColorMap[row.Case] || borderColor;
-      const shadingColor = shadingColors[rowIndex % shadingColors.length];
+      const shadingColor = hexToRgba(datasetBorderColor);
 
       // Track the index of the main line before pushing
       const mainLineIndex = datasets.length;
@@ -271,15 +277,15 @@ export default function ElectricityLineChart({
     plugins: {
       legend: {
         display: true,
-        position: selectedCase === 'All' ? 'bottom' : 'top',
-        align: selectedCase === 'All' ? 'center' : 'end',
+        position: 'top',
+        align: 'end',
         labels: {
           boxWidth: 16,
           font: { size: 12 },
           padding: 12,
           filter: function(item) {
-            // Only show main lines and min/max points, hide fill datasets
-            return !item.text.includes('Fill');
+            // Hide fill datasets and min/max legend labels (bubbles stay on chart)
+            return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
           }
         }
       },
