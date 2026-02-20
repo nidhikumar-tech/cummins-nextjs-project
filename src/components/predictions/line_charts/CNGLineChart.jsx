@@ -119,17 +119,52 @@ export default function CNGLineChart({
     }
     if (filteredData.length === 0) return null;
 
-    // Extract data from rows
-    const datasets = filteredData.map((row) => {
+    // Define shading colors for multiple lines
+    const shadingColors = [
+      'rgba(220, 38, 38, 0.1)',   // Light red
+      'rgba(37, 99, 235, 0.1)',   // Light blue
+      'rgba(16, 185, 129, 0.1)',  // Light green
+      'rgba(251, 113, 133, 0.1)', // Light pink
+      'rgba(139, 92, 246, 0.1)',  // Light purple
+      'rgba(6, 182, 212, 0.1)',   // Light cyan
+    ];
+
+    // Extract data from rows and calculate min/max for each line
+    const datasets = [];
+    filteredData.forEach((row, rowIndex) => {
       const values = allYears.map(year => {
         const key = `year_${year}`;
         return row[key] !== null && row[key] !== undefined ? row[key] : null;
       });
 
+      // Find min and max across entire dataset (not just a portion)
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      values.forEach((val, index) => {
+        if (val !== null && val !== undefined) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
       // Use consistent colors from color map
       const datasetBorderColor = caseColorMap[row.Case] || borderColor;
+      const shadingColor = shadingColors[rowIndex % shadingColors.length];
 
-      return {
+      // Track the index of the main line before pushing
+      const mainLineIndex = datasets.length;
+
+      // Main line dataset
+      datasets.push({
         label: row.Case || row.Label,
         data: values,
         borderColor: datasetBorderColor,
@@ -139,7 +174,72 @@ export default function CNGLineChart({
         pointRadius: 4,
         pointHoverRadius: 6,
         spanGaps: true,
-      };
+        order: 1
+      });
+
+      // Min/Max points and shading (only if valid min/max found)
+      if (minIndex !== -1 && maxIndex !== -1) {
+        // Create sparse arrays for min and max points
+        const minPointData = Array(allYears.length).fill(null);
+        minPointData[minIndex] = minVal;
+
+        const maxPointData = Array(allYears.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+
+        // Create constant arrays for shading
+        const maxLineData = Array(allYears.length).fill(maxVal);
+        const minLineData = Array(allYears.length).fill(minVal);
+
+        // Max point
+        datasets.push({
+          label: `${row.Case || row.Label} Max`,
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        // Min point
+        datasets.push({
+          label: `${row.Case || row.Label} Min`,
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        // Shading - fill between max and the main line
+        datasets.push({
+          label: `${row.Case || row.Label} Max Fill`,
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+
+        // Shading - fill between min and the main line
+        datasets.push({
+          label: `${row.Case || row.Label} Min Fill`,
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+      }
     });
 
     return {
@@ -154,7 +254,13 @@ export default function CNGLineChart({
     plugins: {
       legend: {
         position: 'top',
-        align: selectedCase === 'All' ? 'center' : 'end'
+        align: selectedCase === 'All' ? 'center' : 'end',
+        labels: {
+          filter: function(item) {
+            // Only show main lines and min/max points, hide fill datasets
+            return !item.text.includes('Fill');
+          }
+        }
       },
       title: {
         display: true,
@@ -165,6 +271,10 @@ export default function CNGLineChart({
       tooltip: {
         mode: 'index',
         intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        },
         callbacks: {
           label: function (context) {
             const label = context.dataset.label || '';

@@ -65,19 +65,99 @@ export default function ProductionByYearByStateCNG() {
   const chartData = useMemo(() => {
     if (rawData.length === 0) return null;
 
+    const values = rawData.map(row => row[selectedState]);
+
+    // Find min and max
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    let minIndex = -1;
+    let maxIndex = -1;
+
+    values.forEach((val, index) => {
+      if (val !== null && val !== undefined) {
+        if (val < minVal) {
+          minVal = val;
+          minIndex = index;
+        }
+        if (val > maxVal) {
+          maxVal = val;
+          maxIndex = index;
+        }
+      }
+    });
+
+    const datasets = [
+      {
+        label: selectedState === 'cumulative' ? 'Total US Production' : `${selectedState} Production`,
+        data: values,
+        borderColor: '#2563eb', // Blue
+        backgroundColor: '#3b82f6',
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        order: 1
+      }
+    ];
+
+    // Add min/max points and shading if valid
+    if (minIndex !== -1 && maxIndex !== -1) {
+      const minPointData = Array(values.length).fill(null);
+      minPointData[minIndex] = minVal;
+      const maxPointData = Array(values.length).fill(null);
+      maxPointData[maxIndex] = maxVal;
+      const maxLineData = Array(values.length).fill(maxVal);
+      const minLineData = Array(values.length).fill(minVal);
+
+      datasets.push({
+        label: 'Max',
+        data: maxPointData,
+        borderColor: '#16a34a',
+        backgroundColor: '#22c55e',
+        pointStyle: 'circle',
+        pointRadius: 10,
+        pointHoverRadius: 12,
+        borderWidth: 3,
+        showLine: false,
+        order: 0
+      });
+
+      datasets.push({
+        label: 'Min',
+        data: minPointData,
+        borderColor: '#ea580c',
+        backgroundColor: '#f97316',
+        pointStyle: 'circle',
+        pointRadius: 10,
+        pointHoverRadius: 12,
+        borderWidth: 3,
+        showLine: false,
+        order: 0
+      });
+
+      datasets.push({
+        label: 'Max Fill',
+        data: maxLineData,
+        borderColor: 'transparent',
+        pointRadius: 0,
+        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+        fill: 0,
+        order: 2
+      });
+
+      datasets.push({
+        label: 'Min Fill',
+        data: minLineData,
+        borderColor: 'transparent',
+        pointRadius: 0,
+        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+        fill: 0,
+        order: 2
+      });
+    }
+
     return {
       labels: rawData.map(row => row.date), // Years 2010-2024
-      datasets: [
-        {
-          label: selectedState === 'cumulative' ? 'Total US Production' : `${selectedState} Production`,
-          data: rawData.map(row => row[selectedState]), // Dynamic key access
-          borderColor: '#2563eb', // Blue
-          backgroundColor: '#3b82f6',
-          tension: 0.3, // Curve the line slightly
-          pointRadius: 3,
-          pointHoverRadius: 6,
-        },
-      ],
+      datasets: datasets,
     };
   }, [rawData, selectedState]);
 
@@ -86,7 +166,13 @@ export default function ProductionByYearByStateCNG() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false, // Hide legend since title/dropdown explains it
+        display: true,
+        labels: {
+          filter: function(item) {
+            // Only show main line and min/max points, hide fill datasets
+            return !item.text.includes('Fill');
+          }
+        }
       },
       title: {
         display: false,
@@ -94,6 +180,10 @@ export default function ProductionByYearByStateCNG() {
       tooltip: {
         mode: 'index',
         intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        }
       }
     },
     scales: {
