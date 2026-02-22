@@ -29,7 +29,9 @@ export default function ElectricityLineChart({
   label,
   borderColor = '#2563eb',
   backgroundColor = 'rgba(37, 99, 235, 0.1)',
-  title = null
+  title = null,
+  // [CHANGE 1] Added isSummaryView prop
+  isSummaryView = false
 }) {
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -170,7 +172,8 @@ export default function ElectricityLineChart({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: true,
+        // [CHANGE 2] Hide legend in summary view
+        display: !isSummaryView,
         position: selectedCase === 'All' ? 'bottom' : 'top',
         align: selectedCase === 'All' ? 'center' : 'end',
         labels: {
@@ -226,7 +229,8 @@ export default function ElectricityLineChart({
         }
       }
     }
-  }), [selectedCase, title, label, units, yMax]);
+  // [CHANGE 3] Added isSummaryView to dependency array
+  }), [selectedCase, title, label, units, yMax, isSummaryView]);
 
   if (loading) {
     return (
@@ -262,8 +266,19 @@ export default function ElectricityLineChart({
   }
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    // [CHANGE 4] Dynamic wrapper styling for summary view
+    <div style={{ 
+      background: 'white', 
+      padding: isSummaryView ? '0px' : '20px', 
+      borderRadius: '8px',
+      width: '100%',
+      height: '100%',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      minHeight: 0,
+      minWidth: 0
+    }}>
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flexShrink: 0 }}>
         <label htmlFor="case-select" style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
         <select
           id="case-select"
@@ -289,7 +304,8 @@ export default function ElectricityLineChart({
         )}
       </div>
 
-      <div style={{ height: '500px', width: '100%' }}>
+      {/* [CHANGE 5] Dynamic chart container styling */}
+      <div style={isSummaryView ? { flexGrow: 1, minHeight: 0, position: 'relative' } : { height: '500px', width: '100%', position: 'relative' }}>
         {chartData ? (
           <Line data={chartData} options={options} />
         ) : (

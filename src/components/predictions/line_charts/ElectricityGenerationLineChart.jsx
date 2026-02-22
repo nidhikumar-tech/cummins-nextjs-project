@@ -8,7 +8,8 @@ import { Line } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export default function ElectricityGenerationLineChart() {
+// [CHANGE 1] Added isSummaryView prop
+export default function ElectricityGenerationLineChart({ isSummaryView = false }) {
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCase, setSelectedCase] = useState('');
@@ -58,9 +59,9 @@ export default function ElectricityGenerationLineChart() {
     // Define distinct vibrant colors for each line
     const colors = {
       'Total Net Electricity Generation': '#3b82f6',  // Blue
-      'Net Available to the Grid': '#10b981',          // Green
-      'Net Generation to the Grid': '#f59e0b',         // Amber
-      'Total Use From Grid': '#8b5cf6'                 // Purple
+      'Net Available to the Grid': '#10b981',         // Green
+      'Net Generation to the Grid': '#f59e0b',        // Amber
+      'Total Use From Grid': '#8b5cf6'                // Purple
     };
 
     const datasets = labels.map(label => {
@@ -112,7 +113,8 @@ export default function ElectricityGenerationLineChart() {
         padding: { bottom: 25 } 
       },
       legend: {
-        display: true,
+        // [CHANGE 2] Hide legend in summary view
+        display: !isSummaryView,
         position: 'top',
         align: 'end',
         labels: {
@@ -160,8 +162,19 @@ export default function ElectricityGenerationLineChart() {
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    // [CHANGE 3] Dynamic wrapper styling for summary view
+    <div style={{ 
+      background: 'white', 
+      padding: isSummaryView ? '0px' : '20px', 
+      borderRadius: '8px',
+      width: '100%',
+      height: '100%',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      minHeight: 0,
+      minWidth: 0
+    }}>
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flexShrink: 0 }}>
         <label style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
         <select
           value={selectedCase}
@@ -183,7 +196,8 @@ export default function ElectricityGenerationLineChart() {
           </div>
         )}
       </div>
-      <div style={{ height: '500px' }}>
+      {/* [CHANGE 4] Dynamic chart container styling */}
+      <div style={isSummaryView ? { flexGrow: 1, minHeight: 0, position: 'relative' } : { height: '500px', position: 'relative' }}>
         {chartData ? (
           <Line data={chartData} options={options} />
         ) : (
