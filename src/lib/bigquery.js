@@ -1498,4 +1498,40 @@ export async function getOverheadAndUsingElectricData() {
 }
 
 
+// Fetches rule-based LLM Q&A from the llm_questions table
+// @param {string|null} fuelType - 'CNG' or 'ELECTRIC', null for all
+export async function getLLMQuestions(fuelType = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let whereClause = '';
+  if (fuelType) {
+    whereClause = `WHERE UPPER(fuel_type) = '${fuelType.toUpperCase()}'`;
+  }
+
+  const query = `
+    SELECT
+      question,
+      answer,
+      fuel_type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_31}\`
+    ${whereClause}
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery LLM Questions Fetch - Rows Retrieved:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching LLM questions:', error);
+    throw error;
+  }
+}
+
 export default bigquery;

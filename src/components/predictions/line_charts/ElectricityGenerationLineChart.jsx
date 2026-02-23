@@ -33,19 +33,19 @@ export default function ElectricityGenerationLineChart({ isSummaryView = false }
 
   const cases = useMemo(() => {
     if (!allData.length) return [];
-    return ['All', ...[...new Set(allData.map(r => r.Case))].filter(Boolean)];
+    return [...new Set(allData.map(r => r.Case))].filter(Boolean);
   }, [allData]);
 
   useEffect(() => {
-    if (cases.length > 1 && !selectedCase) {
-      setSelectedCase(cases[Math.floor(Math.random() * (cases.length - 1)) + 1]);
+    if (cases.length > 0 && !selectedCase) {
+      setSelectedCase(cases[Math.floor(Math.random() * cases.length)]);
     }
   }, [cases, selectedCase]);
 
   const chartData = useMemo(() => {
     if (!allData.length) return null;
     const years = Array.from({ length: 28 }, (_, i) => 2023 + i);
-    const filtered = selectedCase === 'All' ? allData : allData.filter(r => r.Case === selectedCase);
+    const filtered = allData.filter(r => r.Case === selectedCase);
     if (!filtered.length) return null;
 
     // Define the 4 lines we need
@@ -64,16 +64,49 @@ export default function ElectricityGenerationLineChart({ isSummaryView = false }
       'Total Use From Grid': '#8b5cf6'                // Purple
     };
 
-    const datasets = labels.map(label => {
+    // Define shading colors matching each line's color
+    const shadingColors = {
+      'Total Net Electricity Generation': 'rgba(59, 130, 246, 0.15)',  // from #3b82f6
+      'Net Available to the Grid':        'rgba(16, 185, 129, 0.15)', // from #10b981
+      'Net Generation to the Grid':       'rgba(245, 158, 11, 0.15)', // from #f59e0b
+      'Total Use From Grid':              'rgba(139, 92, 246, 0.15)'  // from #8b5cf6
+    };
+
+    const datasets = [];
+
+    labels.forEach((label, lineIndex) => {
       const rows = filtered.filter(r => r.Label === label);
-      if (rows.length === 0) return null;
+      if (rows.length === 0) return;
 
       const values = years.map(year => {
         const key = `year_${year}`;
         return rows.reduce((sum, row) => sum + (row[key] || 0), 0);
       });
 
-      return {
+      // Find min and max
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      values.forEach((val, index) => {
+        if (val !== null && val !== undefined && val !== 0) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
+      // Track the index of the main line
+      const mainLineIndex = datasets.length;
+
+      // Main line
+      datasets.push({
         label: label,
         data: values,
         borderColor: colors[label] || '#6b7280',
@@ -83,8 +116,65 @@ export default function ElectricityGenerationLineChart({ isSummaryView = false }
         segment: {
           borderDash: ctx => values[ctx.p0DataIndex] === 0 ? [6, 6] : [],
         },
-      };
-    }).filter(Boolean);
+        order: 1
+      });
+
+      // Add min/max points and shading if valid
+      if (minIndex !== -1 && maxIndex !== -1) {
+        const minPointData = Array(years.length).fill(null);
+        minPointData[minIndex] = minVal;
+        const maxPointData = Array(years.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+        const maxLineData = Array(years.length).fill(maxVal);
+        const minLineData = Array(years.length).fill(minVal);
+
+        datasets.push({
+          label: `${label} Max`,
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${label} Min`,
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${label} Max Fill`,
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[label] || 'rgba(99, 102, 241, 0.15)',
+          fill: mainLineIndex,
+          order: 2
+        });
+
+        datasets.push({
+          label: `${label} Min Fill`,
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColors[label] || 'rgba(99, 102, 241, 0.15)',
+          fill: mainLineIndex,
+          order: 2
+        });
+      }
+    });
 
     return { labels: years.map(y => y.toString()), datasets };
   }, [allData, selectedCase]);
@@ -120,12 +210,20 @@ export default function ElectricityGenerationLineChart({ isSummaryView = false }
         labels: {
           boxWidth: 16,
           font: { size: 12 },
-          padding: 12
+          padding: 12,
+          filter: function(item) {
+            // Hide fill datasets and min/max legend labels (bubbles stay on chart)
+            return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
+          }
         }
       },
       tooltip: { 
         mode: 'index', 
         intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        },
         callbacks: {
           label: function(context) {
             const label = context.dataset.label || '';

@@ -25,6 +25,14 @@ ChartJS.register(
   Filler
 );
 
+// Helper: convert hex color to rgba with given alpha
+const hexToRgba = (hex, alpha = 0.15) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`
+    : `rgba(99, 102, 241, ${alpha})`;
+};
+
 export default function ElectricityLineChart({
   label,
   borderColor = '#2563eb',
@@ -81,15 +89,13 @@ export default function ElectricityLineChart({
   const cases = useMemo(() => {
     if (!allData || allData.length === 0) return [];
     const uniqueCases = [...new Set(allData.map(row => row.Case))].filter(Boolean);
-    return ['All', ...uniqueCases];
+    return [...uniqueCases];
   }, [allData]);
 
-  // Set default selectedCase randomly (not 'All') if not set
+  // Set default selectedCase randomly if not set
   useEffect(() => {
-    if (cases.length > 1 && !selectedCase) {
-      // Exclude 'All' from random selection
-      const randomIndex = Math.floor(Math.random() * (cases.length - 1)) + 1;
-      setSelectedCase(cases[randomIndex]);
+    if (cases.length > 0 && !selectedCase) {
+      setSelectedCase(cases[Math.floor(Math.random() * cases.length)]);
     }
   }, [cases, selectedCase]);
 
@@ -114,24 +120,59 @@ export default function ElectricityLineChart({
     
     // Filter data by selected case
     let filteredData;
-    if (selectedCase === 'All' || !selectedCase) {
+    if (!selectedCase) {
       filteredData = allData;
     } else {
       filteredData = allData.filter(row => row.Case === selectedCase);
     }
     if (filteredData.length === 0) return null;
 
-    // Extract data from rows
-    const datasets = filteredData.map((row) => {
+    // Define shading colors for multiple lines
+    const shadingColors = [
+      'rgba(220, 38, 38, 0.1)',   // Light red
+      'rgba(37, 99, 235, 0.1)',   // Light blue
+      'rgba(16, 185, 129, 0.1)',  // Light green
+      'rgba(251, 113, 133, 0.1)', // Light pink
+      'rgba(139, 92, 246, 0.1)',  // Light purple
+      'rgba(6, 182, 212, 0.1)',   // Light cyan
+    ];
+
+    // Extract data from rows and calculate min/max for each line
+    const datasets = [];
+    filteredData.forEach((row, rowIndex) => {
       const values = allYears.map(year => {
         const key = `year_${year}`;
         return row[key] !== null && row[key] !== undefined ? row[key] : null;
       });
 
+      // Find min and max across entire dataset
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      values.forEach((val, index) => {
+        if (val !== null && val !== undefined) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
       // Use consistent colors from color map
       const datasetBorderColor = caseColorMap[row.Case] || borderColor;
+      const shadingColor = hexToRgba(datasetBorderColor);
 
-      return {
+      // Track the index of the main line before pushing
+      const mainLineIndex = datasets.length;
+
+      // Main line dataset
+      datasets.push({
         label: row.Case || row.Label,
         data: values,
         borderColor: datasetBorderColor,
@@ -144,7 +185,72 @@ export default function ElectricityLineChart({
         segment: {
           borderDash: ctx => values[ctx.p0DataIndex] === 0 ? [6, 6] : [],
         },
-      };
+        order: 1
+      });
+
+      // Min/Max points and shading (only if valid min/max found)
+      if (minIndex !== -1 && maxIndex !== -1) {
+        // Create sparse arrays for min and max points
+        const minPointData = Array(allYears.length).fill(null);
+        minPointData[minIndex] = minVal;
+
+        const maxPointData = Array(allYears.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+
+        // Create constant arrays for shading
+        const maxLineData = Array(allYears.length).fill(maxVal);
+        const minLineData = Array(allYears.length).fill(minVal);
+
+        // Max point
+        datasets.push({
+          label: `${row.Case || row.Label} Max`,
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        // Min point
+        datasets.push({
+          label: `${row.Case || row.Label} Min`,
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        // Shading - fill between max and the main line
+        datasets.push({
+          label: `${row.Case || row.Label} Max Fill`,
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+
+        // Shading - fill between min and the main line
+        datasets.push({
+          label: `${row.Case || row.Label} Min Fill`,
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+      }
     });
 
     return {
@@ -179,7 +285,11 @@ export default function ElectricityLineChart({
         labels: {
           boxWidth: 16,
           font: { size: 12 },
-          padding: 12
+          padding: 12,
+          filter: function(item) {
+            // Hide fill datasets and min/max legend labels (bubbles stay on chart)
+            return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
+          }
         }
       },
       title: {
@@ -192,6 +302,10 @@ export default function ElectricityLineChart({
       tooltip: {
         mode: 'index',
         intersect: false,
+        filter: function(tooltipItem) {
+          // Hide tooltips for the shading layers
+          return !tooltipItem.dataset.label.includes('Fill');
+        },
         callbacks: {
           label: function (context) {
             const label = context.dataset.label || '';

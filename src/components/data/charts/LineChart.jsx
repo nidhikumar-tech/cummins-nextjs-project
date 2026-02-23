@@ -37,6 +37,14 @@ const US_STATES = new Set([
   'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
+// Helper: convert hex color to rgba with given alpha
+const hexToRgba = (hex, alpha = 0.15) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`
+    : `rgba(99, 102, 241, ${alpha})`;
+};
+
 /**
  * Example usage:
  *   <LineChart dataType="vehicles" showFuelTypeSelector={true} showAggregateSelector={true} />
@@ -142,81 +150,171 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
     
     if (rawData.length === 0) return null;
     
+    // Helper function to add min/max points and shading for a single line
+    const addMinMaxForLine = (datasets, lineDataset, values, shadingColor) => {
+      // Find min and max
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      let minIndex = -1;
+      let maxIndex = -1;
+
+      values.forEach((val, index) => {
+        if (val !== null && val !== undefined) {
+          if (val < minVal) {
+            minVal = val;
+            minIndex = index;
+          }
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = index;
+          }
+        }
+      });
+
+      // Track the index of the main line before pushing
+      const mainLineIndex = datasets.length;
+
+      // Add main line
+      datasets.push(lineDataset);
+
+      // Add min/max points and shading if valid
+      if (minIndex !== -1 && maxIndex !== -1) {
+        const minPointData = Array(values.length).fill(null);
+        minPointData[minIndex] = minVal;
+        const maxPointData = Array(values.length).fill(null);
+        maxPointData[maxIndex] = maxVal;
+        const maxLineData = Array(values.length).fill(maxVal);
+        const minLineData = Array(values.length).fill(minVal);
+
+        datasets.push({
+          label: `${lineDataset.label} Max`,
+          data: maxPointData,
+          borderColor: '#16a34a',
+          backgroundColor: '#22c55e',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${lineDataset.label} Min`,
+          data: minPointData,
+          borderColor: '#ea580c',
+          backgroundColor: '#f97316',
+          pointStyle: 'circle',
+          pointRadius: 10,
+          pointHoverRadius: 12,
+          borderWidth: 3,
+          showLine: false,
+          order: 0
+        });
+
+        datasets.push({
+          label: `${lineDataset.label} Max Fill`,
+          data: maxLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+
+        datasets.push({
+          label: `${lineDataset.label} Min Fill`,
+          data: minLineData,
+          borderColor: 'transparent',
+          pointRadius: 0,
+          backgroundColor: shadingColor,
+          fill: mainLineIndex,
+          order: 2
+        });
+      }
+    };
+    
     // Determine what data to show based on dataType prop
     if (dataType === 'price') {
       const label = fuelType === 'electric' ? 'EV Price' : 'CNG Price';
       const dataValues = rawData.map(d => fuelType === 'electric' ? d.evPrice : d.cngPrice);
+      
+      const datasets = [];
+      addMinMaxForLine(datasets, {
+        label: label,
+        data: dataValues,
+        borderColor,
+        backgroundColor,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        spanGaps: true,
+        segment: {
+          borderDash: ctx => {
+            return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+          }
+        },
+        order: 1
+      }, dataValues, hexToRgba(borderColor));
+
       return {
         labels: rawData.map(d => d.year),
-        datasets: [
-          {
-            label: label,
-            data: dataValues,
-            borderColor,
-            backgroundColor,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: false,
-            spanGaps: true,
-            segment: {
-              borderDash: ctx => {
-                // Use dotted line when connecting across missing data
-                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
-              }
-            }
-          }
-        ]
+        datasets: datasets
       };
     } else if (dataType === 'annual_mileage') {
       const label = fuelType === 'electric' ? 'EV Annual Mileage' : 'CNG Annual Mileage';
       const dataValues = rawData.map(d => d.annualMileage || d.annual_mileage);
+      
+      const datasets = [];
+      addMinMaxForLine(datasets, {
+        label: label,
+        data: dataValues,
+        borderColor,
+        backgroundColor,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        spanGaps: true,
+        segment: {
+          borderDash: ctx => {
+            return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+          }
+        },
+        order: 1
+      }, dataValues, hexToRgba(borderColor));
+
       return {
         labels: rawData.map(d => d.year),
-        datasets: [
-          {
-            label: label,
-            data: dataValues,
-            borderColor,
-            backgroundColor,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: false,
-            spanGaps: true,
-            segment: {
-              borderDash: ctx => {
-                // Use dotted line when connecting across missing data
-                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
-              }
-            }
-          }
-        ]
+        datasets: datasets
       };
     } else if (dataType === 'incentive') {
       const label = fuelType === 'electric' ? 'EV Incentives' : 'CNG Incentives';
       const dataValues = rawData.map(d => d.incentive);
+      
+      const datasets = [];
+      addMinMaxForLine(datasets, {
+        label: label,
+        data: dataValues,
+        borderColor,
+        backgroundColor,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        spanGaps: true,
+        segment: {
+          borderDash: ctx => {
+            return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+          }
+        },
+        order: 1
+      }, dataValues, hexToRgba(borderColor));
+
       return {
         labels: rawData.map(d => d.year),
-        datasets: [
-          {
-            label: label,
-            data: dataValues,
-            borderColor,
-            backgroundColor,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: false,
-            spanGaps: true,
-            segment: {
-              borderDash: ctx => {
-                // Use dotted line when connecting across missing data
-                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
-              }
-            }
-          }
-        ]
+        datasets: datasets
       };
     } else {
       // dataType === 'vehicles' - show both Actual Vehicles and CMI_VIN
@@ -225,44 +323,49 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
       const actualVehiclesData = rawData.map(d => d.actualVehicles);
       const cmiVinData = rawData.map(d => d.cmiVin);
       
+      const datasets = [];
+      
+      // Add first line with min/max
+      addMinMaxForLine(datasets, {
+        label: actualVehiclesLabel,
+        data: actualVehiclesData,
+        borderColor,
+        backgroundColor,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        spanGaps: true,
+        segment: {
+          borderDash: ctx => {
+            return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+          }
+        },
+        order: 1
+      }, actualVehiclesData, hexToRgba(borderColor));
+
+      // Add second line with min/max
+      addMinMaxForLine(datasets, {
+        label: cmiVinLabel,
+        data: cmiVinData,
+        borderColor: '#8b5cf6',
+        backgroundColor: '#8b5cf6',
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        spanGaps: true,
+        segment: {
+          borderDash: ctx => {
+            return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
+          }
+        },
+        order: 1
+      }, cmiVinData, hexToRgba('#8b5cf6'));
+      
       return {
         labels: rawData.map(d => d.year),
-        datasets: [
-          {
-            label: actualVehiclesLabel,
-            data: actualVehiclesData,
-            borderColor,
-            backgroundColor,
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: false,
-            spanGaps: true,
-            segment: {
-              borderDash: ctx => {
-                // Use dotted line when connecting across missing data
-                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
-              }
-            }
-          },
-          {
-            label: cmiVinLabel,
-            data: cmiVinData,
-            borderColor: '#8b5cf6', // Purple color for CMI_VIN
-            backgroundColor: '#8b5cf6',
-            tension: 0.3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: false,
-            spanGaps: true,
-            segment: {
-              borderDash: ctx => {
-                // Use dotted line when connecting across missing data
-                return ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined;
-              }
-            }
-          }
-        ]
+        datasets: datasets
       };
     }
   }, [electricYearwiseData, cngYearwiseData, electricStatewiseData, cngStatewiseData, fuelType, dataType, borderColor, backgroundColor, mode, selectedState]);
@@ -301,6 +404,14 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           align: 'start',
           font: { size: 16 }
         },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          filter: function(tooltipItem) {
+            // Hide tooltips for the shading layers
+            return !tooltipItem.dataset.label.includes('Fill');
+          }
+        }
       },
       scales: {
         y: {

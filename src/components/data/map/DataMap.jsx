@@ -30,7 +30,7 @@ export default function MapComponent() {
   //New state to track which specific fuel types are currently fetching
   const [loadingTypes, setLoadingTypes] = useState([]);
   // Filters
-  const [selectedFuelType, setSelectedFuelType] = useState('all');
+  const [selectedFuelType, setSelectedFuelType] = useState('cng');
   const [stationStatusFilter, setStationStatusFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState('all');
   const [ownershipFilter, setOwnershipFilter] = useState('all');
@@ -39,7 +39,7 @@ export default function MapComponent() {
   // Heatmap State
   const [vehicles, setVehicles] = useState([]);
   const [selectedYear, setSelectedYear] = useState('all'); // Year filter: 'all', '2020', '2021', etc.
-  const [vehicleFuelTypeFilter, setVehicleFuelTypeFilter] = useState('all'); // 'all', 'cng', 'hybrid'
+  const [vehicleFuelTypeFilter, setVehicleFuelTypeFilter] = useState('cng'); // 'all', 'cng', 'hybrid'
   const [showHeatmap, setShowHeatmap] = useState('both'); // 'markers', 'heatmap', or 'both'. Only setting heatmap for now 
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(4);
@@ -305,47 +305,47 @@ export default function MapComponent() {
     // --- Sampling and zoom-based limiting logic is commented out to show all markers at all zoom levels ---
 
     //REMOVING ZOOM 
-    //const zoomLevel = Math.floor(currentZoom);
-    //const isLargeDataset = filtered.length > 10000;
+    // const zoomLevel = Math.floor(currentZoom);
+    // const isLargeDataset = filtered.length > 10000;
 
-    // At high zoom (10+), filter by viewport bounds and show ALL markers within bounds
-    //if (zoomLevel >= 10 && mapBounds) {
+    // // At high zoom (10+), filter by viewport bounds and show ALL markers within bounds
+    // if (zoomLevel >= 10 && mapBounds) {
     //  const inBounds = filtered.filter(station =>
     //    station.lat >= mapBounds.south &&
     //    station.lat <= mapBounds.north &&
     //    station.lng >= mapBounds.west &&
     //    station.lng <= mapBounds.east
     //  );
-      // At max zoom, show all markers within viewport (no limit)
+    //   // At max zoom, show all markers within viewport (no limit)
     //  return inBounds;
-    //}
+    // }
 
-    // Don't render markers when zoomed out too far with large datasets
-    //if (isLargeDataset && zoomLevel < 4) {
+    // // Don't render markers when zoomed out too far with large datasets
+    // if (isLargeDataset && zoomLevel < 4) {
     //  return [];
-    //}
+    // }
 
-    // For lower zoom levels, use sampling to prevent performance issues
-    //const maxMarkersMap = isLargeDataset
+    // // For lower zoom levels, use sampling to prevent performance issues
+    // const maxMarkersMap = isLargeDataset
     //  ? { 1: 200, 2: 200, 3: 200, 4: 200, 5: 200, 6: 400, 7: 800, 8: 1500, 9: 2500 }
     //  : { 1: 100, 2: 100, 3: 150, 4: 250, 5: 350, 6: 500, 7: 750, 8: 1000, 9: 2000 };
 
-    //const maxMarkers = maxMarkersMap[zoomLevel] || 2500;
+    // const maxMarkers = maxMarkersMap[zoomLevel] || 2500;
 
-    //if (filtered.length <= maxMarkers) {
+    // if (filtered.length <= maxMarkers) {
     //  return filtered;
-    //}
+    // }
 
-    // Evenly sample stations for lower zoom levels
-    //const step = filtered.length / maxMarkers;
-    //const sampled = [];
-    //for (let i = 0; i < maxMarkers; i++) {
-     // const index = Math.floor(i * step);
-      //if (index < filtered.length) {
-      //  sampled.push(filtered[index]);
-     // }
-    //}
-    //return sampled;
+    // // Evenly sample stations for lower zoom levels
+    // const step = filtered.length / maxMarkers;
+    // const sampled = [];
+    // for (let i = 0; i < maxMarkers; i++) {
+    //  const index = Math.floor(i * step);
+    //   if (index < filtered.length) {
+    //    sampled.push(filtered[index]);
+    //  }
+    // }
+    // return sampled;
     // Uncomment the below line to disable sampling and show all filtered stations at all zoom levels (not recommended for performance)
      return filtered;
   }, [stations, selectedFuelType, stationStatusFilter, stateFilter, ownershipFilter, currentZoom, mapBounds]);
