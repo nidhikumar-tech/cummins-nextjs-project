@@ -1,6 +1,7 @@
 "use client";
 
-import React from 'react';
+// [CHANGE 1] Imported useState to track the active view
+import React, { useState } from 'react';
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import CNGSummaryMap from "@/components/maps/CNGSummaryMap";
 import ElectricSummaryMap from "@/components/maps/ElectricSummaryMap";
@@ -49,20 +50,40 @@ const FuelStationPieChart = dynamic(() => import('@/components/data/charts/FuelS
 
 export default function SummaryPage() {
   
+  // [CHANGE 2] Added state to toggle between CNG and Electric, defaulting to CNG
+  const [activeView, setActiveView] = useState('CNG');
+
   const styles = {
     wrapper: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '80px',
+      gap: '20px', // Reduced gap since we only show one section at a time now
       padding: '24px',
       maxWidth: '2000px',
       margin: '0 auto',
     },
+    // [CHANGE 3] Updated section header to flex layout for the dropdown
     sectionHeader: {
       marginBottom: '20px',
-      paddingBottom: '10px',
+      paddingBottom: '16px',
       borderBottom: '2px solid #e2e8f0',
       flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '20px'
+    },
+    dropdown: {
+      fontSize: '1.25rem',
+      fontWeight: 700,
+      color: '#0f172a',
+      backgroundColor: '#f8fafc',
+      border: '2px solid #cbd5e1',
+      borderRadius: '8px',
+      padding: '10px 16px',
+      cursor: 'pointer',
+      outline: 'none',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+      fontFamily: 'inherit'
     },
     quadrant: {
       background: 'white',
@@ -158,182 +179,188 @@ export default function SummaryPage() {
 
       <div style={styles.wrapper}>
         
-        {/* ========================================== */}
-        {/* SECTION 1: CNG SUMMARY                     */}
-        {/* ========================================== */}
-        <section className="responsive-section">
-          <div style={styles.sectionHeader}>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-              CNG Summary
-            </h1>
-          </div>
-          
-          <div className="quadrant-grid">
-            {/* Top Left: Map Component */}
-            <div style={{...styles.quadrant, padding: 0}}>
-             {/* <CNGSummaryMap /> */}
-            </div>
+        {/* [CHANGE 4] Unified Header with Dropdown Switcher */}
+        <div style={styles.sectionHeader}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+            Summary:
+          </h1>
+          <select 
+            value={activeView} 
+            onChange={(e) => setActiveView(e.target.value)}
+            style={styles.dropdown}
+          >
+            <option value="CNG">CNG</option>
+            <option value="ELECTRIC">Electric</option>
+          </select>
+        </div>
 
-            {/* Top Right: Powertrain Predictions Chart */}
-            <div style={styles.quadrant}>
-              <MinMaxChartCNG isSummaryView={true} />
-            </div>
-
-            {/* Bottom Left: Responsive Panel */}
-            <div style={styles.quadrant} className="bottom-panel">
-              <div style={styles.innerGrid3}>
-                <CNGSupplyConsumptionLineChart isSummaryView={true} />
-                <CNGCombinedBarChart isSummaryView={true} />
-                <CNGLineChart 
-                  label="Natural Gas Spot Price at Henry Hub" 
-                  title="Natural Gas Price (2023-2050)" 
-                  borderColor="#fb7185" 
-                  isSummaryView={true} 
-                />
+        {/* ========================================== */}
+        {/* CONDITIONAL RENDER: CNG SUMMARY            */}
+        {/* ========================================== */}
+        {activeView === 'CNG' && (
+          <section className="responsive-section">
+            <div className="quadrant-grid">
+              {/* Top Left: Map Component */}
+              <div style={{...styles.quadrant, padding: 0}}>
+               {/* <CNGSummaryMap /> */}
               </div>
-            </div>
 
-            {/* Bottom Right: Responsive Panel with 5 Data Charts */}
-            <div style={styles.quadrant} className="bottom-panel">
-              <div className="inner-grid-5">
-                {/* Top Row on Monitors / Col 1-2 on Laptops */}
-                <div className="grid-5-item-top">
-                  <LineChart dataType="vehicles" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#10b981' backgroundColor='#10b981' isSummaryView={true} />
-                </div>
-                <div className="grid-5-item-top">
-                  <LineChart dataType="price" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#f59e0b' backgroundColor='#f59e0b' isSummaryView={true} />
-                </div>
+              {/* Top Right: Powertrain Predictions Chart */}
+              <div style={styles.quadrant}>
+                <MinMaxChartCNG isSummaryView={true} />
+              </div>
 
-                {/* Bottom Row on Monitors / Col 3-5 on Laptops */}
-                <div className="grid-5-item-bottom">
-                  <LineChart dataType="incentive" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#2563eb' backgroundColor='#2563eb' isSummaryView={true} />
-                </div>
-                <div className="grid-5-item-bottom">
-                  <LineChart dataType="annual_mileage" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#fb7185' backgroundColor='#fb7185' isSummaryView={true} />
-                </div>
-                <div className="grid-5-item-bottom">
-                  <FuelStationPieChart isSummaryView={true} colors={{
-                    'Highly Concentrated Locally truck': '#10b981',
-                    'Highly Concentrated Locally bus': '#f59e0b',
-                    'Substantially Locally Focused truck': '#fb7185',
-                    'Substantially Locally Focused bus': '#2563eb',
-                    'National truck': '#facc15',
-                    'National bus': '#069aad' 
-                  }} />
+              {/* Bottom Left: Responsive Panel */}
+              <div style={styles.quadrant} className="bottom-panel">
+                <div style={styles.innerGrid3}>
+                  <CNGSupplyConsumptionLineChart isSummaryView={true} />
+                  <CNGCombinedBarChart isSummaryView={true} />
+                  <CNGLineChart 
+                    label="Natural Gas Spot Price at Henry Hub" 
+                    title="Natural Gas Price (2023-2050)" 
+                    borderColor="#fb7185" 
+                    isSummaryView={true} 
+                  />
                 </div>
               </div>
-            </div>
 
-          </div>
-        </section>
+              {/* Bottom Right: Responsive Panel with 5 Data Charts */}
+              <div style={styles.quadrant} className="bottom-panel">
+                <div className="inner-grid-5">
+                  {/* Top Row on Monitors / Col 1-2 on Laptops */}
+                  <div className="grid-5-item-top">
+                    <LineChart dataType="vehicles" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#10b981' backgroundColor='#10b981' isSummaryView={true} />
+                  </div>
+                  <div className="grid-5-item-top">
+                    <LineChart dataType="price" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#f59e0b' backgroundColor='#f59e0b' isSummaryView={true} />
+                  </div>
 
-        {/* ========================================== */}
-        {/* SECTION 2: ELECTRIC SUMMARY                */}
-        {/* ========================================== */}
-        <section className="responsive-section">
-          <div style={styles.sectionHeader}>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-              Electric Summary
-            </h1>
-          </div>
-          
-          <div className="quadrant-grid">
-            {/* Top Left: Map Component */}
-            <div style={{...styles.quadrant, padding: 0}}>
-              {/*<ElectricSummaryMap />*/}
-            </div>
-
-            {/* Top Right */}
-            <div style={styles.quadrant}>
-              <MinMaxChartHybrid isSummaryView={true} />
-            </div>
-
-            {/* Bottom Left: Responsive Panel */}
-            <div style={styles.quadrant} className="bottom-panel">
-              <div style={styles.innerGrid4}>
-                <ElectricityGenerationLineChart isSummaryView={true} />
-                <ElectricityFuelBarChart isSummaryView={true} />
-                <ElectricityLineChart 
-                  label="Electricity Sales by Sector" 
-                  title="Electricity Sales (BkWh)" 
-                  isSummaryView={true} 
-                />
-                <ElectricityLineChart 
-                  label="Electricity Prices by Sector" 
-                  title="Electricity Prices (cents/kWh)" 
-                  isSummaryView={true} 
-                />
-              </div>
-            </div>
-
-            {/* Bottom Right: Responsive Panel */}
-            <div style={styles.quadrant} className="bottom-panel">
-              <div className="inner-grid-5">
-                {/* Top Row on Monitors / Col 1-2 on Laptops */}
-                <div className="grid-5-item-top">
-                  <LineChart 
-                    dataType="vehicles" 
-                    defaultFuelType="electric" 
-                    showFuelTypeSelector={false} 
-                    showAggregateSelector={false} 
-                    borderColor='#10b981' 
-                    backgroundColor='#10b981' 
-                    isSummaryView={true} 
-                  />
-                </div>
-                <div className="grid-5-item-top">
-                  <LineChart 
-                    dataType="price" 
-                    defaultFuelType="electric" 
-                    showFuelTypeSelector={false} 
-                    showAggregateSelector={false} 
-                    borderColor='#f59e0b' 
-                    backgroundColor='#f59e0b' 
-                    isSummaryView={true} 
-                  />
-                </div>
-
-                {/* Bottom Row on Monitors / Col 3-5 on Laptops */}
-                <div className="grid-5-item-bottom">
-                  <LineChart 
-                    dataType="incentive" 
-                    defaultFuelType="electric" 
-                    showFuelTypeSelector={false} 
-                    showAggregateSelector={false} 
-                    borderColor='#2563eb' 
-                    backgroundColor='#2563eb' 
-                    isSummaryView={true} 
-                  />
-                </div>
-                <div className="grid-5-item-bottom">
-                  <LineChart 
-                    dataType="annual_mileage" 
-                    defaultFuelType="electric" 
-                    showFuelTypeSelector={false} 
-                    showAggregateSelector={false} 
-                    borderColor='#fb7185' 
-                    backgroundColor='#fb7185' 
-                    isSummaryView={true} 
-                  />
-                </div>
-                <div className="grid-5-item-bottom">
-                  <FuelStationPieChart 
-                    defaultFuelType="electric" 
-                    isSummaryView={true} 
-                    colors={{
+                  {/* Bottom Row on Monitors / Col 3-5 on Laptops */}
+                  <div className="grid-5-item-bottom">
+                    <LineChart dataType="incentive" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#2563eb' backgroundColor='#2563eb' isSummaryView={true} />
+                  </div>
+                  <div className="grid-5-item-bottom">
+                    <LineChart dataType="annual_mileage" showFuelTypeSelector={false} showAggregateSelector={false} borderColor='#fb7185' backgroundColor='#fb7185' isSummaryView={true} />
+                  </div>
+                  <div className="grid-5-item-bottom">
+                    <FuelStationPieChart isSummaryView={true} colors={{
                       'Highly Concentrated Locally truck': '#10b981',
                       'Highly Concentrated Locally bus': '#f59e0b',
                       'Substantially Locally Focused truck': '#fb7185',
                       'Substantially Locally Focused bus': '#2563eb',
                       'National truck': '#facc15',
                       'National bus': '#069aad' 
-                    }} 
-                  />
+                    }} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
+
+        {/* ========================================== */}
+        {/* CONDITIONAL RENDER: ELECTRIC SUMMARY       */}
+        {/* ========================================== */}
+        {activeView === 'ELECTRIC' && (
+          <section className="responsive-section">
+            <div className="quadrant-grid">
+              {/* Top Left: Map Component */}
+              <div style={{...styles.quadrant, padding: 0}}>
+                {/*<ElectricSummaryMap />*/}
+              </div>
+
+              {/* Top Right */}
+              <div style={styles.quadrant}>
+                <MinMaxChartHybrid isSummaryView={true} />
+              </div>
+
+              {/* Bottom Left: Responsive Panel */}
+              <div style={styles.quadrant} className="bottom-panel">
+                <div style={styles.innerGrid4}>
+                  <ElectricityGenerationLineChart isSummaryView={true} />
+                  <ElectricityFuelBarChart isSummaryView={true} />
+                  <ElectricityLineChart 
+                    label="Electricity Sales by Sector" 
+                    title="Electricity Sales (BkWh)" 
+                    isSummaryView={true} 
+                  />
+                  <ElectricityLineChart 
+                    label="Electricity Prices by Sector" 
+                    title="Electricity Prices (cents/kWh)" 
+                    isSummaryView={true} 
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Right: Responsive Panel */}
+              <div style={styles.quadrant} className="bottom-panel">
+                <div className="inner-grid-5">
+                  {/* Top Row on Monitors / Col 1-2 on Laptops */}
+                  <div className="grid-5-item-top">
+                    <LineChart 
+                      dataType="vehicles" 
+                      defaultFuelType="electric" 
+                      showFuelTypeSelector={false} 
+                      showAggregateSelector={false} 
+                      borderColor='#10b981' 
+                      backgroundColor='#10b981' 
+                      isSummaryView={true} 
+                    />
+                  </div>
+                  <div className="grid-5-item-top">
+                    <LineChart 
+                      dataType="price" 
+                      defaultFuelType="electric" 
+                      showFuelTypeSelector={false} 
+                      showAggregateSelector={false} 
+                      borderColor='#f59e0b' 
+                      backgroundColor='#f59e0b' 
+                      isSummaryView={true} 
+                    />
+                  </div>
+
+                  {/* Bottom Row on Monitors / Col 3-5 on Laptops */}
+                  <div className="grid-5-item-bottom">
+                    <LineChart 
+                      dataType="incentive" 
+                      defaultFuelType="electric" 
+                      showFuelTypeSelector={false} 
+                      showAggregateSelector={false} 
+                      borderColor='#2563eb' 
+                      backgroundColor='#2563eb' 
+                      isSummaryView={true} 
+                    />
+                  </div>
+                  <div className="grid-5-item-bottom">
+                    <LineChart 
+                      dataType="annual_mileage" 
+                      defaultFuelType="electric" 
+                      showFuelTypeSelector={false} 
+                      showAggregateSelector={false} 
+                      borderColor='#fb7185' 
+                      backgroundColor='#fb7185' 
+                      isSummaryView={true} 
+                    />
+                  </div>
+                  <div className="grid-5-item-bottom">
+                    <FuelStationPieChart 
+                      defaultFuelType="electric" 
+                      isSummaryView={true} 
+                      colors={{
+                        'Highly Concentrated Locally truck': '#10b981',
+                        'Highly Concentrated Locally bus': '#f59e0b',
+                        'Substantially Locally Focused truck': '#fb7185',
+                        'Substantially Locally Focused bus': '#2563eb',
+                        'National truck': '#facc15',
+                        'National bus': '#069aad' 
+                      }} 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
       </div>
 
