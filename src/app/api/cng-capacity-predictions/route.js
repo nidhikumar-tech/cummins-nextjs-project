@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server';
-import { getCNGCapacityPredictions } from '@/lib/bigquery';
+import { getCNGCapacityPredictionsBySource } from '@/lib/bigquery'; 
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const state = searchParams.get('state') || 'CA';
+    const source = searchParams.get('source'); // 'cummins' or 'eia'
 
-    const data = await getCNGCapacityPredictions(state);
+    if (!source) {
+      return NextResponse.json({ success: false, error: 'Source parameter is required' }, { status: 400 });
+    }
+
+    // Call the new helper function
+    const data = await getCNGCapacityPredictionsBySource(source);
     
     return NextResponse.json({ success: true, data });
+    
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch CNG prediction data' },
-      { status: 500 }
-    );
+    console.error(`Error in cng-capacity-predictions API:`, error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

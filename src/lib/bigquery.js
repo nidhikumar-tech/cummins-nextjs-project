@@ -1534,4 +1534,49 @@ export async function getLLMQuestions(fuelType = null) {
   }
 }
 
+//Capacity predictions - Cummins+EIA. BQ TABLES 32, 33
+export async function getCNGCapacityPredictionsBySource(source) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let query = '';
+  
+  if (source === 'cummins') {
+    const table = process.env.BIGQUERY_TABLE_32; // cng_prophet_forecast_statewise_v1
+    if (!table) throw new Error('BIGQUERY_TABLE_32 is not defined in environment variables.');
+    
+    query = `
+      SELECT year, state, fuel_type, predicted_capacity_tcf, actual_capacity_tcf 
+      FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\` 
+      ORDER BY year ASC
+    `;
+  } else if (source === 'eia') {
+    const table = process.env.BIGQUERY_TABLE_33; // cng_eia_reference_data_v1
+    if (!table) throw new Error('BIGQUERY_TABLE_33 is not defined in environment variables.');
+    
+    query = `
+      SELECT year, fuel_type, eia_baseline_tcf 
+      FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\` 
+      ORDER BY year ASC
+    `;
+  } else {
+    throw new Error('Invalid source specified.');
+  }
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log(`BigQuery CNG Capacity Predictions (${source}) - Rows Retrieved:`, rows.length);
+    return rows;
+  } catch (error) {
+    console.error(`Error fetching CNG Capacity Predictions for ${source}:`, error);
+    throw error;
+  }
+}
+
 export default bigquery;

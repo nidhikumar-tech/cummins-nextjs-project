@@ -8,6 +8,7 @@ import MinMaxChartHybrid from './MinMaxChartHybrid';
 import ElectricityLineChart from './line_charts/ElectricityLineChart';
 import ElectricityFuelBarChart from './stacked_bar_graph/ElectricityFuelBarChart';
 import ElectricityGenerationLineChart from './line_charts/ElectricityGenerationLineChart';
+import CNGCapacityLineChart from './line_charts/CNGCapacityLineChart';
 
 export default function PredictionComponent() {
   return (
@@ -28,6 +29,9 @@ export default function PredictionComponent() {
         </div>
         <div style={{ marginTop: '24px' }}>
           <CNGCombinedBarChart />
+        </div>
+        <div style={{ marginTop: '24px' }}>
+          <CNGCapacityLineChart />
         </div>
       </div>
 
