@@ -202,7 +202,7 @@ export default function SummaryPage() {
             <div className="quadrant-grid">
               {/* Top Left: Map Component */}
               <div style={{...styles.quadrant, padding: 0}}>
-               {/* <CNGSummaryMap /> */}
+               <CNGSummaryMap />
               </div>
 
               {/* Top Right: Powertrain Predictions Chart */}
@@ -266,7 +266,7 @@ export default function SummaryPage() {
             <div className="quadrant-grid">
               {/* Top Left: Map Component */}
               <div style={{...styles.quadrant, padding: 0}}>
-                {/*<ElectricSummaryMap />*/}
+                <ElectricSummaryMap />
               </div>
 
               {/* Top Right */}
