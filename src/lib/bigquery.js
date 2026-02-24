@@ -1579,4 +1579,72 @@ export async function getCNGCapacityPredictionsBySource(source) {
   }
 }
 
+export async function getCumminsElectricitySales() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const table = process.env.BIGQUERY_TABLE_34;
+  if (!table) throw new Error('BIGQUERY_TABLE_34 is not defined in environment variables.');
+
+  const query = `
+    SELECT year, total 
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\` 
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('Cummins Electricity Sales Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Cummins Electricity Sales Data:', error);
+    throw error;
+  }
+}
+
+//For Cummins predictions of capacity, generation, usage:
+export async function getCumminsElectricityStatewiseData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return { generation: [], capacity: [], demand: [] };
+  }
+
+  const tableGen = process.env.BIGQUERY_TABLE_35;
+  const tableCap = process.env.BIGQUERY_TABLE_36;
+  const tableDem = process.env.BIGQUERY_TABLE_37;
+
+  if (!tableGen || !tableCap || !tableDem) {
+    throw new Error('Missing BigQuery table env variables for Cummins statewise data.');
+  }
+
+  // Use aliases so the frontend receives a uniform format for all 3 metrics
+  const qGen = `SELECT year, state, actual_generation_mwh as actual, predicted_generation_mwh as predicted FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${tableGen}\` ORDER BY year ASC`;
+  const qCap = `SELECT year, state, actual_capacity_mwh as actual, predicted_capacity_mwh as predicted FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${tableCap}\` ORDER BY year ASC`;
+  const qDem = `SELECT year, state, actual_demand_mwh as actual, predicted_demand_mwh as predicted FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${tableDem}\` ORDER BY year ASC`;
+
+  const options = { location: process.env.BIGQUERY_LOCATION_2 || 'US' };
+
+  try {
+    // Run all 3 queries in parallel to drastically improve loading time
+    const [genRows, capRows, demRows] = await Promise.all([
+      bigquery.query({ ...options, query: qGen }),
+      bigquery.query({ ...options, query: qCap }),
+      bigquery.query({ ...options, query: qDem })
+    ]);
+    
+    return { 
+      generation: genRows[0], 
+      capacity: capRows[0], 
+      demand: demRows[0] 
+    };
+  } catch (error) {
+    console.error('Error fetching Cummins Electricity Statewise Data:', error);
+    throw error;
+  }
+}
 export default bigquery;
