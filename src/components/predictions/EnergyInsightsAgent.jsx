@@ -105,7 +105,7 @@ const s = {
   },
   answerText: {
     fontSize: '0.83rem', color: '#1e40af',
-    padding: '10px 14px 12px', lineHeight: 1.6, margin: 0,
+    padding: '10px 14px 12px', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap',
   },
   badgeCng: {
     display: 'inline-flex', alignItems: 'center', gap: '4px',
