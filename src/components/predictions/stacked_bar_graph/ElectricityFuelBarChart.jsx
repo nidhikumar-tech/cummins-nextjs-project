@@ -8,7 +8,8 @@ import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function ElectricityFuelBarChart() {
+// [CHANGE 1] Added isSummaryView prop
+export default function ElectricityFuelBarChart({ isSummaryView = false }) {
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCase, setSelectedCase] = useState('');
@@ -88,6 +89,8 @@ export default function ElectricityFuelBarChart() {
         padding: { bottom: 25 } 
       },
       legend: { 
+        // [CHANGE 2] Hide legend in summary view
+        display: !isSummaryView,
         position: 'bottom', 
         labels: { boxWidth: 12, font: { size: 11 }, padding: 10 },
         align: 'center'
@@ -129,8 +132,19 @@ export default function ElectricityFuelBarChart() {
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    // [CHANGE 3] Dynamic wrapper styling for summary view
+    <div style={{ 
+      background: 'white', 
+      padding: isSummaryView ? '0px' : '20px', 
+      borderRadius: '8px',
+      width: '100%',
+      height: '100%',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      minHeight: 0,
+      minWidth: 0
+    }}>
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flexShrink: 0 }}>
         <label style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
         <select
           value={selectedCase}
@@ -152,7 +166,8 @@ export default function ElectricityFuelBarChart() {
           </div>
         )}
       </div>
-      <div style={{ height: '600px' }}>
+      {/* [CHANGE 4] Dynamic chart container styling */}
+      <div style={isSummaryView ? { flexGrow: 1, minHeight: 0, position: 'relative' } : { height: '600px', position: 'relative' }}>
         {data ? (
           <Bar data={data} options={options} />
         ) : (

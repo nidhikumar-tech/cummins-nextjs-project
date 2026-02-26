@@ -39,8 +39,8 @@ const DEFAULT_CONCENTRATION_COLORS = {
 
 const DEFAULT_COLOR = '#94a3b8'; // Gray for unknown types
 
-export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COLORS }) {
-  const [fuelType, setFuelType] = useState('cng');
+export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COLORS, isSummaryView = false, defaultFuelType = 'cng' }) {
+  const [fuelType, setFuelType] = useState(defaultFuelType);
   const [state, setState] = useState('ALL');
   const [year, setYear] = useState('2022');
   const [allData, setAllData] = useState([]); // Store all states data
@@ -62,7 +62,6 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
       setError(null);
       
       try {
-        // Fetch ALL data for this fuel type (all years, all states)
         const response = await fetch(`/api/fuel-station-concentration?year=all&state=ALL&fuelType=${fuelType}`);
         const result = await response.json();
 
@@ -82,18 +81,14 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
     };
 
     fetchData();
-  }, [fuelType]); // Only refetch when fuelType changes
+  }, [fuelType]);
 
-  // Filter data based on selected year and state (client-side)
   const filteredData = useMemo(() => {
     if (!allData || allData.length === 0) return [];
     
-    // First filter by year
     const yearFiltered = allData.filter(item => String(item.year) === String(year));
     
-    // If 'ALL' is selected, aggregate data across all states for the selected year
     if (state === 'ALL') {
-      // Group by concentration_vehicle_type and sum across all states
       const aggregated = {};
       yearFiltered.forEach(item => {
         const key = item.concentrationVehicleType;
@@ -113,12 +108,10 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
       return Object.values(aggregated);
     }
     
-    // Otherwise, filter for the specific state
     const stateData = yearFiltered.filter(item => item.state?.toUpperCase() === state.toUpperCase());
     return stateData;
   }, [allData, state, year]);
 
-  // Prepare chart data
   const chartData = useMemo(() => {
     if (!filteredData || filteredData.length === 0) return null;
 
@@ -145,11 +138,10 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
     maintainAspectRatio: false,
     plugins: {
       legend: {
+        display: !isSummaryView,
         position: 'right',
         labels: {
-          font: {
-            size: 12
-          },
+          font: { size: 12 },
           padding: 15,
           boxWidth: 15,
         }
@@ -158,13 +150,8 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         display: true,
         text: `No. Of Fueling Stations: ${filteredData.reduce((sum, d) => sum + d.totalVin, 0).toLocaleString()}`,
         align: 'end',
-        font: { 
-          size: 16,
-          weight: 'bold'
-        },
-        padding: {
-          bottom: 20
-        }
+        font: { size: 16, weight: 'bold' },
+        padding: { bottom: 20 }
       },
       tooltip: {
         callbacks: {
@@ -178,49 +165,48 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         }
       }
     }
-  }), [filteredData]);
+  }), [filteredData, isSummaryView]);
 
   const totalStations = useMemo(() => {
-    // Use fuel_station_count if available, otherwise fall back to totalVin
     if (filteredData.length > 0 && filteredData[0].fuelStationCount !== undefined) {
-      return filteredData[0].fuelStationCount; // Same count for all rows in same state/year/fuel
+      return filteredData[0].fuelStationCount;
     }
     return filteredData.reduce((sum, d) => sum + d.totalVin, 0);
   }, [filteredData]);
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      {/* Filters in one line */}
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <label style={{ fontWeight: '600', color: '#475569' }}>Fuel Type:</label>
-        <select
-          value={fuelType}
-          onChange={e => setFuelType(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid #cbd5e1',
-            fontSize: '14px',
-            cursor: 'pointer',
-            minWidth: '150px'
-          }}
-        >
-          <option value="cng">CNG</option>
-          <option value="electric">Electric</option>
-        </select>
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      padding: isSummaryView ? '0px' : '20px', 
+      background: 'white', 
+      borderRadius: '8px',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      minHeight: 0,
+      minWidth: 0
+    }}>
+      <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flexShrink: 0 }}>
+        
+        {!isSummaryView && (
+          <>
+            <label style={{ fontWeight: '600', color: '#475569' }}>Fuel Type:</label>
+            <select
+              value={fuelType}
+              onChange={e => setFuelType(e.target.value)}
+              style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', cursor: 'pointer', minWidth: '150px' }}
+            >
+              <option value="cng">CNG</option>
+              <option value="electric">Electric</option>
+            </select>
+          </>
+        )}
 
         <label style={{ fontWeight: '600', color: '#475569' }}>State:</label>
         <select
           value={state}
           onChange={e => setState(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid #cbd5e1',
-            fontSize: '14px',
-            cursor: 'pointer',
-            minWidth: '120px'
-          }}
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', cursor: 'pointer', minWidth: '100px' }}
         >
           {US_STATES.map(s => <option key={s} value={s}>{s === 'ALL' ? 'All States' : s}</option>)}
         </select>
@@ -229,25 +215,21 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         <select
           value={year}
           onChange={e => setYear(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid #cbd5e1',
-            fontSize: '14px',
-            cursor: 'pointer',
-            minWidth: '100px'
-          }}
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', cursor: 'pointer', minWidth: '80px' }}
         >
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
       </div>
 
-      {/* Chart */}
-      <div style={{ height: '450px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={
+        isSummaryView 
+        ? { flexGrow: 1, minHeight: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' } 
+        : { height: '450px', width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      }>
         {loading && <div style={{ padding: '20px', textAlign: 'center' }}>Loading Fuel Station Data...</div>}
         {error && <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>}
         {chartData && !loading && !error && totalStations > 0 && (
-          <div style={{ width: '100%', height: '100%' }}>
+          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
             <Pie data={chartData} options={options} />
           </div>
         )}
@@ -258,41 +240,40 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         )}
       </div>
 
-      {/* Legend/Description */}
-      <div style={{ marginTop: '20px', padding: '15px', background: '#f9fafb', borderRadius: '6px', fontSize: '14px', color: '#6b7280' }}>
-        <div style={{ fontWeight: '600', marginBottom: '8px', color: '#374151' }}>
-          Concentration Types:
+      {!isSummaryView && (
+        <div style={{ marginTop: '20px', padding: '15px', background: '#f9fafb', borderRadius: '6px', fontSize: '14px', color: '#6b7280' }}>
+          <div style={{ fontWeight: '600', marginBottom: '8px', color: '#374151' }}>Concentration Types:</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Highly Concentrated Locally truck'], borderRadius: '2px' }}></div>
+              <span>Highly Concentrated Locally Truck</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Highly Concentrated Locally bus'], borderRadius: '2px' }}></div>
+              <span>Highly Concentrated Locally Bus</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Substantially Locally Focused truck'], borderRadius: '2px' }}></div>
+              <span>Substantially Locally Focused Truck</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Substantially Locally Focused bus'], borderRadius: '2px' }}></div>
+              <span>Substantially Locally Focused Bus</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['National truck'], borderRadius: '2px' }}></div>
+              <span>National Truck</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['National bus'], borderRadius: '2px' }}></div>
+              <span>National Bus</span>
+            </div>
+          </div>
+          <div style={{ marginTop: '12px', fontSize: '13px' }}>
+            <b>Note:</b> This chart shows the distribution of fuel stations by vehicle concentration type for the selected state, year, and fuel type.
+          </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Highly Concentrated Locally truck'], borderRadius: '2px' }}></div>
-            <span>Highly Concentrated Locally Truck</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Highly Concentrated Locally bus'], borderRadius: '2px' }}></div>
-            <span>Highly Concentrated Locally Bus</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Substantially Locally Focused truck'], borderRadius: '2px' }}></div>
-            <span>Substantially Locally Focused Truck</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['Substantially Locally Focused bus'], borderRadius: '2px' }}></div>
-            <span>Substantially Locally Focused Bus</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['National truck'], borderRadius: '2px' }}></div>
-            <span>National Truck</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: CONCENTRATION_COLORS['National bus'], borderRadius: '2px' }}></div>
-            <span>National Bus</span>
-          </div>
-        </div>
-        <div style={{ marginTop: '12px', fontSize: '13px' }}>
-          <b>Note:</b> This chart shows the distribution of fuel stations by vehicle concentration type for the selected state, year, and fuel type.
-        </div>
-      </div>
+      )}
     </div>
   );
 }

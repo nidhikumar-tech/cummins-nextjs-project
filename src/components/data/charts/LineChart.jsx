@@ -49,17 +49,19 @@ const hexToRgba = (hex, alpha = 0.15) => {
  * Example usage:
  *   <LineChart dataType="vehicles" showFuelTypeSelector={true} showAggregateSelector={true} />
  */
-export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector = true, showAggregateSelector = false, borderColor = '#2563eb', backgroundColor = '#2563eb' }) {
+export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector = true, showAggregateSelector = false, borderColor = '#2563eb', backgroundColor = '#2563eb', isSummaryView = false, defaultFuelType = 'cng' }) {
   const [electricYearwiseData, setElectricYearwiseData] = useState([]);
   const [cngYearwiseData, setCngYearwiseData] = useState([]);
   const [electricStatewiseData, setElectricStatewiseData] = useState([]);
   const [cngStatewiseData, setCngStatewiseData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [fuelType, setFuelType] = useState('cng'); // 'electric' or 'cng'
+  const [fuelType, setFuelType] = useState(defaultFuelType);
   const [mode, setMode] = useState('cumulative'); // 'cumulative' or 'statewise'
   const [selectedState, setSelectedState] = useState('');
-  const [states, setStates] = useState([]);
+  const [states, setStates] = useState([]); 
+  
+  
 
   // Fetch all datasets on mount (yearwise for line charts + statewise for min-max)
   useEffect(() => {
@@ -393,13 +395,8 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
       plugins: {
         legend: {
           position: 'top',
-          align: 'end',
-          labels: {
-            filter: function(item) {
-              // Hide fill datasets and min/max legend labels (bubbles stay on chart)
-              return !item.text.includes('Fill') && !item.text.endsWith(' Max') && !item.text.endsWith(' Min');
-            }
-          }
+          align: 'end', 
+          display: !isSummaryView
         },
         title: {
           display: true,
@@ -434,14 +431,26 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
         }
       }
     };
-  }, [fuelType, dataType, mode, selectedState]);
+  }, [fuelType, dataType, mode, selectedState, isSummaryView]);
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      padding: isSummaryView ? '0px' : '20px', 
+      background: 'white', 
+      borderRadius: '8px',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      minHeight: 0,
+      minWidth: 0
+    }}>
+
+      {(showFuelTypeSelector || showAggregateSelector) && (
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flexShrink: 0 }}>
         
         {/* Fuel Type Selector */}
         {showFuelTypeSelector && (
@@ -513,8 +522,9 @@ export default function LineChart({ dataType = 'vehicles', showFuelTypeSelector 
           </>
         )}
       </div>
+      )}
       
-      <div style={{ height: '400px', width: '100%' }}>
+      <div style={isSummaryView ? { flexGrow: 1, minHeight: 0, position: 'relative' } : { height: '400px', width: '100%', position: 'relative' }}>
         {chartData && <Line data={chartData} options={options} />}
         {!chartData && <p>No data available.</p>}
       </div>

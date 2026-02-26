@@ -1498,4 +1498,153 @@ export async function getOverheadAndUsingElectricData() {
 }
 
 
+// Fetches rule-based LLM Q&A from the llm_questions table
+// @param {string|null} fuelType - 'CNG' or 'ELECTRIC', null for all
+export async function getLLMQuestions(fuelType = null) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let whereClause = '';
+  if (fuelType) {
+    whereClause = `WHERE UPPER(fuel_type) = '${fuelType.toUpperCase()}'`;
+  }
+
+  const query = `
+    SELECT
+      question,
+      answer,
+      fuel_type
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_31}\`
+    ${whereClause}
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('BigQuery LLM Questions Fetch - Rows Retrieved:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching LLM questions:', error);
+    throw error;
+  }
+}
+
+//Capacity predictions - Cummins+EIA. BQ TABLES 32, 33
+export async function getCNGCapacityPredictionsBySource(source) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  let query = '';
+  
+  if (source === 'cummins') {
+    const table = process.env.BIGQUERY_TABLE_32; // cng_prophet_forecast_statewise_v1
+    if (!table) throw new Error('BIGQUERY_TABLE_32 is not defined in environment variables.');
+    
+    query = `
+      SELECT year, state, fuel_type, predicted_capacity_tcf, actual_capacity_tcf 
+      FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\` 
+      ORDER BY year ASC
+    `;
+  } else if (source === 'eia') {
+    const table = process.env.BIGQUERY_TABLE_33; // cng_eia_reference_data_v1
+    if (!table) throw new Error('BIGQUERY_TABLE_33 is not defined in environment variables.');
+    
+    query = `
+      SELECT year, fuel_type, eia_baseline_tcf 
+      FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\` 
+      ORDER BY year ASC
+    `;
+  } else {
+    throw new Error('Invalid source specified.');
+  }
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log(`BigQuery CNG Capacity Predictions (${source}) - Rows Retrieved:`, rows.length);
+    return rows;
+  } catch (error) {
+    console.error(`Error fetching CNG Capacity Predictions for ${source}:`, error);
+    throw error;
+  }
+}
+
+export async function getCumminsElectricitySales() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const table = process.env.BIGQUERY_TABLE_34;
+  if (!table) throw new Error('BIGQUERY_TABLE_34 is not defined in environment variables.');
+
+  const query = `
+    SELECT year, total 
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\` 
+    ORDER BY year ASC
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    console.log('Cummins Electricity Sales Data Fetched:', rows.length);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Cummins Electricity Sales Data:', error);
+    throw error;
+  }
+}
+
+//For Cummins predictions of capacity, generation, usage:
+export async function getCumminsElectricityStatewiseData() {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return { generation: [], capacity: [], demand: [] };
+  }
+
+  const tableGen = process.env.BIGQUERY_TABLE_35;
+  const tableCap = process.env.BIGQUERY_TABLE_36;
+  const tableDem = process.env.BIGQUERY_TABLE_37;
+
+  if (!tableGen || !tableCap || !tableDem) {
+    throw new Error('Missing BigQuery table env variables for Cummins statewise data.');
+  }
+
+  // Use aliases so the frontend receives a uniform format for all 3 metrics
+  const qGen = `SELECT year, state, actual_generation_mwh as actual, predicted_generation_mwh as predicted FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${tableGen}\` ORDER BY year ASC`;
+  const qCap = `SELECT year, state, actual_capacity_mwh as actual, predicted_capacity_mwh as predicted FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${tableCap}\` ORDER BY year ASC`;
+  const qDem = `SELECT year, state, actual_demand_mwh as actual, predicted_demand_mwh as predicted FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${tableDem}\` ORDER BY year ASC`;
+
+  const options = { location: process.env.BIGQUERY_LOCATION_2 || 'US' };
+
+  try {
+    // Run all 3 queries in parallel to drastically improve loading time
+    const [genRows, capRows, demRows] = await Promise.all([
+      bigquery.query({ ...options, query: qGen }),
+      bigquery.query({ ...options, query: qCap }),
+      bigquery.query({ ...options, query: qDem })
+    ]);
+    
+    return { 
+      generation: genRows[0], 
+      capacity: capRows[0], 
+      demand: demRows[0] 
+    };
+  } catch (error) {
+    console.error('Error fetching Cummins Electricity Statewise Data:', error);
+    throw error;
+  }
+}
 export default bigquery;

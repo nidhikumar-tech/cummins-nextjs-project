@@ -8,10 +8,13 @@ import MinMaxChartHybrid from './MinMaxChartHybrid';
 import ElectricityLineChart from './line_charts/ElectricityLineChart';
 import ElectricityFuelBarChart from './stacked_bar_graph/ElectricityFuelBarChart';
 import ElectricityGenerationLineChart from './line_charts/ElectricityGenerationLineChart';
+// Make sure CNGCapacityLineChart is correctly imported from your previous step
+import CNGCapacityLineChart from './line_charts/CNGCapacityLineChart';
 
 export default function PredictionComponent() {
   return (
     <div>
+      {/* --- CNG SECTION --- */}
       <div style={{ padding: '32px 24px', background: '#f8f9fa', minHeight: '60vh', maxWidth: '1600px', margin: '0 auto' }}>
         <div style={{ marginBottom: '32px', textAlign: 'center' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em' }}>Powertrain Production Forecast - CNG</h1>
@@ -29,8 +32,12 @@ export default function PredictionComponent() {
         <div style={{ marginTop: '24px' }}>
           <CNGCombinedBarChart />
         </div>
+        <div style={{ marginTop: '24px' }}>
+          <CNGCapacityLineChart />
+        </div>
       </div>
 
+      {/* --- ELECTRIC SECTION --- */}
       <div style={{ padding: '32px 24px', background: '#f8f9fa', minHeight: '60vh', maxWidth: '1600px', margin: '0 auto' }}>
         <div style={{ marginBottom: '32px', textAlign: 'center' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.025em' }}>Powertrain Production Forecast - Electric</h1>
@@ -42,8 +49,18 @@ export default function PredictionComponent() {
 
       <div style={{ padding: '32px 24px', background: '#f8f9fa', minHeight: '100vh', maxWidth: '1600px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-          <ElectricityLineChart label="Electricity Sales by Sector" title="Electricity Sales (BkWh)"/>
-          <ElectricityLineChart label="Electricity Prices by Sector" title="Electricity Prices (cents/kWh)"/>
+          
+          {/* [CHANGE 1] Enable the EIA vs Cummins Toggle for Electricity Sales */}
+          <ElectricityLineChart 
+            label="Electricity Sales by Sector" 
+            title="Electricity Sales (BkWh)"
+            allowSourceToggle={true} 
+          />
+          
+          <ElectricityLineChart 
+            label="Electricity Prices by Sector" 
+            title="Electricity Prices (cents/kWh)"
+          />
         </div>
         <div style={{ marginTop: '24px' }}>
           <ElectricityFuelBarChart />
