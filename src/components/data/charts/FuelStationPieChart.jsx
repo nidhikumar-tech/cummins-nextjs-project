@@ -44,6 +44,7 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
   const [state, setState] = useState('ALL');
   const [year, setYear] = useState('2022');
   const [allData, setAllData] = useState([]); // Store all states data
+  const [stationCounts, setStationCounts] = useState([]); // Fuel station counts per state/year
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -62,19 +63,33 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
       setError(null);
       
       try {
-        const response = await fetch(`/api/fuel-station-concentration?year=all&state=ALL&fuelType=${fuelType}`);
-        const result = await response.json();
+        // Fetch concentration data and station counts in parallel
+        const [concResponse, countResponse] = await Promise.all([
+          fetch(`/api/fuel-station-concentration?year=all&state=ALL&fuelType=${fuelType}`),
+          fetch(`/api/fuel-station-concentration/count?fuelType=${fuelType}`)
+        ]);
+        const [concResult, countResult] = await Promise.all([
+          concResponse.json(),
+          countResponse.json()
+        ]);
 
-        if (result.success && Array.isArray(result.data)) {
-          setAllData(result.data);
+        if (concResult.success && Array.isArray(concResult.data)) {
+          setAllData(concResult.data);
         } else {
-          setError(result.error || 'Failed to load data');
+          setError(concResult.error || 'Failed to load data');
           setAllData([]);
+        }
+
+        if (countResult.success && Array.isArray(countResult.data)) {
+          setStationCounts(countResult.data);
+        } else {
+          setStationCounts([]);
         }
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load fuel station concentration data');
         setAllData([]);
+        setStationCounts([]);
       } finally {
         setLoading(false);
       }
@@ -133,6 +148,20 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
     };
   }, [filteredData, CONCENTRATION_COLORS]);
 
+  // Calculate fuel station count from the separate count API data
+  const totalStations = useMemo(() => {
+    if (!stationCounts || stationCounts.length === 0) return 0;
+    // Filter counts for the selected year
+    const yearCounts = stationCounts.filter(item => String(item.year) === String(year));
+    if (state === 'ALL') {
+      // Sum across all states for the selected year
+      return yearCounts.reduce((sum, item) => sum + (item.totalFuelStationCount || 0), 0);
+    }
+    // Find count for the specific state
+    const match = yearCounts.find(item => item.state?.toUpperCase() === state.toUpperCase());
+    return match ? match.totalFuelStationCount : 0;
+  }, [stationCounts, year, state]);
+
   const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -148,7 +177,7 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
       },
       title: {
         display: true,
-        text: `No. Of Fueling Stations: ${filteredData.reduce((sum, d) => sum + d.totalVin, 0).toLocaleString()}`,
+        text: `Fuel Station Count: ${totalStations.toLocaleString()}`,
         align: 'end',
         font: { size: 16, weight: 'bold' },
         padding: { bottom: 20 }
@@ -165,14 +194,7 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
         }
       }
     }
-  }), [filteredData, isSummaryView]);
-
-  const totalStations = useMemo(() => {
-    if (filteredData.length > 0 && filteredData[0].fuelStationCount !== undefined) {
-      return filteredData[0].fuelStationCount;
-    }
-    return filteredData.reduce((sum, d) => sum + d.totalVin, 0);
-  }, [filteredData]);
+  }), [totalStations, isSummaryView]);
 
   return (
     <div style={{ 

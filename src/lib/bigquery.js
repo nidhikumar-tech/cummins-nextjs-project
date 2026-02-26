@@ -1153,6 +1153,43 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
   }
 }
 
+// Fetches fuel station count per state per year for a given fuel type
+// Uses SUM(fuel_station_count) GROUP BY year, state to get accurate totals
+export async function getFuelStationCountByStateYear(fuelType) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+    return [];
+  }
+
+  const table = fuelType.toLowerCase() === 'electric'
+    ? process.env.BIGQUERY_TABLE_23_ELECTRIC
+    : process.env.BIGQUERY_TABLE_24_CNG;
+
+  const query = `
+    SELECT 
+      year,
+      state,
+      SUM(fuel_station_count) AS total_fuel_station_count
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
+    WHERE LOWER(fuel_type) = LOWER(@fuelType)
+    GROUP BY year, state
+    ORDER BY year, state
+  `;
+
+  const options = {
+    query: query,
+    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    params: { fuelType: fuelType },
+  };
+
+  try {
+    const [rows] = await bigquery.query(options);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching fuel station count data:", error);
+    throw error;
+  }
+}
+
 // Fetches CNG Line Plot data from Line_Plot_CNG_Final table
 // Returns data for Total Supply, Consumption by Sector, and Natural Gas Spot Price
 export async function getCNGLinePlotData(label = null) {
