@@ -1153,32 +1153,35 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
   }
 }
 
-// Fetches fuel station count per state per year for a given fuel type
-// Uses SUM(fuel_station_count) GROUP BY year, state to get accurate totals
-export async function getFuelStationCountByStateYear(fuelType) {
+// Fetches fuel station count per state from Combined_Fuel_Station table
+// Uses COUNT(*) GROUP BY State filtered by fuel_type_code
+export async function getFuelStationCountByState(fuelType) {
   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
     return [];
   }
 
-  const table = fuelType.toLowerCase() === 'electric'
-    ? process.env.BIGQUERY_TABLE_23_ELECTRIC
-    : process.env.BIGQUERY_TABLE_24_CNG;
+  // Map frontend fuel type to fuel_type_code in Combined_Fuel_Station
+  const fuelTypeCode = fuelType.toLowerCase() === 'electric' ? 'ELEC' : 'CNG';
+
+  // Exclude non-US states/territories: Canadian provinces (AB, BC, MB, NB, NL, NS, ON, PE, QC, SK) and aggregates (DC, US)
+  const excludedStates = ['DC', 'US', 'BC', 'MB', 'NB', 'NL', 'NS', 'ON', 'PE', 'QC', 'SK', 'AB'];
 
   const query = `
     SELECT 
-      year,
-      state,
-      SUM(fuel_station_count) AS total_fuel_station_count
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
-    WHERE LOWER(fuel_type) = LOWER(@fuelType)
-    GROUP BY year, state
-    ORDER BY year, state
+      State AS state,
+      COUNT(*) AS fuel_station_count
+    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_2}\`
+    WHERE fuel_type_code = @fuelTypeCode
+      AND State IS NOT NULL
+      AND State NOT IN UNNEST(@excludedStates)
+    GROUP BY State
+    ORDER BY State
   `;
 
   const options = {
     query: query,
     location: process.env.BIGQUERY_LOCATION_2 || 'US',
-    params: { fuelType: fuelType },
+    params: { fuelTypeCode, excludedStates },
   };
 
   try {

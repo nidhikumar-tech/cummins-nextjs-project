@@ -148,19 +148,17 @@ export default function FuelStationPieChart({ colors = DEFAULT_CONCENTRATION_COL
     };
   }, [filteredData, CONCENTRATION_COLORS]);
 
-  // Calculate fuel station count from the separate count API data
+  // Calculate fuel station count from the separate count API data (Combined_Fuel_Station has no year column)
   const totalStations = useMemo(() => {
     if (!stationCounts || stationCounts.length === 0) return 0;
-    // Filter counts for the selected year
-    const yearCounts = stationCounts.filter(item => String(item.year) === String(year));
     if (state === 'ALL') {
-      // Sum across all states for the selected year
-      return yearCounts.reduce((sum, item) => sum + (item.totalFuelStationCount || 0), 0);
+      // Sum across all states
+      return stationCounts.reduce((sum, item) => sum + (item.fuelStationCount || 0), 0);
     }
     // Find count for the specific state
-    const match = yearCounts.find(item => item.state?.toUpperCase() === state.toUpperCase());
-    return match ? match.totalFuelStationCount : 0;
-  }, [stationCounts, year, state]);
+    const match = stationCounts.find(item => item.state?.toUpperCase() === state.toUpperCase());
+    return match ? match.fuelStationCount : 0;
+  }, [stationCounts, state]);
 
   const options = useMemo(() => ({
     responsive: true,

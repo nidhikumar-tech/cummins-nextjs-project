@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getFuelStationCountByStateYear } from '@/lib/bigquery';
+import { getFuelStationCountByState } from '@/lib/bigquery';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
@@ -16,12 +16,11 @@ export async function GET(request) {
       );
     }
 
-    const rows = await getFuelStationCountByStateYear(fuelType);
+    const rows = await getFuelStationCountByState(fuelType);
 
     const formattedData = rows.map((row) => ({
-      year: parseInt(row.year),
       state: row.state,
-      totalFuelStationCount: parseInt(row.total_fuel_station_count) || 0,
+      fuelStationCount: parseInt(row.fuel_station_count) || 0,
     }));
 
     const response = NextResponse.json({
